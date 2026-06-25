@@ -13,16 +13,24 @@ export function AppointmentCard() {
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.client}>Martin Dupont</Text>
-        <Text style={styles.type}>Entretien chaudière</Text>
+        <Text style={styles.client} numberOfLines={1}>
+          Martin Dupont
+        </Text>
+        <Text style={styles.type} numberOfLines={1} ellipsizeMode="tail">
+          Entretien chaudière
+        </Text>
         <View style={styles.addressRow}>
-          <Feather name="map" size={14} color={Palette.textTertiary} />
-          <Text style={styles.address}>15 rue des Lilas, 69006 Lyon</Text>
+          <Feather name="map" size={14} color={Palette.textTertiary} style={styles.mapIcon} />
+          <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
+            15 rue des Lilas, 69006 Lyon
+          </Text>
         </View>
       </View>
 
       <View style={styles.statusPill}>
-        <Text style={styles.statusText}>En route</Text>
+        <Text style={styles.statusText} numberOfLines={1}>
+          En route
+        </Text>
       </View>
     </Pressable>
   );
@@ -39,7 +47,7 @@ const styles = StyleSheet.create({
   },
   timeColumn: {
     alignItems: 'center',
-    width: 52,
+    width: 44,
   },
   time: {
     fontSize: FontSize.body,
@@ -69,24 +77,28 @@ const styles = StyleSheet.create({
   },
   addressRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 8,
     gap: 6,
   },
+  mapIcon: {
+    marginTop: 1,
+  },
   address: {
+    flex: 1,
     fontSize: FontSize.small,
     color: Palette.textTertiary,
   },
   statusPill: {
     backgroundColor: Palette.blueSoft,
     borderRadius: Radius.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginLeft: Spacing.md,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: Spacing.sm,
     alignSelf: 'center',
   },
   statusText: {
-    fontSize: FontSize.label,
+    fontSize: FontSize.small,
     fontWeight: '700',
     color: Palette.blue,
   },

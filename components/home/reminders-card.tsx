@@ -37,7 +37,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
+    paddingVertical: Spacing.cardPadding + 2,
+    paddingHorizontal: Spacing.cardPadding,
     ...cardShadow,
   },
   iconTile: {
@@ -67,18 +68,18 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: 'row',
-    marginTop: 5,
+    marginTop: 7,
   },
   bullet: {
     fontSize: FontSize.label,
     color: Palette.textSecondary,
     marginRight: 7,
-    lineHeight: 21,
+    lineHeight: 22,
   },
   bulletText: {
     flex: 1,
     fontSize: FontSize.label,
     color: Palette.textSecondary,
-    lineHeight: 21,
+    lineHeight: 22,
   },
 });

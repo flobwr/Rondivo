@@ -46,6 +46,7 @@ export const Palette = {
 export const Spacing = {
   screen: 24, // general horizontal margin
   section: 24, // vertical gap between sections
+  sectionGap: 14, // compact vertical gap between large sections
   cardGap: 14, // gap between the 4 quick-action cards
   cardPadding: 20, // internal padding of cards
   xs: 4,

@@ -21,7 +21,7 @@ function ActionCard({ label, icon, color, background }: Action) {
   return (
     <Pressable style={styles.card}>
       <View style={[styles.iconTile, { backgroundColor: background }]}>
-        <Feather name={icon} size={22} color={color} />
+        <Feather name={icon} size={20} color={color} />
       </View>
       <Text
         style={styles.label}
@@ -44,7 +44,7 @@ export function QuickActions() {
   );
 }
 
-const TILE = 48;
+const TILE = 42;
 
 const styles = StyleSheet.create({
   row: {
@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 126,
+    minHeight: 98,
   },
   iconTile: {
     width: TILE,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.cardLabel,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
