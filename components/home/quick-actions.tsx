@@ -23,7 +23,13 @@ function ActionCard({ label, icon, color, background }: Action) {
       <View style={[styles.iconTile, { backgroundColor: background }]}>
         <Feather name={icon} size={22} color={color} />
       </View>
-      <Text style={styles.label}>{label}</Text>
+      <Text
+        style={styles.label}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -43,7 +49,7 @@ const TILE = 48;
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: Spacing.cardGap,
+    gap: Spacing.md,
   },
   card: {
     flex: 1,
@@ -68,5 +74,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.textPrimary,
     marginTop: Spacing.lg,
+    textAlign: 'center',
+    alignSelf: 'stretch',
   },
 });

@@ -66,7 +66,7 @@ export const FontSize = {
   hero: 32, // big client name on hero card
   title: 22, // user name
   section: 18, // section titles
-  cardLabel: 17, // labels of the 4 cards
+  cardLabel: 15, // labels of the 4 cards
   body: 16,
   label: 14,
   small: 13,

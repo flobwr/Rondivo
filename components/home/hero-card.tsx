@@ -23,15 +23,21 @@ export function HeroCard() {
         <View style={styles.footerInfo}>
           <View style={styles.footerColumn}>
             <Text style={styles.footerLabel}>DÉPART CONSEILLÉ</Text>
-            <Text style={styles.footerValueLarge}>10:12</Text>
+            <Text style={styles.footerValueLarge} numberOfLines={1}>
+              10:12
+            </Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.footerColumnGrow}>
             <Text style={styles.footerLabel}>TRAJET</Text>
-            <Text style={styles.footerValue}>18 min • 7,4 km</Text>
-            <Text style={styles.footerSub}>via Av. Félix Faure</Text>
+            <Text style={styles.footerValue} numberOfLines={1}>
+              18 min • 7,4 km
+            </Text>
+            <Text style={styles.footerSub} numberOfLines={1}>
+              via Av. Félix Faure
+            </Text>
           </View>
         </View>
 
@@ -43,7 +49,7 @@ export function HeroCard() {
   );
 }
 
-const GPS = 64;
+const GPS = 58;
 
 const styles = StyleSheet.create({
   card: {
@@ -85,16 +91,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerColumn: {
-    flexShrink: 0,
+    flexShrink: 1,
   },
   footerColumnGrow: {
-    flex: 1,
+    flexShrink: 0,
   },
   divider: {
     width: 1,
     alignSelf: 'stretch',
     backgroundColor: 'rgba(255,255,255,0.35)',
-    marginHorizontal: 10,
+    marginHorizontal: 8,
   },
   footerLabel: {
     color: Palette.white,
@@ -111,14 +117,14 @@ const styles = StyleSheet.create({
   },
   footerValue: {
     color: Palette.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     marginTop: 6,
   },
   footerSub: {
     color: Palette.white,
     opacity: 0.85,
-    fontSize: FontSize.small,
+    fontSize: FontSize.tiny,
     marginTop: 4,
   },
   gpsButton: {

@@ -28,23 +28,33 @@ export function Header() {
         <Text style={styles.avatarText}>FM</Text>
       </View>
 
-      <View style={styles.identity}>
-        <Text style={styles.name}>Florian Martin</Text>
-        <Text style={styles.role}>Chauffagiste</Text>
-      </View>
+      <View style={styles.main}>
+        <View style={styles.topRow}>
+          <View style={styles.identity}>
+            <Text style={styles.name} numberOfLines={1}>
+              Florian Martin
+            </Text>
+            <Text style={styles.role} numberOfLines={1}>
+              Chauffagiste
+            </Text>
+          </View>
 
-      <View style={styles.badge}>
-        <View style={styles.badgeDot} />
-        <Text style={styles.badgeText}>5 interventions{'\n'}aujourd&rsquo;hui</Text>
-      </View>
+          <View style={styles.actions}>
+            <RoundButton notificationCount={3}>
+              <Feather name="bell" size={20} color={Palette.textPrimary} />
+            </RoundButton>
+            <RoundButton>
+              <Ionicons name="settings-outline" size={20} color={Palette.textPrimary} />
+            </RoundButton>
+          </View>
+        </View>
 
-      <View style={styles.actions}>
-        <RoundButton notificationCount={3}>
-          <Feather name="bell" size={20} color={Palette.textPrimary} />
-        </RoundButton>
-        <RoundButton>
-          <Ionicons name="settings-outline" size={20} color={Palette.textPrimary} />
-        </RoundButton>
+        <View style={styles.badge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText} numberOfLines={1}>
+            5 interventions aujourd&rsquo;hui
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -71,8 +81,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  main: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   identity: {
-    marginLeft: 10,
+    flexShrink: 1,
+    paddingRight: Spacing.sm,
   },
   name: {
     fontSize: 20,
@@ -87,11 +107,13 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
     backgroundColor: Palette.pillBlueBg,
     borderRadius: Radius.pill,
     paddingHorizontal: 11,
-    paddingVertical: 8,
-    marginLeft: Spacing.sm,
+    paddingVertical: 7,
+    marginTop: 10,
     flexShrink: 1,
   },
   badgeDot: {
