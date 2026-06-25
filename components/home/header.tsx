@@ -24,37 +24,35 @@ function RoundButton({ children, notificationCount }: RoundButtonProps) {
 export function Header() {
   return (
     <View style={styles.container}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>FM</Text>
-      </View>
-
-      <View style={styles.main}>
-        <View style={styles.topRow}>
-          <View style={styles.identity}>
-            <Text style={styles.name} numberOfLines={1}>
-              Florian Martin
-            </Text>
-            <Text style={styles.role} numberOfLines={1}>
-              Chauffagiste
-            </Text>
-          </View>
-
-          <View style={styles.actions}>
-            <RoundButton notificationCount={3}>
-              <Feather name="bell" size={20} color={Palette.textPrimary} />
-            </RoundButton>
-            <RoundButton>
-              <Ionicons name="settings-outline" size={20} color={Palette.textPrimary} />
-            </RoundButton>
-          </View>
+      <View style={styles.topRow}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>FM</Text>
         </View>
 
-        <View style={styles.badge}>
-          <View style={styles.badgeDot} />
-          <Text style={styles.badgeText} numberOfLines={1}>
-            5 interventions aujourd&rsquo;hui
+        <View style={styles.identity}>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+            Florian Martin
+          </Text>
+          <Text style={styles.role} numberOfLines={1} ellipsizeMode="tail">
+            Chauffagiste
           </Text>
         </View>
+
+        <View style={styles.actions}>
+          <RoundButton notificationCount={3}>
+            <Feather name="bell" size={20} color={Palette.textPrimary} />
+          </RoundButton>
+          <RoundButton>
+            <Ionicons name="settings-outline" size={20} color={Palette.textPrimary} />
+          </RoundButton>
+        </View>
+      </View>
+
+      <View style={styles.badge}>
+        <View style={styles.badgeDot} />
+        <Text style={styles.badgeText} numberOfLines={1} ellipsizeMode="tail">
+          5 interventions aujourd&rsquo;hui
+        </Text>
       </View>
     </View>
   );
@@ -65,6 +63,9 @@ const BUTTON = 42;
 
 const styles = StyleSheet.create({
   container: {
+    // header is a vertical stack: top row + badge underneath
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -75,23 +76,15 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.blueAvatar,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.md,
   },
   avatarText: {
     color: Palette.white,
     fontSize: 18,
     fontWeight: '700',
   },
-  main: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   identity: {
-    flexShrink: 1,
+    flex: 1,
     paddingRight: Spacing.sm,
   },
   name: {
@@ -111,30 +104,27 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     backgroundColor: Palette.pillBlueBg,
     borderRadius: Radius.pill,
-    paddingHorizontal: 11,
+    paddingHorizontal: 12,
     paddingVertical: 7,
-    marginTop: 10,
-    flexShrink: 1,
+    marginTop: Spacing.md,
+    marginLeft: AVATAR + Spacing.md,
   },
   badgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: Palette.blue,
-    marginRight: 6,
+    marginRight: 7,
   },
   badgeText: {
     color: Palette.blue,
     fontSize: FontSize.small,
     fontWeight: '700',
-    lineHeight: 17,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 'auto',
-    paddingLeft: 6,
-    gap: 6,
+    gap: Spacing.sm,
   },
   roundButton: {
     width: BUTTON,

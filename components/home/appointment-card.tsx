@@ -31,7 +31,7 @@ export function AppointmentCard() {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
     padding: Spacing.cardPadding,
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   timeColumn: {
     alignItems: 'center',
-    width: 56,
+    width: 52,
   },
   time: {
     fontSize: FontSize.body,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.md,
   },
   client: {
     fontSize: FontSize.body,
@@ -82,7 +82,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.md,
+    alignSelf: 'center',
   },
   statusText: {
     fontSize: FontSize.label,

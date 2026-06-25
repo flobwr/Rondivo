@@ -63,22 +63,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.textPrimary,
     marginTop: 6,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   bulletRow: {
     flexDirection: 'row',
-    marginTop: 4,
+    marginTop: 5,
   },
   bullet: {
     fontSize: FontSize.label,
     color: Palette.textSecondary,
-    marginRight: 6,
-    lineHeight: 20,
+    marginRight: 7,
+    lineHeight: 21,
   },
   bulletText: {
     flex: 1,
     fontSize: FontSize.label,
     color: Palette.textSecondary,
-    lineHeight: 20,
+    lineHeight: 21,
   },
 });

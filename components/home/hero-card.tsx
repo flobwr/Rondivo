@@ -23,7 +23,11 @@ export function HeroCard() {
         <View style={styles.footerInfo}>
           <View style={styles.footerColumn}>
             <Text style={styles.footerLabel}>DÉPART CONSEILLÉ</Text>
-            <Text style={styles.footerValueLarge} numberOfLines={1}>
+            <Text
+              style={styles.footerValueLarge}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.9}>
               10:12
             </Text>
           </View>
@@ -32,10 +36,18 @@ export function HeroCard() {
 
           <View style={styles.footerColumnGrow}>
             <Text style={styles.footerLabel}>TRAJET</Text>
-            <Text style={styles.footerValue} numberOfLines={1}>
+            <Text
+              style={styles.footerValue}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}>
               18 min • 7,4 km
             </Text>
-            <Text style={styles.footerSub} numberOfLines={1}>
+            <Text
+              style={styles.footerSub}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}>
               via Av. Félix Faure
             </Text>
           </View>
@@ -88,10 +100,11 @@ const styles = StyleSheet.create({
   footerInfo: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   footerColumn: {
     flexShrink: 1,
+    minWidth: 72,
   },
   footerColumnGrow: {
     flexShrink: 0,
@@ -100,14 +113,14 @@ const styles = StyleSheet.create({
     width: 1,
     alignSelf: 'stretch',
     backgroundColor: 'rgba(255,255,255,0.35)',
-    marginHorizontal: 8,
+    marginHorizontal: 10,
   },
   footerLabel: {
     color: Palette.white,
     opacity: 0.85,
     fontSize: FontSize.tiny,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   footerValueLarge: {
     color: Palette.white,
