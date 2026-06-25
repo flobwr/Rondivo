@@ -1,30 +1,44 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
-const REMINDERS = ['Appeler M. Dupont à 14:00', 'Commander la pièce pour demain'];
+// Only the most urgent item is surfaced on the Home; everything else lives in
+// the dedicated "Rappels" page reachable through the "Voir tout" affordance.
+const REMINDER_COUNT = 2;
+const NEXT_REMINDER = 'Appeler M. Dupont à 14:00';
 
 export function RemindersCard() {
+  const router = useRouter();
+
   return (
-    <Pressable style={styles.card}>
+    <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
       <View style={styles.iconTile}>
         <Ionicons name="notifications" size={22} color={Palette.purple} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.eyebrow}>RAPPELS</Text>
-        <Text style={styles.title}>2 rappels aujourd&rsquo;hui</Text>
-        {REMINDERS.map((reminder) => (
-          <View key={reminder} style={styles.bulletRow}>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.bulletText}>{reminder}</Text>
-          </View>
-        ))}
-      </View>
+        <View style={styles.headerRow}>
+          <Text style={styles.eyebrow}>RAPPELS</Text>
+          {REMINDER_COUNT > 1 ? (
+            <View style={styles.seeAll}>
+              <Text style={styles.seeAllText}>Voir tout</Text>
+              <Feather name="chevron-right" size={15} color={Palette.blue} />
+            </View>
+          ) : null}
+        </View>
 
-      <Feather name="chevron-right" size={22} color={Palette.textTertiary} />
+        <Text style={styles.title}>{REMINDER_COUNT} rappels aujourd&rsquo;hui</Text>
+
+        <View style={styles.bulletRow}>
+          <Text style={styles.bullet}>•</Text>
+          <Text style={styles.bulletText} numberOfLines={1} ellipsizeMode="tail">
+            {NEXT_REMINDER}
+          </Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
@@ -37,8 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: Spacing.cardPadding + 2,
-    paddingHorizontal: Spacing.cardPadding,
+    padding: Spacing.cardPadding,
     ...cardShadow,
   },
   iconTile: {
@@ -53,33 +66,46 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: Spacing.lg,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   eyebrow: {
     fontSize: FontSize.tiny,
     fontWeight: '700',
     letterSpacing: 1,
     color: Palette.purple,
   },
+  seeAll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  seeAllText: {
+    fontSize: FontSize.small,
+    fontWeight: '700',
+    color: Palette.blue,
+    marginRight: 2,
+  },
   title: {
     fontSize: FontSize.body,
     fontWeight: '700',
     color: Palette.textPrimary,
-    marginTop: 6,
-    marginBottom: 10,
+    marginTop: 8,
   },
   bulletRow: {
     flexDirection: 'row',
-    marginTop: 7,
+    alignItems: 'center',
+    marginTop: 8,
   },
   bullet: {
     fontSize: FontSize.label,
     color: Palette.textSecondary,
     marginRight: 7,
-    lineHeight: 22,
   },
   bulletText: {
     flex: 1,
     fontSize: FontSize.label,
     color: Palette.textSecondary,
-    lineHeight: 22,
   },
 });

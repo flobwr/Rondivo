@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 98,
+    minHeight: 82,
   },
   iconTile: {
     width: TILE,
