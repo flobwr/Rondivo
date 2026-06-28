@@ -20,7 +20,7 @@ export function AppointmentCard() {
           Entretien chaudière
         </Text>
         <View style={styles.addressRow}>
-          <Feather name="map" size={14} color={Palette.textTertiary} style={styles.mapIcon} />
+          <Feather name="map" size={13} color={Palette.textTertiary} style={styles.mapIcon} />
           <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
             15 rue des Lilas, 69006 Lyon
           </Text>
@@ -29,7 +29,7 @@ export function AppointmentCard() {
 
       <View style={styles.statusPill}>
         <Text style={styles.statusText} numberOfLines={1}>
-          En route
+          Prochain
         </Text>
       </View>
     </Pressable>
@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.md,
   },
   client: {
-    fontSize: FontSize.body,
+    fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
+    letterSpacing: -0.2,
   },
   type: {
     fontSize: FontSize.label,
@@ -78,27 +79,28 @@ const styles = StyleSheet.create({
   addressRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 8,
-    gap: 6,
+    marginTop: 7,
+    gap: 5,
   },
   mapIcon: {
     marginTop: 1,
   },
   address: {
     flex: 1,
-    fontSize: FontSize.small,
+    fontSize: 11,
     color: Palette.textTertiary,
   },
   statusPill: {
     backgroundColor: Palette.blueSoft,
     borderRadius: Radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     marginLeft: Spacing.sm,
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
   statusText: {
-    fontSize: FontSize.small,
+    fontSize: 12,
     fontWeight: '700',
     color: Palette.blue,
   },

@@ -1,7 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { actionShadow } from '@/constants/shadow';
 
 type Action = {
   label: string;
@@ -18,18 +20,27 @@ const ACTIONS: Action[] = [
 ];
 
 function ActionCard({ label, icon, color, background }: Action) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () =>
+    Animated.timing(scale, { toValue: 0.98, duration: 120, useNativeDriver: true }).start();
+  const onPressOut = () =>
+    Animated.timing(scale, { toValue: 1, duration: 160, useNativeDriver: true }).start();
+
   return (
-    <Pressable style={styles.card}>
-      <View style={[styles.iconTile, { backgroundColor: background }]}>
-        <Feather name={icon} size={20} color={color} />
-      </View>
-      <Text
-        style={styles.label}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.8}>
-        {label}
-      </Text>
+    <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+        <View style={[styles.iconTile, { backgroundColor: background }]}>
+          <Feather name={icon} size={18} color={color} />
+        </View>
+        <Text
+          style={styles.label}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}>
+          {label}
+        </Text>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -44,23 +55,26 @@ export function QuickActions() {
   );
 }
 
-const TILE = 42;
+const TILE = 40;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: Spacing.md,
   },
-  card: {
+  wrapper: {
     flex: 1,
+  },
+  card: {
     backgroundColor: Palette.cardMuted,
     borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: Spacing.sm,
+    paddingVertical: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 82,
+    minHeight: 70,
+    ...actionShadow,
   },
   iconTile: {
     width: TILE,
@@ -73,8 +87,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.cardLabel,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: Spacing.sm,
+    marginTop: 5,
     textAlign: 'center',
     alignSelf: 'stretch',
+    paddingHorizontal: 4,
   },
 });

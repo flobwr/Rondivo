@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { heroShadow } from '@/constants/shadow';
 
 export function HeroCard() {
   return (
@@ -66,7 +67,9 @@ const GPS = 54;
 const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.hero,
-    padding: Spacing.cardPadding,
+    paddingHorizontal: Spacing.cardPadding,
+    paddingVertical: 14,
+    ...heroShadow,
   },
   eyebrow: {
     color: Palette.white,
@@ -79,12 +82,12 @@ const styles = StyleSheet.create({
     color: Palette.white,
     fontSize: FontSize.hero,
     fontWeight: '800',
-    marginTop: 10,
+    marginTop: 6,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 8,
     gap: 8,
   },
   metaText: {
@@ -95,7 +98,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 18,
   },
   footerInfo: {
     flex: 1,

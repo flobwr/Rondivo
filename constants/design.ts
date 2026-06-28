@@ -8,7 +8,7 @@
 
 export const Palette = {
   // Surfaces
-  screen: '#F6F7F9', // off-white app background
+  screen: '#F7F8FC', // off-white app background — just warm enough for cards to pop
   card: '#FFFFFF', // white cards (reminders, appointment)
   cardMuted: '#FAFBFC', // very light grey for the 4 quick-action cards
 

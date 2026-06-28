@@ -24,10 +24,11 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, Spacing.sm) }]}>
       {TABS.map((tab, index) => {
         const active = index === activeIndex;
-        const color = active ? Palette.blue : Palette.textTertiary;
+        const color = active ? '#1A50E2' : Palette.textTertiary;
+        const iconSize = active ? 26 : 24;
         return (
           <Pressable key={tab.label} style={styles.tab}>
-            <Feather name={tab.icon} size={24} color={color} />
+            <Feather name={tab.icon} size={iconSize} color={color} />
             <Text style={[styles.label, { color }]}>{tab.label}</Text>
           </Pressable>
         );

@@ -5,9 +5,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
-// Only the most urgent item is surfaced on the Home; everything else lives in
-// the dedicated "Rappels" page reachable through the "Voir tout" affordance.
-const REMINDER_COUNT = 2;
 const NEXT_REMINDER = 'Appeler M. Dupont à 14:00';
 
 export function RemindersCard() {
@@ -16,34 +13,27 @@ export function RemindersCard() {
   return (
     <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
       <View style={styles.iconTile}>
-        <Ionicons name="notifications" size={22} color={Palette.purple} />
+        <Ionicons name="notifications" size={20} color={Palette.purple} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.eyebrow}>RAPPELS</Text>
-          {REMINDER_COUNT > 1 ? (
-            <View style={styles.seeAll}>
-              <Text style={styles.seeAllText}>Voir tout</Text>
-              <Feather name="chevron-right" size={15} color={Palette.blue} />
-            </View>
-          ) : null}
+          <View style={styles.seeAll}>
+            <Text style={styles.seeAllText}>Voir tout</Text>
+            <Feather name="chevron-right" size={14} color={Palette.blue} />
+          </View>
         </View>
 
-        <Text style={styles.title}>{REMINDER_COUNT} rappels aujourd&rsquo;hui</Text>
-
-        <View style={styles.bulletRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.bulletText} numberOfLines={1} ellipsizeMode="tail">
-            {NEXT_REMINDER}
-          </Text>
-        </View>
+        <Text style={styles.reminder} numberOfLines={1} ellipsizeMode="tail">
+          {NEXT_REMINDER}
+        </Text>
       </View>
     </Pressable>
   );
 }
 
-const TILE = 48;
+const TILE = 42;
 
 const styles = StyleSheet.create({
   card: {
@@ -51,7 +41,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     ...cardShadow,
   },
   iconTile: {
@@ -61,10 +52,11 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.purpleSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   content: {
     flex: 1,
-    marginLeft: Spacing.lg,
+    marginLeft: Spacing.md,
   },
   headerRow: {
     flexDirection: 'row',
@@ -87,25 +79,10 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     marginRight: 2,
   },
-  title: {
-    fontSize: FontSize.body,
-    fontWeight: '700',
+  reminder: {
+    fontSize: FontSize.label,
+    fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: 8,
-  },
-  bulletRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  bullet: {
-    fontSize: FontSize.label,
-    color: Palette.textSecondary,
-    marginRight: 7,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: FontSize.label,
-    color: Palette.textSecondary,
+    marginTop: 5,
   },
 });

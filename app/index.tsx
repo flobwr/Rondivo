@@ -56,12 +56,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.section,
   },
   section: {
-    marginTop: Spacing.sectionGap,
+    marginTop: Spacing.section,
   },
   sectionTitle: {
     fontSize: FontSize.section,
     fontWeight: '700',
     color: Palette.textPrimary,
-    marginBottom: Spacing.md,
+    letterSpacing: -0.3,
+    marginBottom: 10,
   },
 });

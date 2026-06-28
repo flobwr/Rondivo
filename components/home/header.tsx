@@ -2,6 +2,7 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { badgeShadow, iconButtonShadow } from '@/constants/shadow';
 
 type RoundButtonProps = {
   children: React.ReactNode;
@@ -108,6 +109,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     marginTop: Spacing.md,
     marginLeft: AVATAR + Spacing.md,
+    ...badgeShadow,
   },
   badgeDot: {
     width: 6,
@@ -133,6 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF1F4',
     alignItems: 'center',
     justifyContent: 'center',
+    ...iconButtonShadow,
   },
   notificationBadge: {
     position: 'absolute',
