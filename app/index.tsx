@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.section,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.3,
-    marginBottom: 10,
+    letterSpacing: -0.4,
+    marginBottom: 12,
   },
 });

@@ -62,7 +62,7 @@ export function HeroCard() {
   );
 }
 
-const GPS = 54;
+const GPS = 50;
 
 const styles = StyleSheet.create({
   card: {
@@ -127,9 +127,9 @@ const styles = StyleSheet.create({
   },
   footerValueLarge: {
     color: Palette.white,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
-    marginTop: 6,
+    marginTop: 5,
   },
   footerValue: {
     color: Palette.white,

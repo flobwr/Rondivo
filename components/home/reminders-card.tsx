@@ -33,7 +33,7 @@ export function RemindersCard() {
   );
 }
 
-const TILE = 42;
+const TILE = 38;
 
 const styles = StyleSheet.create({
   card: {
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 14,
+    paddingVertical: 13,
     paddingHorizontal: 16,
     ...cardShadow,
   },
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: FontSize.small,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Palette.blue,
     marginRight: 2,
   },
@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.label,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: 5,
+    marginTop: 4,
   },
 });

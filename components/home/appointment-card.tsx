@@ -42,24 +42,26 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     ...cardShadow,
   },
   timeColumn: {
     alignItems: 'center',
-    width: 44,
+    width: 42,
   },
   time: {
     fontSize: FontSize.body,
     fontWeight: '700',
     color: Palette.textPrimary,
+    letterSpacing: -0.2,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Palette.blue,
-    marginTop: 12,
+    marginTop: 10,
   },
   info: {
     flex: 1,
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
   addressRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 7,
+    marginTop: 6,
     gap: 5,
   },
   mapIcon: {
@@ -93,15 +95,16 @@ const styles = StyleSheet.create({
   statusPill: {
     backgroundColor: Palette.blueSoft,
     borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     marginLeft: Spacing.sm,
     alignSelf: 'flex-start',
     marginTop: 2,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: Palette.blue,
+    letterSpacing: 0.1,
   },
 });

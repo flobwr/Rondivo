@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
@@ -37,7 +37,7 @@ function ActionCard({ label, icon, color, background }: Action) {
           style={styles.label}
           numberOfLines={1}
           adjustsFontSizeToFit
-          minimumFontScale={0.88}>
+          minimumFontScale={0.9}>
           {label}
         </Text>
       </Animated.View>
@@ -55,29 +55,30 @@ export function QuickActions() {
   );
 }
 
-// Tile 34px = -15% vs original 40px. Icon 16px, proportions premium.
-const TILE = 34;
-const TILE_RADIUS = 12;
-const ICON_SIZE = 16;
+// 30px tile = ~25% smaller than original 40px — compact, proportioned
+const TILE = 30;
+const TILE_RADIUS = 10;
+const ICON_SIZE = 14;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: Spacing.md,
+    // 10px gap slightly widens each card vs previous 12px
+    gap: 10,
   },
   wrapper: {
     flex: 1,
   },
   card: {
     backgroundColor: Palette.cardMuted,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    // paddingVertical identique haut/bas = alignement parfaitement symétrique
-    paddingVertical: 10,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E4E8EF',
+    // paddingVertical perfectly symmetric — icon and label equidistant from edges
+    paddingVertical: 8,
     alignItems: 'center',
-    // gap gère l'espace entre tile et texte — pas de marginTop sur le label
-    gap: 6,
+    // gap separates tile from label with a touch more air than before (7 vs 6)
+    gap: 7,
     ...actionShadow,
   },
   iconTile: {
@@ -88,12 +89,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: Palette.textPrimary,
     letterSpacing: -0.2,
-    lineHeight: 20,
+    lineHeight: 19,
     textAlign: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
   },
 });
