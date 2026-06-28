@@ -20,7 +20,7 @@ export function AppointmentCard() {
           Entretien chaudière
         </Text>
         <View style={styles.addressRow}>
-          <Feather name="map" size={13} color={Palette.textTertiary} style={styles.mapIcon} />
+          <Feather name="map" size={12} color={Palette.textTertiary} style={styles.mapIcon} />
           <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
             15 rue des Lilas, 69006 Lyon
           </Text>
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   dot: {
     width: 8,
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Palette.blue,
     marginTop: 10,
+    opacity: 0.85,
   },
   info: {
     flex: 1,
@@ -71,12 +72,14 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   type: {
-    fontSize: FontSize.label,
+    fontSize: 13,
+    fontWeight: '400',
     color: Palette.textSecondary,
-    marginTop: 4,
+    marginTop: 3,
+    letterSpacing: -0.1,
   },
   addressRow: {
     flexDirection: 'row',
@@ -86,11 +89,14 @@ const styles = StyleSheet.create({
   },
   mapIcon: {
     marginTop: 1,
+    opacity: 0.7,
   },
   address: {
     flex: 1,
     fontSize: 11,
+    fontWeight: '400',
     color: Palette.textTertiary,
+    letterSpacing: 0,
   },
   statusPill: {
     backgroundColor: Palette.blueSoft,
@@ -103,8 +109,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Palette.blue,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
   },
 });

@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette } from '@/constants/design';
 
 type Tab = {
   label: string;
@@ -21,15 +21,16 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, Spacing.sm) }]}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {TABS.map((tab, index) => {
         const active = index === activeIndex;
         const color = active ? '#1A50E2' : Palette.textTertiary;
-        const iconSize = active ? 26 : 24;
         return (
           <Pressable key={tab.label} style={styles.tab}>
-            <Feather name={tab.icon} size={iconSize} color={color} />
-            <Text style={[styles.label, { color }]}>{tab.label}</Text>
+            <Feather name={tab.icon} size={active ? 24 : 23} color={color} />
+            <Text style={[styles.label, { color, fontWeight: active ? '600' : '400' }]}>
+              {tab.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -43,16 +44,16 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.card,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.border,
-    paddingTop: Spacing.md,
-    paddingHorizontal: Spacing.sm,
+    paddingTop: 10,
+    paddingHorizontal: 6,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
   },
   label: {
     fontSize: FontSize.tiny,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
 });

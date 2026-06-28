@@ -11,7 +11,7 @@ type RoundButtonProps = {
 
 function RoundButton({ children, notificationCount }: RoundButtonProps) {
   return (
-    <Pressable style={styles.roundButton} hitSlop={6}>
+    <Pressable style={styles.roundButton} hitSlop={8}>
       {children}
       {notificationCount ? (
         <View style={styles.notificationBadge}>
@@ -41,10 +41,10 @@ export function Header() {
 
         <View style={styles.actions}>
           <RoundButton notificationCount={3}>
-            <Feather name="bell" size={20} color={Palette.textPrimary} />
+            <Feather name="bell" size={19} color={Palette.textPrimary} />
           </RoundButton>
           <RoundButton>
-            <Ionicons name="settings-outline" size={20} color={Palette.textPrimary} />
+            <Ionicons name="settings-outline" size={19} color={Palette.textPrimary} />
           </RoundButton>
         </View>
       </View>
@@ -59,13 +59,11 @@ export function Header() {
   );
 }
 
-const AVATAR = 52;
-const BUTTON = 42;
+const AVATAR = 48;
+const BUTTON = 38;
 
 const styles = StyleSheet.create({
-  container: {
-    // header is a vertical stack: top row + badge underneath
-  },
+  container: {},
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -77,26 +75,30 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.blueAvatar,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
+    marginRight: 12,
   },
   avatarText: {
     color: Palette.white,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   identity: {
     flex: 1,
     paddingRight: Spacing.sm,
   },
   name: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
     color: Palette.textPrimary,
+    letterSpacing: -0.4,
   },
   role: {
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '400',
     color: Palette.textSecondary,
     marginTop: 2,
+    letterSpacing: -0.1,
   },
   badge: {
     flexDirection: 'row',
@@ -105,44 +107,45 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     backgroundColor: Palette.pillBlueBg,
     borderRadius: Radius.pill,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11,
     paddingVertical: 5,
     marginTop: 8,
-    marginLeft: AVATAR + Spacing.md,
+    marginLeft: AVATAR + 12,
     ...badgeShadow,
   },
   badgeDot: {
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
     backgroundColor: Palette.blue,
-    marginRight: 7,
+    marginRight: 6,
   },
   badgeText: {
     color: Palette.blue,
     fontSize: FontSize.small,
-    fontWeight: '700',
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: 8,
   },
   roundButton: {
     width: BUTTON,
     height: BUTTON,
     borderRadius: BUTTON / 2,
-    backgroundColor: '#EFF1F4',
+    backgroundColor: '#ECEEF2',
     alignItems: 'center',
     justifyContent: 'center',
     ...iconButtonShadow,
   },
   notificationBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 18,
-    height: 18,
+    top: -3,
+    right: -3,
+    minWidth: 17,
+    height: 17,
     borderRadius: 9,
     backgroundColor: Palette.notification,
     alignItems: 'center',
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     color: Palette.white,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
   },
 });

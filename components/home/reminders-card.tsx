@@ -13,7 +13,7 @@ export function RemindersCard() {
   return (
     <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
       <View style={styles.iconTile}>
-        <Ionicons name="notifications" size={20} color={Palette.purple} />
+        <Ionicons name="notifications" size={19} color={Palette.purple} />
       </View>
 
       <View style={styles.content}>
@@ -21,7 +21,7 @@ export function RemindersCard() {
           <Text style={styles.eyebrow}>RAPPELS</Text>
           <View style={styles.seeAll}>
             <Text style={styles.seeAllText}>Voir tout</Text>
-            <Feather name="chevron-right" size={14} color={Palette.blue} />
+            <Feather name="chevron-right" size={13} color={Palette.blue} />
           </View>
         </View>
 
@@ -42,13 +42,13 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
     paddingVertical: 13,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     ...cardShadow,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: Radius.tile,
+    borderRadius: 12,
     backgroundColor: Palette.purpleSoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -66,23 +66,24 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: FontSize.tiny,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     color: Palette.purple,
   },
   seeAll: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 2,
   },
   seeAllText: {
-    fontSize: FontSize.small,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
     color: Palette.blue,
-    marginRight: 2,
   },
   reminder: {
     fontSize: FontSize.label,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Palette.textPrimary,
     marginTop: 4,
+    letterSpacing: -0.1,
   },
 });

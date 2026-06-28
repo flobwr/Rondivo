@@ -16,7 +16,7 @@ export function HeroCard() {
       <Text style={styles.client}>Martin Dupont</Text>
 
       <View style={styles.metaRow}>
-        <Ionicons name="time-outline" size={18} color={Palette.white} />
+        <Ionicons name="time-outline" size={17} color={Palette.white} />
         <Text style={styles.metaText}>10:30 {'•'} Entretien chaudière</Text>
       </View>
 
@@ -42,7 +42,7 @@ export function HeroCard() {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.85}>
-              18 min • 7,4 km
+              18 min {'•'} 7,4 km
             </Text>
             <Text
               style={styles.footerSub}
@@ -55,45 +55,49 @@ export function HeroCard() {
         </View>
 
         <Pressable style={styles.gpsButton} hitSlop={8}>
-          <Feather name="navigation" size={24} color={Palette.blue} />
+          <Feather name="navigation" size={22} color={Palette.blue} />
         </Pressable>
       </View>
     </LinearGradient>
   );
 }
 
-const GPS = 50;
+const GPS = 48;
 
 const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.hero,
     paddingHorizontal: Spacing.cardPadding,
-    paddingVertical: 14,
+    paddingTop: 16,
+    paddingBottom: 18,
     ...heroShadow,
   },
   eyebrow: {
     color: Palette.white,
-    opacity: 0.85,
-    fontSize: FontSize.small,
+    opacity: 0.75,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
   },
   client: {
     color: Palette.white,
     fontSize: FontSize.hero,
     fontWeight: '800',
-    marginTop: 6,
+    marginTop: 5,
+    letterSpacing: -0.8,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    gap: 8,
+    marginTop: 7,
+    gap: 7,
   },
   metaText: {
     color: Palette.white,
-    fontSize: FontSize.body,
+    fontSize: 15,
     fontWeight: '500',
+    opacity: 0.92,
+    letterSpacing: -0.1,
   },
   footer: {
     flexDirection: 'row',
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
   },
   footerColumn: {
     flexShrink: 1,
-    minWidth: 72,
+    minWidth: 70,
   },
   footerColumnGrow: {
     flexShrink: 0,
@@ -115,33 +119,36 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     alignSelf: 'stretch',
-    backgroundColor: 'rgba(255,255,255,0.35)',
-    marginHorizontal: 9,
+    backgroundColor: 'rgba(255,255,255,0.30)',
+    marginHorizontal: 12,
   },
   footerLabel: {
     color: Palette.white,
-    opacity: 0.85,
-    fontSize: 11,
+    opacity: 0.70,
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    letterSpacing: 1.0,
   },
   footerValueLarge: {
     color: Palette.white,
     fontSize: 26,
     fontWeight: '800',
-    marginTop: 5,
+    marginTop: 4,
+    letterSpacing: -0.5,
   },
   footerValue: {
     color: Palette.white,
     fontSize: 15,
-    fontWeight: '700',
-    marginTop: 6,
+    fontWeight: '600',
+    marginTop: 4,
+    letterSpacing: -0.1,
   },
   footerSub: {
     color: Palette.white,
-    opacity: 0.85,
+    opacity: 0.70,
     fontSize: FontSize.tiny,
-    marginTop: 4,
+    fontWeight: '500',
+    marginTop: 3,
   },
   gpsButton: {
     width: GPS,
@@ -150,6 +157,12 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: Spacing.md,
+    marginLeft: 14,
+    // Physical depth — makes the button feel pressable
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });

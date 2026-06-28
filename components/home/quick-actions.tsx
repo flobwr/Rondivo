@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
+import { Palette } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
@@ -22,10 +23,24 @@ const ACTIONS: Action[] = [
 function ActionCard({ label, icon, color, background }: Action) {
   const scale = useRef(new Animated.Value(1)).current;
 
-  const onPressIn = () =>
-    Animated.timing(scale, { toValue: 0.98, duration: 120, useNativeDriver: true }).start();
-  const onPressOut = () =>
-    Animated.timing(scale, { toValue: 1, duration: 160, useNativeDriver: true }).start();
+  const onPressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 300,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 4,
+      tension: 100,
+    }).start();
+  };
 
   return (
     <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>
@@ -55,15 +70,13 @@ export function QuickActions() {
   );
 }
 
-// 30px tile = ~25% smaller than original 40px — compact, proportioned
-const TILE = 30;
-const TILE_RADIUS = 10;
-const ICON_SIZE = 14;
+const TILE = 32;
+const TILE_RADIUS = 11;
+const ICON_SIZE = 15;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    // 10px gap slightly widens each card vs previous 12px
     gap: 10,
   },
   wrapper: {
@@ -74,10 +87,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E4E8EF',
-    // paddingVertical perfectly symmetric — icon and label equidistant from edges
-    paddingVertical: 8,
+    paddingVertical: 9,
     alignItems: 'center',
-    // gap separates tile from label with a touch more air than before (7 vs 6)
     gap: 7,
     ...actionShadow,
   },
@@ -89,11 +100,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
     color: Palette.textPrimary,
-    letterSpacing: -0.2,
-    lineHeight: 19,
+    letterSpacing: -0.1,
+    lineHeight: 18,
     textAlign: 'center',
     paddingHorizontal: 3,
   },
