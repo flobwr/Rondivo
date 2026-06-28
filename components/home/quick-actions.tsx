@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
@@ -31,13 +31,13 @@ function ActionCard({ label, icon, color, background }: Action) {
     <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <View style={[styles.iconTile, { backgroundColor: background }]}>
-          <Feather name={icon} size={18} color={color} />
+          <Feather name={icon} size={ICON_SIZE} color={color} />
         </View>
         <Text
           style={styles.label}
           numberOfLines={1}
           adjustsFontSizeToFit
-          minimumFontScale={0.8}>
+          minimumFontScale={0.88}>
           {label}
         </Text>
       </Animated.View>
@@ -55,7 +55,10 @@ export function QuickActions() {
   );
 }
 
-const TILE = 40;
+// Tile 34px = -15% vs original 40px. Icon 16px, proportions premium.
+const TILE = 34;
+const TILE_RADIUS = 12;
+const ICON_SIZE = 16;
 
 const styles = StyleSheet.create({
   row: {
@@ -67,29 +70,30 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Palette.cardMuted,
-    borderRadius: Radius.card,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: 5,
+    // paddingVertical identique haut/bas = alignement parfaitement symétrique
+    paddingVertical: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 70,
+    // gap gère l'espace entre tile et texte — pas de marginTop sur le label
+    gap: 6,
     ...actionShadow,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: Radius.tile,
+    borderRadius: TILE_RADIUS,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontSize: FontSize.cardLabel,
+    fontSize: 17,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: 5,
+    letterSpacing: -0.2,
+    lineHeight: 20,
     textAlign: 'center',
-    alignSelf: 'stretch',
     paddingHorizontal: 4,
   },
 });
