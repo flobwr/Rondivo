@@ -4,6 +4,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { badgeShadow, iconButtonShadow } from '@/constants/shadow';
 
+// Calculated from schedule context — replace with real logic
+const CONTEXT_LINE = 'Départ conseillé dans 18 min.';
+
 type RoundButtonProps = {
   children: React.ReactNode;
   notificationCount?: number;
@@ -49,11 +52,19 @@ export function Header() {
         </View>
       </View>
 
-      <View style={styles.badge}>
-        <View style={styles.badgeDot} />
-        <Text style={styles.badgeText} numberOfLines={1} ellipsizeMode="tail">
-          5 interventions aujourd&rsquo;hui
-        </Text>
+      <View style={styles.badgeRow}>
+        <View style={styles.badge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText} numberOfLines={1} ellipsizeMode="tail">
+            5 interventions aujourd&rsquo;hui
+          </Text>
+        </View>
+
+        {CONTEXT_LINE ? (
+          <Text style={styles.contextLine} numberOfLines={1} ellipsizeMode="tail">
+            {CONTEXT_LINE}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -100,6 +111,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
     letterSpacing: -0.1,
   },
+  badgeRow: {
+    marginLeft: AVATAR + 12,
+    marginTop: 8,
+    gap: 4,
+  },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -109,8 +125,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     paddingHorizontal: 11,
     paddingVertical: 5,
-    marginTop: 8,
-    marginLeft: AVATAR + 12,
     ...badgeShadow,
   },
   badgeDot: {
@@ -125,6 +139,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.small,
     fontWeight: '600',
     letterSpacing: -0.1,
+  },
+  contextLine: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: Palette.textSecondary,
+    letterSpacing: -0.1,
+    paddingLeft: 2,
   },
   actions: {
     flexDirection: 'row',

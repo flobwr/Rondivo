@@ -152,10 +152,7 @@ export default function HomeScreen() {
                   </View>
                 ) : (
                   <View style={styles.emptyDay}>
-                    <Text style={styles.emptyDayTitle}>C'est tout pour aujourd'hui</Text>
-                    <Text style={styles.emptyDaySub}>
-                      Toutes vos interventions sont terminées
-                    </Text>
+                    <Text style={styles.emptyDayTitle}>C'est tout pour aujourd'hui.</Text>
                   </View>
                 )}
               </View>
@@ -204,14 +201,8 @@ const styles = StyleSheet.create({
   },
   emptyDayTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: Palette.textPrimary,
-    letterSpacing: -0.2,
-  },
-  emptyDaySub: {
-    fontSize: 13,
+    fontWeight: '500',
     color: Palette.textSecondary,
-    marginTop: 4,
-    textAlign: 'center',
+    letterSpacing: -0.2,
   },
 });
