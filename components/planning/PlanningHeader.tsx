@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
 
 type Props = {
@@ -33,10 +33,11 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
           style={styles.addButton}
+          hitSlop={6}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <Feather name="plus" size={22} color={Palette.textPrimary} />
+          <Feather name="plus" size={22} color={Palette.blue} />
         </Pressable>
       </Animated.View>
     </View>
@@ -46,7 +47,7 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
     paddingTop: 14,
@@ -69,8 +70,10 @@ const styles = StyleSheet.create({
   addButton: {
     width: 44,
     height: 44,
-    borderRadius: Radius.tile,
+    borderRadius: 14,
     backgroundColor: Palette.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
     alignItems: 'center',
     justifyContent: 'center',
     ...iconButtonShadow,

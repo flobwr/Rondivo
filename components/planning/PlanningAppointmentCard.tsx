@@ -3,59 +3,76 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { PlanningAppointment, AppointmentStatus } from './types';
+import { Palette, Radius } from '@/constants/design';
+import { actionShadow } from '@/constants/shadow';
+import { AppointmentStatus, PlanningAppointment } from './types';
 
-// Status config
-const STATUS_CONFIG: Record<
-  AppointmentStatus,
-  {
-    borderColor: string;
-    dotColor: string;
-    badgeLabel?: string;
-    badgeBg?: string;
-    badgeColor?: string;
-    muted: boolean;
-    timeColor: string;
-    extraShadow: boolean;
-    icon?: 'check' | 'alert-circle' | 'radio';
-  }
-> = {
+// ── Per-status visual config ──────────────────────────────────────────────────
+// One source of truth so the hierarchy stays regular across every card.
+
+type StatusStyle = {
+  borderColor: string;
+  borderWidth: number;
+  dotBg: string;
+  dotBorder: string;
+  dotColor: string;
+  dotIcon?: 'check' | 'alert-circle';
+  badgeLabel?: string;
+  badgeBg?: string;
+  badgeColor?: string;
+  timeColor: string;
+  muted: boolean;
+  focal: boolean;
+};
+
+const STATUS_STYLE: Record<AppointmentStatus, StatusStyle> = {
   done: {
     borderColor: Palette.green,
+    borderWidth: 1,
+    dotBg: Palette.greenSoft,
+    dotBorder: Palette.green,
     dotColor: Palette.green,
+    dotIcon: 'check',
+    timeColor: Palette.textTertiary,
     muted: true,
-    timeColor: Palette.textSecondary,
-    extraShadow: false,
-    icon: 'check',
+    focal: false,
   },
   inProgress: {
     borderColor: Palette.blue,
+    borderWidth: 1.5,
+    dotBg: Palette.blueSoft,
+    dotBorder: Palette.blue,
     dotColor: Palette.blue,
     badgeLabel: 'EN COURS',
     badgeBg: Palette.blueSoft,
     badgeColor: Palette.blue,
-    muted: false,
     timeColor: Palette.blue,
-    extraShadow: true,
-    icon: 'radio',
+    muted: false,
+    focal: true,
   },
   urgent: {
     borderColor: Palette.orange,
+    borderWidth: 1.25,
+    dotBg: Palette.orangeSoft,
+    dotBorder: Palette.orange,
     dotColor: Palette.orange,
+    dotIcon: 'alert-circle',
     badgeLabel: 'URGENT',
     badgeBg: Palette.orangeSoft,
     badgeColor: Palette.orange,
-    muted: false,
     timeColor: Palette.orange,
-    extraShadow: false,
+    muted: false,
+    focal: false,
   },
   normal: {
     borderColor: Palette.border,
+    borderWidth: 1,
+    dotBg: Palette.screen,
+    dotBorder: Palette.border,
     dotColor: Palette.textTertiary,
-    muted: false,
     timeColor: Palette.textSecondary,
-    extraShadow: false,
+    muted: false,
+    focal: false,
   },
 };
 
@@ -65,51 +82,41 @@ type Props = {
 
 export function PlanningAppointmentCard({ appointment }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
-  const cfg = STATUS_CONFIG[appointment.status];
+  const s = STATUS_STYLE[appointment.status];
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    Animated.spring(scale, { toValue: 0.985, useNativeDriver: true, friction: 7, tension: 300 }).start();
   };
 
   const onPressOut = () => {
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
-  const cardStyle = [
-    styles.card,
-    { borderColor: cfg.borderColor },
-    cfg.muted && styles.cardMuted,
-    cfg.extraShadow && styles.cardInProgress,
-  ];
-
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
-      <Animated.View style={[cardStyle, { transform: [{ scale }] }]}>
-        {/* Left dot indicator */}
+      <Animated.View
+        style={[
+          styles.card,
+          { borderColor: s.borderColor, borderWidth: s.borderWidth },
+          s.focal ? styles.cardFocal : null,
+          s.muted ? styles.cardMuted : null,
+          { transform: [{ scale }] },
+        ]}>
+        {/* Status indicator */}
         <View style={styles.dotWrapper}>
-          {appointment.status === 'done' ? (
-            <View style={[styles.dotCircle, { backgroundColor: Palette.greenSoft, borderColor: Palette.green }]}>
-              <Feather name="check" size={10} color={Palette.green} />
-            </View>
-          ) : appointment.status === 'inProgress' ? (
-            <View style={[styles.dotCircle, { backgroundColor: Palette.blueSoft, borderColor: Palette.blue }]}>
-              <View style={[styles.dotInner, { backgroundColor: Palette.blue }]} />
-            </View>
-          ) : appointment.status === 'urgent' ? (
-            <View style={[styles.dotCircle, { backgroundColor: Palette.orangeSoft, borderColor: Palette.orange }]}>
-              <Feather name="alert-circle" size={10} color={Palette.orange} />
-            </View>
-          ) : (
-            <View style={[styles.dotCircle, { backgroundColor: Palette.screen, borderColor: Palette.border }]}>
-              <View style={[styles.dotInner, { backgroundColor: Palette.textTertiary }]} />
-            </View>
-          )}
+          <View style={[styles.dotCircle, { backgroundColor: s.dotBg, borderColor: s.dotBorder }]}>
+            {s.dotIcon ? (
+              <Feather name={s.dotIcon} size={11} color={s.dotColor} />
+            ) : (
+              <View style={[styles.dotInner, { backgroundColor: s.dotColor }]} />
+            )}
+          </View>
         </View>
 
-        {/* Info */}
+        {/* Primary info */}
         <View style={styles.info}>
-          <Text style={[styles.client, cfg.muted && styles.textMuted]} numberOfLines={1}>
+          <Text style={[styles.client, s.muted ? styles.clientMuted : null]} numberOfLines={1}>
             {appointment.client}
           </Text>
           <Text style={styles.type} numberOfLines={1}>
@@ -123,18 +130,14 @@ export function PlanningAppointmentCard({ appointment }: Props) {
           </View>
         </View>
 
-        {/* Right column: time + badge/duration */}
+        {/* Time + status */}
         <View style={styles.rightCol}>
-          <Text style={[styles.time, { color: cfg.timeColor }]}>{appointment.time}</Text>
+          <Text style={[styles.time, { color: s.timeColor }]}>{appointment.time}</Text>
           <Text style={styles.duration}>{appointment.duration}</Text>
 
-          {cfg.badgeLabel ? (
-            <View style={[styles.badge, { backgroundColor: cfg.badgeBg }]}>
-              <Text style={[styles.badgeText, { color: cfg.badgeColor }]}>{cfg.badgeLabel}</Text>
-            </View>
-          ) : appointment.status === 'done' ? (
-            <View style={[styles.badge, { backgroundColor: Palette.greenSoft }]}>
-              <Feather name="check" size={11} color={Palette.green} />
+          {s.badgeLabel ? (
+            <View style={[styles.badge, { backgroundColor: s.badgeBg }]}>
+              <Text style={[styles.badgeText, { color: s.badgeColor }]}>{s.badgeLabel}</Text>
             </View>
           ) : null}
         </View>
@@ -143,26 +146,18 @@ export function PlanningAppointmentCard({ appointment }: Props) {
   );
 }
 
-const inProgressShadow = Platform.select({
+// Focal (in-progress) card carries a slightly stronger, brand-tinted lift.
+// Every other card uses the barely-there action shadow from the design system,
+// so the eye lands on the current intervention first.
+const focalShadow = Platform.select({
   ios: {
     shadowColor: Palette.blue,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.14,
     shadowRadius: 16,
   },
   android: { elevation: 5 },
-  default: { boxShadow: '0px 6px 20px rgba(37, 99, 235, 0.14)' },
-});
-
-const baseShadow = Platform.select({
-  ios: {
-    shadowColor: Palette.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-  },
-  android: { elevation: 2 },
-  default: { boxShadow: '0px 4px 12px rgba(15, 23, 41, 0.06)' },
+  default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
 });
 
 const styles = StyleSheet.create({
@@ -170,40 +165,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: Palette.card,
-    borderRadius: 20,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingVertical: 12,
     paddingHorizontal: 14,
-    borderWidth: 1.5,
-    ...baseShadow,
+    ...actionShadow,
+  },
+  cardFocal: {
+    ...focalShadow,
   },
   cardMuted: {
-    opacity: 0.72,
-  },
-  cardInProgress: {
-    ...inProgressShadow,
+    opacity: 0.66,
   },
   dotWrapper: {
-    width: 30,
+    width: 26,
     alignItems: 'center',
-    paddingTop: 2,
+    paddingTop: 1,
   },
   dotCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dotInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
   info: {
     flex: 1,
     marginLeft: 10,
-    gap: 3,
+    gap: 2,
   },
   client: {
     fontSize: 16,
@@ -211,11 +205,11 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
-  textMuted: {
+  clientMuted: {
     color: Palette.textSecondary,
   },
   type: {
-    fontSize: FontSize.small,
+    fontSize: 13,
     fontWeight: '400',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -224,7 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
+    marginTop: 1,
   },
   address: {
     flex: 1,
@@ -234,32 +228,32 @@ const styles = StyleSheet.create({
   },
   rightCol: {
     alignItems: 'flex-end',
-    gap: 2,
+    gap: 1,
     marginLeft: 8,
-    minWidth: 56,
+    minWidth: 54,
   },
   time: {
-    fontSize: FontSize.label,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
   duration: {
-    fontSize: FontSize.small,
+    fontSize: 12,
     fontWeight: '400',
-    color: Palette.textSecondary,
+    color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
   badge: {
     borderRadius: Radius.pill,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    marginTop: 4,
+    marginTop: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
 });

@@ -1,79 +1,86 @@
 import { Feather } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius } from '@/constants/design';
 import { TravelLeg } from './types';
 
 type Props = {
   travel: TravelLeg;
+  onNavigate?: () => void;
 };
 
-export function TravelCard({ travel }: Props) {
+// A travel leg is a *connector*, not a card: lighter fill, no shadow, smaller.
+// It makes the day read as intervention → trajet → intervention.
+export function TravelCard({ travel, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scale, { toValue: 0.9, useNativeDriver: true, friction: 6, tension: 300 }).start();
+  };
+  const onPressOut = () => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+  };
 
   return (
-    <View style={styles.row}>
-      {/* left spacer to align with timeline */}
-      <View style={styles.timespacer} />
-
+    <View style={styles.wrapper}>
       <View style={styles.capsule}>
-        <View style={styles.carBubble}>
-          <Feather name="truck" size={13} color={Palette.textSecondary} />
-        </View>
+        <Feather name="truck" size={13} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min • {kmLabel} km
         </Text>
-      </View>
 
-      <View style={styles.navBtn}>
-        <Feather name="navigation" size={14} color={Palette.blue} />
+        <View style={styles.spacer} />
+
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <Pressable
+            hitSlop={8}
+            style={styles.navBtn}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            onPress={onNavigate}>
+            <Feather name="navigation" size={14} color={Palette.blue} />
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: Spacing.screen,
-    paddingRight: Spacing.screen,
-    marginVertical: 8,
-  },
-  timespacer: {
-    width: 54, // aligns with time column width in Timeline
+  wrapper: {
+    // vertically centre the slim capsule within the row's content height
+    justifyContent: 'center',
+    paddingVertical: 2,
   },
   capsule: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.card,
+    backgroundColor: Palette.cardMuted,
     borderRadius: Radius.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 8,
+    paddingVertical: 7,
+    paddingLeft: 12,
+    paddingRight: 6,
+    gap: 7,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
-  carBubble: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Palette.screen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   label: {
-    fontSize: FontSize.small,
+    fontSize: 12.5,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
+  spacer: {
+    flex: 1,
+  },
   navBtn: {
-    marginLeft: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',

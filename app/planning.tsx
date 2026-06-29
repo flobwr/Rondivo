@@ -3,7 +3,6 @@ import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
-import { FAB } from '@/components/planning/FAB';
 import { HorizontalCalendar } from '@/components/planning/HorizontalCalendar';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
@@ -145,7 +144,6 @@ export default function PlanningScreen() {
   };
 
   const currentItems = DAY_DATA[selectedDay] ?? [];
-  const selectedDayData = CALENDAR_DAYS[selectedDay];
   const monthLabel = 'JUIN 2025';
 
   return (
@@ -174,7 +172,6 @@ export default function PlanningScreen() {
         </Animated.View>
       </SafeAreaView>
 
-      <FAB bottom={20} />
       <BottomNav activeIndex={1} />
     </View>
   );
@@ -199,7 +196,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingTop: 4,
+    paddingBottom: 28,
   },
   emptyWrapper: {
     paddingHorizontal: Spacing.screen,
