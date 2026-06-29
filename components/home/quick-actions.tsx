@@ -68,7 +68,7 @@ export function QuickActions() {
 
 const TILE = 36;
 const TILE_RADIUS = 12;
-const ICON_SIZE = 16;
+const ICON_SIZE = 17;
 
 const styles = StyleSheet.create({
   row: {

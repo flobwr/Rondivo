@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+    opacity: 0.7,
   },
   seeAllText: {
     fontSize: 12,
