@@ -1,37 +1,77 @@
 import { Feather } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
-export function AppointmentCard() {
+export type Appointment = {
+  id: string;
+  time: string;
+  client: string;
+  type: string;
+  address: string;
+  status?: string;
+};
+
+type AppointmentCardProps = {
+  appointment: Appointment;
+};
+
+export function AppointmentCard({ appointment }: AppointmentCardProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scale, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 300,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 4,
+      tension: 120,
+    }).start();
+  };
+
   return (
-    <Pressable style={styles.card}>
-      <View style={styles.timeColumn}>
-        <Text style={styles.time}>10:30</Text>
-        <View style={styles.dot} />
-      </View>
-
-      <View style={styles.info}>
-        <Text style={styles.client} numberOfLines={1}>
-          Martin Dupont
-        </Text>
-        <Text style={styles.type} numberOfLines={1} ellipsizeMode="tail">
-          Entretien chaudière
-        </Text>
-        <View style={styles.addressRow}>
-          <Feather name="map" size={12} color={Palette.textTertiary} style={styles.mapIcon} />
-          <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
-            15 rue des Lilas, 69006 Lyon
-          </Text>
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+        <View style={styles.timeColumn}>
+          <Text style={styles.time}>{appointment.time}</Text>
+          <View style={styles.dot} />
         </View>
-      </View>
 
-      <View style={styles.statusPill}>
-        <Text style={styles.statusText} numberOfLines={1}>
-          Prochain
-        </Text>
-      </View>
+        <View style={styles.info}>
+          <Text style={styles.client} numberOfLines={1}>
+            {appointment.client}
+          </Text>
+          <Text style={styles.type} numberOfLines={1} ellipsizeMode="tail">
+            {appointment.type}
+          </Text>
+          <View style={styles.addressRow}>
+            <Feather name="map" size={12} color={Palette.textTertiary} style={styles.mapIcon} />
+            <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
+              {appointment.address}
+            </Text>
+          </View>
+        </View>
+
+        {appointment.status ? (
+          <View style={styles.statusPill}>
+            <Text style={styles.statusText} numberOfLines={1}>
+              {appointment.status}
+            </Text>
+          </View>
+        ) : null}
+      </Animated.View>
     </Pressable>
   );
 }

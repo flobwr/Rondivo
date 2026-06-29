@@ -14,10 +14,10 @@ type Action = {
 };
 
 const ACTIONS: Action[] = [
-  { label: 'Devis', icon: 'file-text', color: Palette.blue, background: Palette.blueSoft },
-  { label: 'Factures', icon: 'file-text', color: Palette.orange, background: Palette.orangeSoft },
+  { label: 'Nouveau devis', icon: 'file-text', color: Palette.blue, background: Palette.blueSoft },
+  { label: 'Nouveau client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft },
   { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft },
-  { label: 'Tâches', icon: 'check', color: Palette.green, background: Palette.greenSoft },
+  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft },
 ];
 
 function ActionCard({ label, icon, color, background }: Action) {
@@ -26,7 +26,7 @@ function ActionCard({ label, icon, color, background }: Action) {
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Animated.spring(scale, {
-      toValue: 0.97,
+      toValue: 0.95,
       useNativeDriver: true,
       friction: 5,
       tension: 300,
@@ -48,11 +48,7 @@ function ActionCard({ label, icon, color, background }: Action) {
         <View style={[styles.iconTile, { backgroundColor: background }]}>
           <Feather name={icon} size={ICON_SIZE} color={color} />
         </View>
-        <Text
-          style={styles.label}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.9}>
+        <Text style={styles.label} numberOfLines={2}>
           {label}
         </Text>
       </Animated.View>
@@ -87,7 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E4E8EF',
-    paddingVertical: 9,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
     alignItems: 'center',
     gap: 7,
     ...actionShadow,
@@ -100,12 +97,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '500',
     color: Palette.textPrimary,
     letterSpacing: -0.1,
-    lineHeight: 18,
+    lineHeight: 15,
     textAlign: 'center',
-    paddingHorizontal: 3,
   },
 });
