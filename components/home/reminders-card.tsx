@@ -1,93 +1,48 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
-const NEXT_REMINDER = 'Facture à créer — M. Dupont';
+// null = aucun rappel actif
+const NEXT_REMINDER: string | null = 'Créer la facture de M. Dupont.';
+
+const TILE = 38;
 
 export function RemindersCard() {
   const router = useRouter();
-  const [dismissed, setDismissed] = useState(false);
 
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-  const heightAnim = useRef(new Animated.Value(1)).current;
-  const emptyOpacity = useRef(new Animated.Value(0)).current;
-
-  const dismiss = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Animated.parallel([
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(heightAnim, {
-        toValue: 0,
-        duration: 340,
-        delay: 60,
-        useNativeDriver: false,
-      }),
-    ]).start(() => {
-      setDismissed(true);
-      Animated.timing(emptyOpacity, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }).start();
-    });
-  };
-
-  if (dismissed) {
+  if (!NEXT_REMINDER) {
     return (
-      <Animated.View style={{ opacity: emptyOpacity }}>
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>Aucun rappel.</Text>
-        </View>
-      </Animated.View>
+      <View style={styles.emptyCard}>
+        <Text style={styles.emptyText}>Aucun rappel.</Text>
+      </View>
     );
   }
 
-  const maxHeight = heightAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 120],
-  });
-
   return (
-    <Animated.View style={{ maxHeight, overflow: 'hidden' }}>
-      <Animated.View style={{ opacity: opacityAnim }}>
-        <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
-          <View style={styles.iconTile}>
-            <Ionicons name="notifications" size={19} color={Palette.purple} />
+    <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
+      <View style={styles.iconTile}>
+        <Ionicons name="notifications" size={19} color={Palette.purple} />
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={styles.eyebrow}>RAPPELS</Text>
+          <View style={styles.seeAll}>
+            <Text style={styles.seeAllText}>Voir tout</Text>
+            <Feather name="chevron-right" size={13} color={Palette.blue} />
           </View>
+        </View>
 
-          <View style={styles.content}>
-            <View style={styles.headerRow}>
-              <Text style={styles.eyebrow}>RAPPELS</Text>
-              <View style={styles.seeAll}>
-                <Text style={styles.seeAllText}>Voir tout</Text>
-                <Feather name="chevron-right" size={13} color={Palette.blue} />
-              </View>
-            </View>
-
-            <Text style={styles.reminder} numberOfLines={1} ellipsizeMode="tail">
-              {NEXT_REMINDER}
-            </Text>
-          </View>
-
-          <Pressable style={styles.doneButton} onPress={dismiss} hitSlop={12}>
-            <Feather name="check" size={15} color={Palette.green} />
-          </Pressable>
-        </Pressable>
-      </Animated.View>
-    </Animated.View>
+        <Text style={styles.reminder} numberOfLines={1} ellipsizeMode="tail">
+          {NEXT_REMINDER}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
-
-const TILE = 38;
 
 const styles = StyleSheet.create({
   card: {
@@ -139,16 +94,6 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     marginTop: 4,
     letterSpacing: -0.1,
-  },
-  doneButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Palette.greenSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: Spacing.sm,
-    flexShrink: 0,
   },
   emptyCard: {
     backgroundColor: Palette.card,

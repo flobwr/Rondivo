@@ -14,8 +14,8 @@ type Action = {
 };
 
 const ACTIONS: Action[] = [
-  { label: 'Nouveau devis', icon: 'file-text', color: Palette.blue, background: Palette.blueSoft },
-  { label: 'Nouveau client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft },
+  { label: 'Devis', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft },
+  { label: 'Client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft },
   { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft },
   { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft },
 ];
