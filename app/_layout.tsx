@@ -11,6 +11,7 @@ export default function RootLayout() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="planning" />
         <Stack.Screen name="rappels" />
       </Stack>
       <StatusBar style="dark" />
