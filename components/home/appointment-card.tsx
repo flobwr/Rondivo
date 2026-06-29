@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: Palette.blue,
     letterSpacing: 0,

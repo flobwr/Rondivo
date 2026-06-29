@@ -66,9 +66,9 @@ export function QuickActions() {
   );
 }
 
-const TILE = 32;
-const TILE_RADIUS = 11;
-const ICON_SIZE = 15;
+const TILE = 36;
+const TILE_RADIUS = 12;
+const ICON_SIZE = 16;
 
 const styles = StyleSheet.create({
   row: {
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E4E8EF',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 4,
     alignItems: 'center',
     gap: 7,
@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: Palette.textPrimary,
     letterSpacing: -0.1,
-    lineHeight: 15,
+    lineHeight: 17,
     textAlign: 'center',
   },
 });
