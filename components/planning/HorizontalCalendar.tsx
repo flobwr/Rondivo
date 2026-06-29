@@ -1,8 +1,8 @@
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/constants/design';
 import { CalendarDay } from './types';
 
 type Props = {
@@ -20,38 +20,64 @@ function DayCell({
   selected: boolean;
   onPress: () => void;
 }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+  // Single animated value drives the whole selected/unselected crossfade so the
+  // blue bubble appears to glide from one day to the next.
+  const sel = useRef(new Animated.Value(selected ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(sel, {
+      toValue: selected ? 1 : 0,
+      useNativeDriver: false, // animating colours
+      friction: 8,
+      tension: 140,
+    }).start();
+  }, [selected, sel]);
 
   const handlePressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.9, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    Animated.spring(pressScale, { toValue: 0.92, useNativeDriver: true, friction: 6, tension: 300 }).start();
   };
-
   const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
-  // dot color beneath the date
-  let dotColor: string | null = null;
-  if (day.hasUrgent) dotColor = Palette.orange;
-  else if (day.hasAppointments) dotColor = Palette.blue;
+  const baseDot = day.hasUrgent ? Palette.orange : day.hasAppointments ? Palette.blue : null;
+
+  const bubbleBg = sel.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(37, 99, 235, 0)', Palette.blue],
+  });
+  const numberColor = sel.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Palette.textPrimary, Palette.white],
+  });
+  const labelColor = sel.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Palette.textTertiary, Palette.white],
+  });
+  const dotColor = baseDot
+    ? sel.interpolate({ inputRange: [0, 1], outputRange: [baseDot, Palette.white] })
+    : undefined;
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-      <Animated.View style={[styles.cell, { transform: [{ scale }] }]}>
-        <Text style={[styles.dayLabel, selected && styles.dayLabelSelected]}>
+      {/* outer: native press scale */}
+      <Animated.View style={[styles.cell, { transform: [{ scale: pressScale }] }]}>
+        <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>
           {day.dayLabel}
-        </Text>
+        </Animated.Text>
 
-        <View style={[styles.dateBubble, selected && styles.dateBubbleSelected]}>
-          <Text style={[styles.dateNumber, selected && styles.dateNumberSelected]}>
+        {/* inner: JS-driven colour crossfade */}
+        <Animated.View style={[styles.dateBubble, { backgroundColor: bubbleBg }]}>
+          <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>
             {day.date}
-          </Text>
-        </View>
+          </Animated.Text>
+        </Animated.View>
 
         <View style={styles.dotRow}>
           {dotColor ? (
-            <View style={[styles.dot, { backgroundColor: selected ? Palette.card : dotColor }]} />
+            <Animated.View style={[styles.dot, { backgroundColor: dotColor }]} />
           ) : (
             <View style={styles.dotPlaceholder} />
           )}
@@ -67,6 +93,7 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
         contentContainerStyle={styles.scrollContent}>
         {days.map((day, index) => (
           <DayCell
@@ -77,76 +104,59 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
           />
         ))}
       </ScrollView>
-      <View style={styles.divider} />
     </View>
   );
 }
 
-const CELL_WIDTH = 52;
+const CELL_WIDTH = 50;
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.border,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screen - 4,
-    gap: 0,
+    paddingHorizontal: Spacing.screen - 5,
   },
   cell: {
     width: CELL_WIDTH,
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   dayLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: Palette.textTertiary,
+    fontWeight: '600',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    marginBottom: 5,
-  },
-  dayLabelSelected: {
-    color: Palette.white,
+    marginBottom: 6,
   },
   dateBubble: {
     width: 40,
     height: 40,
-    borderRadius: 13,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  dateBubbleSelected: {
-    backgroundColor: Palette.blue,
   },
   dateNumber: {
     fontSize: FontSize.body,
-    fontWeight: '600',
-    color: Palette.textPrimary,
+    fontWeight: '700',
     letterSpacing: -0.3,
   },
-  dateNumberSelected: {
-    color: Palette.white,
-    fontWeight: '700',
-  },
   dotRow: {
-    height: 8,
+    height: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: 5,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   dotPlaceholder: {
-    width: 6,
-    height: 6,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Palette.border,
-    marginHorizontal: Spacing.screen,
-    marginTop: 12,
+    width: 5,
+    height: 5,
   },
 });

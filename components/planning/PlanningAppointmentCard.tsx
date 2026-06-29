@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
@@ -78,30 +78,48 @@ const STATUS_STYLE: Record<AppointmentStatus, StatusStyle> = {
 
 type Props = {
   appointment: PlanningAppointment;
+  /** position in the list — drives a light staggered entrance */
+  index?: number;
+  onPress?: () => void;
 };
 
-export function PlanningAppointmentCard({ appointment }: Props) {
-  const scale = useRef(new Animated.Value(1)).current;
+export function PlanningAppointmentCard({ appointment, index = 0, onPress }: Props) {
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const enter = useRef(new Animated.Value(0)).current;
   const s = STATUS_STYLE[appointment.status];
+
+  useEffect(() => {
+    Animated.spring(enter, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 9,
+      tension: 80,
+      delay: index * 45,
+    }).start();
+  }, [enter, index]);
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.985, useNativeDriver: true, friction: 7, tension: 300 }).start();
+    Animated.spring(pressScale, { toValue: 0.985, useNativeDriver: true, friction: 7, tension: 300 }).start();
   };
 
   const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
+  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
+  const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] });
+  const scale = Animated.multiply(pressScale, enterScale);
+
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View
         style={[
           styles.card,
           { borderColor: s.borderColor, borderWidth: s.borderWidth },
           s.focal ? styles.cardFocal : null,
           s.muted ? styles.cardMuted : null,
-          { transform: [{ scale }] },
+          { opacity: s.muted ? Animated.multiply(enter, 0.66) : enter, transform: [{ translateY }, { scale }] },
         ]}>
         {/* Status indicator */}
         <View style={styles.dotWrapper}>
@@ -165,8 +183,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: Palette.card,
-    borderRadius: 18,
-    paddingVertical: 12,
+    borderRadius: Radius.card, // identical corners to the Home cards
+    paddingVertical: 11,
     paddingHorizontal: 14,
     ...actionShadow,
   },
@@ -174,7 +192,7 @@ const styles = StyleSheet.create({
     ...focalShadow,
   },
   cardMuted: {
-    opacity: 0.66,
+    // opacity is driven by the entrance animation (see component)
   },
   dotWrapper: {
     width: 26,

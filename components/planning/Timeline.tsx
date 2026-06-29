@@ -63,7 +63,7 @@ export function Timeline({ items }: Props) {
                 {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
               </View>
               <View style={styles.content}>
-                <TravelCard travel={item.data} />
+                <TravelCard travel={item.data} index={idx} />
               </View>
             </View>
           );
@@ -78,7 +78,7 @@ export function Timeline({ items }: Props) {
               <View style={[styles.dot, { backgroundColor: DOT_COLOR[apt.status] }]} />
             </View>
             <View style={styles.content}>
-              <PlanningAppointmentCard appointment={apt} />
+              <PlanningAppointmentCard appointment={apt} index={idx} />
             </View>
           </View>
         );
@@ -89,7 +89,6 @@ export function Timeline({ items }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 16,
     paddingHorizontal: Spacing.screen,
   },
   row: {

@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
@@ -8,68 +8,79 @@ import { TravelLeg } from './types';
 
 type Props = {
   travel: TravelLeg;
+  index?: number;
   onNavigate?: () => void;
 };
 
-// A travel leg is a *connector*, not a card: lighter fill, no shadow, smaller.
-// It makes the day read as intervention → trajet → intervention.
-export function TravelCard({ travel, onNavigate }: Props) {
+// A travel leg is a *connector*, not a card: lighter fill, no shadow, slim.
+// It belongs to the timeline and makes the day read as
+// intervention → trajet → intervention.
+export function TravelCard({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
-  const scale = useRef(new Animated.Value(1)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const enter = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(enter, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 9,
+      tension: 80,
+      delay: index * 45,
+    }).start();
+  }, [enter, index]);
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.9, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    Animated.spring(pressScale, { toValue: 0.9, useNativeDriver: true, friction: 6, tension: 300 }).start();
   };
   const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
   return (
-    <View style={styles.wrapper}>
+    <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
-        <Feather name="truck" size={13} color={Palette.textTertiary} />
+        <Feather name="truck" size={12} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min • {kmLabel} km
         </Text>
 
         <View style={styles.spacer} />
 
-        <Animated.View style={{ transform: [{ scale }] }}>
+        <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
             hitSlop={8}
             style={styles.navBtn}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onPress={onNavigate}>
-            <Feather name="navigation" size={14} color={Palette.blue} />
+            <Feather name="navigation" size={13} color={Palette.blue} />
           </Pressable>
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    // vertically centre the slim capsule within the row's content height
     justifyContent: 'center',
-    paddingVertical: 2,
   },
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Palette.cardMuted,
     borderRadius: Radius.pill,
-    paddingVertical: 7,
-    paddingLeft: 12,
-    paddingRight: 6,
+    paddingVertical: 6,
+    paddingLeft: 11,
+    paddingRight: 5,
     gap: 7,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
   label: {
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -78,9 +89,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',

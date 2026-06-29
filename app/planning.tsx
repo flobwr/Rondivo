@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
+import { EmptyState } from '@/components/planning/EmptyState';
 import { HorizontalCalendar } from '@/components/planning/HorizontalCalendar';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { CalendarDay, DayItem } from '@/components/planning/types';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette } from '@/constants/design';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -21,8 +22,7 @@ const CALENDAR_DAYS: CalendarDay[] = [
   { date: 5, dayLabel: 'DIM', hasAppointments: false, hasUrgent: false },
 ];
 
-// Selected day: Wednesday the 1st (index 2)
-const SELECTED_DAY_INDEX = 2;
+const SELECTED_DAY_INDEX = 2; // Wednesday the 1st
 
 const WEDNESDAY_ITEMS: DayItem[] = [
   {
@@ -33,14 +33,11 @@ const WEDNESDAY_ITEMS: DayItem[] = [
       duration: '1h00',
       client: 'Martin Faure',
       type: 'Entretien chaudière',
-      address: 'Au Félia Faure, 69003 Lyon',
+      address: 'Av. Félix Faure, 69003 Lyon',
       status: 'done',
     },
   },
-  {
-    kind: 'travel',
-    data: { id: 'travel-1', minutes: 12, km: 4.2 },
-  },
+  { kind: 'travel', data: { id: 'travel-1', minutes: 12, km: 4.2 } },
   {
     kind: 'appointment',
     data: {
@@ -53,10 +50,7 @@ const WEDNESDAY_ITEMS: DayItem[] = [
       status: 'inProgress',
     },
   },
-  {
-    kind: 'travel',
-    data: { id: 'travel-2', minutes: 18, km: 6.1 },
-  },
+  { kind: 'travel', data: { id: 'travel-2', minutes: 18, km: 6.1 } },
   {
     kind: 'appointment',
     data: {
@@ -69,10 +63,7 @@ const WEDNESDAY_ITEMS: DayItem[] = [
       status: 'normal',
     },
   },
-  {
-    kind: 'travel',
-    data: { id: 'travel-3', minutes: 7, km: 2.3 },
-  },
+  { kind: 'travel', data: { id: 'travel-3', minutes: 7, km: 2.3 } },
   {
     kind: 'appointment',
     data: {
@@ -87,10 +78,9 @@ const WEDNESDAY_ITEMS: DayItem[] = [
   },
 ];
 
-// Day data per calendar index — extend as needed
 const DAY_DATA: Record<number, DayItem[]> = {
-  0: [], // LUN 29 — empty
-  1: [], // MAR 30 — empty
+  0: [],
+  1: [],
   2: WEDNESDAY_ITEMS,
   3: [
     {
@@ -115,74 +105,74 @@ const DAY_DATA: Record<number, DayItem[]> = {
 
 export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
-  const fadeIn = useRef(new Animated.Value(0)).current;
-  const contentFade = useRef(new Animated.Value(1)).current;
+  const [headerH, setHeaderH] = useState(60);
 
-  // Fade in on mount
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
-    Animated.timing(fadeIn, {
-      toValue: 1,
-      duration: 260,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(fadeIn, { toValue: 1, duration: 260, useNativeDriver: true }).start();
   }, [fadeIn]);
 
-  // Animate content swap on day change
   const handleSelectDay = (index: number) => {
-    Animated.timing(contentFade, {
-      toValue: 0,
-      duration: 100,
-      useNativeDriver: true,
-    }).start(() => {
-      setSelectedDay(index);
-      Animated.timing(contentFade, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }).start();
-    });
+    if (index === selectedDay) return;
+    setSelectedDay(index); // Timeline is keyed on the day → it re-enters with stagger
   };
 
   const currentItems = DAY_DATA[selectedDay] ?? [];
-  const monthLabel = 'JUIN 2025';
+
+  // Collapsing title: the big "Planning" header fades and reclaims its height
+  // as the user scrolls, so the calendar slides up and stays reachable.
+  const titleHeight = scrollY.interpolate({
+    inputRange: [0, headerH],
+    outputRange: [headerH, 0],
+    extrapolate: 'clamp',
+  });
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [0, headerH * 0.6],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <Animated.View style={[{ flex: 1 }, { opacity: fadeIn }]}>
-          <PlanningHeader monthLabel={monthLabel} />
+        <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
+          {/* Collapsing title */}
+          <Animated.View style={{ height: titleHeight, opacity: titleOpacity, overflow: 'hidden' }}>
+            <View
+              onLayout={(e: LayoutChangeEvent) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0 && Math.abs(h - headerH) > 1) setHeaderH(h);
+              }}>
+              <PlanningHeader monthLabel="JUIN 2025" />
+            </View>
+          </Animated.View>
 
+          {/* Sticky calendar */}
           <HorizontalCalendar
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}
             onSelectDay={handleSelectDay}
           />
 
-          <ScrollView
+          <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}>
-            <Animated.View style={{ opacity: contentFade }}>
-              {currentItems.length > 0 ? (
-                <Timeline items={currentItems} />
-              ) : (
-                <EmptyDay />
-              )}
-            </Animated.View>
-          </ScrollView>
+            contentContainerStyle={styles.scrollContent}
+            scrollEventThrottle={16}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+              useNativeDriver: false,
+            })}>
+            {currentItems.length > 0 ? (
+              <Timeline key={selectedDay} items={currentItems} />
+            ) : (
+              <EmptyState key={`empty-${selectedDay}`} />
+            )}
+          </Animated.ScrollView>
         </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={1} />
-    </View>
-  );
-}
-
-function EmptyDay() {
-  return (
-    <View style={styles.emptyWrapper}>
-      <View style={styles.emptyCard}>
-        <Text style={styles.emptyText}>Aucune intervention ce jour.</Text>
-      </View>
     </View>
   );
 }
@@ -195,25 +185,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingTop: 4,
+    paddingTop: 16,
     paddingBottom: 28,
-  },
-  emptyWrapper: {
-    paddingHorizontal: Spacing.screen,
-    marginTop: 24,
-  },
-  emptyCard: {
-    backgroundColor: Palette.card,
-    borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Palette.textSecondary,
-    letterSpacing: -0.2,
   },
 });
