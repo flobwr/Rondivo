@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { EmptyState } from '@/components/planning/EmptyState';
+import { ErrorState } from '@/components/planning/ErrorState';
 import { HorizontalCalendar } from '@/components/planning/HorizontalCalendar';
+import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { CalendarDay, DayItem } from '@/components/planning/types';
@@ -101,74 +103,57 @@ const DAY_DATA: Record<number, DayItem[]> = {
   6: [],
 };
 
+type Status = 'loading' | 'error' | 'loaded';
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
-  const [headerH, setHeaderH] = useState(60);
-
+  const [status, setStatus] = useState<Status>('loading');
   const fadeIn = useRef(new Animated.Value(0)).current;
-  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeIn, { toValue: 1, duration: 260, useNativeDriver: true }).start();
+    const t = setTimeout(() => setStatus('loaded'), 850);
+    Animated.timing(fadeIn, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+    return () => clearTimeout(t);
   }, [fadeIn]);
 
-  const handleSelectDay = (index: number) => {
-    if (index === selectedDay) return;
-    setSelectedDay(index); // Timeline is keyed on the day → it re-enters with stagger
-  };
+  const handleSelectDay = useCallback((index: number) => {
+    setSelectedDay(index);
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    setStatus('loading');
+    const t = setTimeout(() => setStatus('loaded'), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   const currentItems = DAY_DATA[selectedDay] ?? [];
-
-  // Collapsing title: the big "Planning" header fades and reclaims its height
-  // as the user scrolls, so the calendar slides up and stays reachable.
-  const titleHeight = scrollY.interpolate({
-    inputRange: [0, headerH],
-    outputRange: [headerH, 0],
-    extrapolate: 'clamp',
-  });
-  const titleOpacity = scrollY.interpolate({
-    inputRange: [0, headerH * 0.6],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* Collapsing title */}
-          <Animated.View style={{ height: titleHeight, opacity: titleOpacity, overflow: 'hidden' }}>
-            <View
-              onLayout={(e: LayoutChangeEvent) => {
-                const h = e.nativeEvent.layout.height;
-                if (h > 0 && Math.abs(h - headerH) > 1) setHeaderH(h);
-              }}>
-              <PlanningHeader monthLabel="JUIN 2025" />
-            </View>
-          </Animated.View>
-
-          {/* Sticky calendar */}
+          {/* Fixed header — title, month, add button, calendar all stay put */}
+          <PlanningHeader monthLabel="JUIN 2025" />
           <HorizontalCalendar
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}
             onSelectDay={handleSelectDay}
           />
 
-          <Animated.ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            scrollEventThrottle={16}
-            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-              useNativeDriver: false,
-            })}>
-            {currentItems.length > 0 ? (
+          {/* Scrollable content, always starts below the fixed header */}
+          <View style={styles.content}>
+            {status === 'loading' ? (
+              <LoadingState />
+            ) : status === 'error' ? (
+              <ErrorState onRetry={handleRetry} />
+            ) : currentItems.length > 0 ? (
               <Timeline key={selectedDay} items={currentItems} />
             ) : (
               <EmptyState key={`empty-${selectedDay}`} />
             )}
-          </Animated.ScrollView>
+          </View>
         </Animated.View>
       </SafeAreaView>
 
@@ -188,8 +173,7 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  scrollContent: {
-    paddingTop: 16,
-    paddingBottom: 28,
+  content: {
+    flex: 1,
   },
 });

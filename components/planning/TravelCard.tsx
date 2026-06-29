@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
@@ -15,7 +15,7 @@ type Props = {
 // A travel leg is a *connector*, not a card: lighter fill, no shadow, slim.
 // It belongs to the timeline and makes the day read as
 // intervention → trajet → intervention.
-export function TravelCard({ travel, index = 0, onNavigate }: Props) {
+function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
@@ -62,6 +62,8 @@ export function TravelCard({ travel, index = 0, onNavigate }: Props) {
     </Animated.View>
   );
 }
+
+export const TravelCard = memo(TravelCardBase);
 
 const styles = StyleSheet.create({
   wrapper: {

@@ -1,9 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FontSize, Palette, Spacing } from '@/constants/design';
 import { CalendarDay } from './types';
+
+const CELL_WIDTH = 50;
+const SCROLL_PAD = Spacing.screen - 5;
 
 type Props = {
   days: CalendarDay[];
@@ -48,6 +51,11 @@ function DayCell({
     inputRange: [0, 1],
     outputRange: ['rgba(37, 99, 235, 0)', Palette.blue],
   });
+  // subtle spring pop while the selection settles
+  const bubbleScale = sel.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 1.07, 1],
+  });
   const numberColor = sel.interpolate({
     inputRange: [0, 1],
     outputRange: [Palette.textPrimary, Palette.white],
@@ -68,8 +76,9 @@ function DayCell({
           {day.dayLabel}
         </Animated.Text>
 
-        {/* inner: JS-driven colour crossfade */}
-        <Animated.View style={[styles.dateBubble, { backgroundColor: bubbleBg }]}>
+        {/* inner: JS-driven colour crossfade + spring pop */}
+        <Animated.View
+          style={[styles.dateBubble, { backgroundColor: bubbleBg, transform: [{ scale: bubbleScale }] }]}>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>
             {day.date}
           </Animated.Text>
@@ -88,12 +97,26 @@ function DayCell({
 }
 
 export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) {
+  const scrollRef = useRef<ScrollView>(null);
+  const viewportW = useRef(Dimensions.get('window').width);
+
+  // Keep the selected day centred horizontally on every change.
+  useEffect(() => {
+    const cellCenter = SCROLL_PAD + selectedIndex * CELL_WIDTH + CELL_WIDTH / 2;
+    const x = Math.max(0, cellCenter - viewportW.current / 2);
+    scrollRef.current?.scrollTo({ x, animated: true });
+  }, [selectedIndex]);
+
   return (
     <View style={styles.wrapper}>
       <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
+        onLayout={(e: LayoutChangeEvent) => {
+          viewportW.current = e.nativeEvent.layout.width;
+        }}
         contentContainerStyle={styles.scrollContent}>
         {days.map((day, index) => (
           <DayCell
@@ -107,8 +130,6 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
     </View>
   );
 }
-
-const CELL_WIDTH = 50;
 
 const styles = StyleSheet.create({
   wrapper: {

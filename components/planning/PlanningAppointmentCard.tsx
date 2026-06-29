@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
@@ -83,7 +83,7 @@ type Props = {
   onPress?: () => void;
 };
 
-export function PlanningAppointmentCard({ appointment, index = 0, onPress }: Props) {
+function PlanningAppointmentCardBase({ appointment, index = 0, onPress }: Props) {
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
   const s = STATUS_STYLE[appointment.status];
@@ -163,6 +163,8 @@ export function PlanningAppointmentCard({ appointment, index = 0, onPress }: Pro
     </Pressable>
   );
 }
+
+export const PlanningAppointmentCard = memo(PlanningAppointmentCardBase);
 
 // Focal (in-progress) card carries a slightly stronger, brand-tinted lift.
 // Every other card uses the barely-there action shadow from the design system,
