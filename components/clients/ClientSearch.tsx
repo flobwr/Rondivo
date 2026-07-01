@@ -34,7 +34,7 @@ export function ClientSearch({ value, onChangeText, onFilterPress, filtersActive
         <TextInput
           value={value}
           onChangeText={onChangeText}
-          placeholder="Rechercher un client, téléphone, adresse..."
+          placeholder="Rechercher un client…"
           placeholderTextColor={Palette.textTertiary}
           style={styles.input}
           returnKeyType="search"
@@ -42,7 +42,13 @@ export function ClientSearch({ value, onChangeText, onFilterPress, filtersActive
         />
       </View>
 
-      <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onFilterPress} hitSlop={8}>
+      <Pressable
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        onPress={onFilterPress}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Filtrer et trier">
         <Animated.View style={[styles.filterButton, { transform: [{ scale }] }]}>
           <Feather name="filter" size={19} color={Palette.textPrimary} />
           {filtersActive ? <View style={styles.dot} /> : null}

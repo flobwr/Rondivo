@@ -1,5 +1,17 @@
-import { Client } from '@/components/clients/types';
+import {
+  type Client,
+  type ClientStatus,
+  type SortKey,
+} from '@/components/clients/types';
 
+/**
+ * Mocked client dataset.
+ *
+ * The screen never touches this array directly — it goes through
+ * {@link fetchClientsPage}, a stand-in for a paginated Supabase query. When the
+ * backend lands, only that function (and {@link getClientById}) needs to change;
+ * every filter/sort/pagination call site stays identical.
+ */
 export const CLIENTS: Client[] = [
   {
     id: '1',
@@ -13,10 +25,13 @@ export const CLIENTS: Client[] = [
     priority: 0,
     highlightText: '1 facture impayée',
     highlightTint: 'red',
+    highlightIcon: 'alert-circle',
     lastInterventionLabel: 'il y a 12 jours',
     lastInterventionDaysAgo: 12,
     interventionsCount: 8,
     quotesPending: 2,
+    revenue: 4200,
+    unpaidInvoices: 1,
     footerIcon: 'check-circle',
     footerText: 'Client fidèle depuis 2022',
     footerTint: 'green',
@@ -35,10 +50,13 @@ export const CLIENTS: Client[] = [
     priority: 1,
     highlightText: 'Devis envoyé il y a 9 jours',
     highlightTint: 'orange',
+    highlightIcon: 'file-text',
     lastInterventionLabel: 'il y a 26 jours',
     lastInterventionDaysAgo: 26,
     interventionsCount: 5,
     quotesPending: 1,
+    revenue: 3100,
+    unpaidInvoices: 0,
     footerIcon: 'clock',
     footerText: 'Répond sous 3 à 7 jours',
     footerTint: 'orange',
@@ -57,10 +75,13 @@ export const CLIENTS: Client[] = [
     priority: 3,
     highlightText: 'Dernière intervention : hier',
     highlightTint: 'green',
+    highlightIcon: 'check-circle',
     lastInterventionLabel: 'hier',
     lastInterventionDaysAgo: 1,
     interventionsCount: 12,
     quotesPending: 0,
+    revenue: 9800,
+    unpaidInvoices: 0,
     footerIcon: 'check-circle',
     footerText: 'Excellente relation client',
     footerTint: 'green',
@@ -79,10 +100,13 @@ export const CLIENTS: Client[] = [
     priority: 1,
     highlightText: 'Devis en attente il y a 16 jours',
     highlightTint: 'orange',
+    highlightIcon: 'file-text',
     lastInterventionLabel: 'il y a 2 mois',
     lastInterventionDaysAgo: 60,
     interventionsCount: 3,
     quotesPending: 1,
+    revenue: 1500,
+    unpaidInvoices: 0,
     footerIcon: 'clock',
     footerText: 'Relance recommandée',
     footerTint: 'orange',
@@ -101,10 +125,13 @@ export const CLIENTS: Client[] = [
     priority: 2,
     highlightText: 'Premier contact',
     highlightTint: 'blue',
+    highlightIcon: 'user-plus',
     lastInterventionLabel: 'aucune',
     lastInterventionDaysAgo: 9999,
     interventionsCount: 0,
     quotesPending: 0,
+    revenue: 0,
+    unpaidInvoices: 0,
     footerIcon: 'user-plus',
     footerText: 'Ajouté le 08/06/2025',
     footerTint: 'blue',
@@ -123,10 +150,13 @@ export const CLIENTS: Client[] = [
     priority: 3,
     highlightText: 'Toutes les factures payées',
     highlightTint: 'green',
+    highlightIcon: 'check-circle',
     lastInterventionLabel: 'il y a 8 jours',
     lastInterventionDaysAgo: 8,
     interventionsCount: 6,
     quotesPending: 0,
+    revenue: 5600,
+    unpaidInvoices: 0,
     footerIcon: 'check-circle',
     footerText: 'Client fidèle depuis 2021',
     footerTint: 'green',
@@ -145,10 +175,13 @@ export const CLIENTS: Client[] = [
     priority: 0,
     highlightText: '2 factures impayées',
     highlightTint: 'red',
+    highlightIcon: 'alert-circle',
     lastInterventionLabel: 'il y a 34 jours',
     lastInterventionDaysAgo: 34,
     interventionsCount: 4,
     quotesPending: 0,
+    revenue: 3800,
+    unpaidInvoices: 2,
     footerIcon: 'alert-circle',
     footerText: 'Paiement en retard',
     footerTint: 'red',
@@ -167,10 +200,13 @@ export const CLIENTS: Client[] = [
     priority: 3,
     highlightText: 'Dernière intervention : il y a 3 jours',
     highlightTint: 'green',
+    highlightIcon: 'check-circle',
     lastInterventionLabel: 'il y a 3 jours',
     lastInterventionDaysAgo: 3,
     interventionsCount: 9,
     quotesPending: 0,
+    revenue: 7300,
+    unpaidInvoices: 0,
     footerIcon: 'check-circle',
     footerText: 'Client fidèle depuis 2020',
     footerTint: 'green',
@@ -189,10 +225,13 @@ export const CLIENTS: Client[] = [
     priority: 2,
     highlightText: 'Premier contact',
     highlightTint: 'blue',
+    highlightIcon: 'user-plus',
     lastInterventionLabel: 'aucune',
     lastInterventionDaysAgo: 9999,
     interventionsCount: 0,
     quotesPending: 1,
+    revenue: 0,
+    unpaidInvoices: 0,
     footerIcon: 'user-plus',
     footerText: 'Ajouté le 21/06/2025',
     footerTint: 'blue',
@@ -211,10 +250,13 @@ export const CLIENTS: Client[] = [
     priority: 1,
     highlightText: 'Devis envoyé il y a 5 jours',
     highlightTint: 'orange',
+    highlightIcon: 'file-text',
     lastInterventionLabel: 'il y a 40 jours',
     lastInterventionDaysAgo: 40,
     interventionsCount: 2,
     quotesPending: 1,
+    revenue: 1200,
+    unpaidInvoices: 0,
     footerIcon: 'clock',
     footerText: 'Répond généralement vite',
     footerTint: 'orange',
@@ -233,10 +275,13 @@ export const CLIENTS: Client[] = [
     priority: 3,
     highlightText: 'Dernière intervention : il y a 6 jours',
     highlightTint: 'green',
+    highlightIcon: 'check-circle',
     lastInterventionLabel: 'il y a 6 jours',
     lastInterventionDaysAgo: 6,
     interventionsCount: 15,
     quotesPending: 0,
+    revenue: 12400,
+    unpaidInvoices: 0,
     footerIcon: 'check-circle',
     footerText: 'Client fidèle depuis 2019',
     footerTint: 'green',
@@ -255,10 +300,13 @@ export const CLIENTS: Client[] = [
     priority: 0,
     highlightText: '1 facture impayée',
     highlightTint: 'red',
+    highlightIcon: 'alert-circle',
     lastInterventionLabel: 'il y a 21 jours',
     lastInterventionDaysAgo: 21,
     interventionsCount: 7,
     quotesPending: 0,
+    revenue: 5100,
+    unpaidInvoices: 1,
     footerIcon: 'alert-circle',
     footerText: 'Échéance dépassée',
     footerTint: 'red',
@@ -277,10 +325,13 @@ export const CLIENTS: Client[] = [
     priority: 3,
     highlightText: 'Toutes les factures payées',
     highlightTint: 'green',
+    highlightIcon: 'check-circle',
     lastInterventionLabel: 'il y a 15 jours',
     lastInterventionDaysAgo: 15,
     interventionsCount: 10,
     quotesPending: 0,
+    revenue: 8600,
+    unpaidInvoices: 0,
     footerIcon: 'check-circle',
     footerText: 'Client fidèle depuis 2023',
     footerTint: 'green',
@@ -299,10 +350,13 @@ export const CLIENTS: Client[] = [
     priority: 1,
     highlightText: 'Devis en attente il y a 11 jours',
     highlightTint: 'orange',
+    highlightIcon: 'file-text',
     lastInterventionLabel: 'il y a 50 jours',
     lastInterventionDaysAgo: 50,
     interventionsCount: 4,
     quotesPending: 1,
+    revenue: 2400,
+    unpaidInvoices: 0,
     footerIcon: 'clock',
     footerText: 'Relance recommandée',
     footerTint: 'orange',
@@ -310,6 +364,99 @@ export const CLIENTS: Client[] = [
     createdAt: '2024-04-19',
   },
 ];
+
+// ── Query layer (server-style) ─────────────────────────────────────────────
+// Everything below mimics what a backend endpoint would do: filter, sort and
+// paginate. It is intentionally pure + framework-free so it can be lifted into
+// an edge function or a React Query `queryFn` unchanged.
+
+export type ClientQuery = {
+  search: string;
+  statuses: ClientStatus[];
+  sort: SortKey;
+};
+
+export const CLIENTS_PAGE_SIZE = 6;
+
+function normalize(text: string) {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
+}
+
+function matchesSearch(client: Client, query: string) {
+  if (!query) return true;
+  const q = normalize(query);
+  return [client.name, client.phone, client.address, client.email, client.company ?? '']
+    .some((field) => normalize(field).includes(q));
+}
+
+const COMPARATORS: Record<SortKey, (a: Client, b: Client) => number> = {
+  priority: (a, b) => a.priority - b.priority || a.lastInterventionDaysAgo - b.lastInterventionDaysAgo,
+  name: (a, b) => a.name.localeCompare(b.name, 'fr'),
+  recent: (a, b) => a.lastInterventionDaysAgo - b.lastInterventionDaysAgo,
+  created: (a, b) => b.createdAt.localeCompare(a.createdAt),
+  interventions: (a, b) => b.interventionsCount - a.interventionsCount,
+  revenue: (a, b) => b.revenue - a.revenue,
+  unpaid: (a, b) => b.unpaidInvoices - a.unpaidInvoices || a.priority - b.priority,
+};
+
+/** Pure filter + sort. Returns the full result set (no pagination). */
+export function queryClients(query: ClientQuery, source: Client[] = CLIENTS): Client[] {
+  const filtered = source.filter(
+    (client) =>
+      matchesSearch(client, query.search) &&
+      (query.statuses.length === 0 || query.statuses.includes(client.status))
+  );
+  return filtered.sort(COMPARATORS[query.sort]);
+}
+
+/** Count of clients per status across the whole dataset (drives the stat cards). */
+export function countByStatus(source: Client[] = CLIENTS): Record<ClientStatus, number> {
+  const result: Record<ClientStatus, number> = {
+    'action-required': 0,
+    'follow-up': 0,
+    'up-to-date': 0,
+    new: 0,
+  };
+  for (const client of source) result[client.status] += 1;
+  return result;
+}
+
+export type ClientsPage = {
+  items: Client[];
+  page: number;
+  total: number;
+  hasMore: boolean;
+};
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Mocked paginated fetch. Swap the body for a Supabase `.range()` query and the
+ * rest of the app keeps working. `shouldFail` lets the UI exercise its error
+ * state on demand.
+ */
+export async function fetchClientsPage(
+  query: ClientQuery,
+  page: number,
+  { shouldFail = false, delay = page === 1 ? 650 : 500 }: { shouldFail?: boolean; delay?: number } = {}
+): Promise<ClientsPage> {
+  await wait(delay);
+  if (shouldFail) throw new Error('network');
+
+  const all = queryClients(query);
+  const start = (page - 1) * CLIENTS_PAGE_SIZE;
+  const items = all.slice(start, start + CLIENTS_PAGE_SIZE);
+  return {
+    items,
+    page,
+    total: all.length,
+    hasMore: start + CLIENTS_PAGE_SIZE < all.length,
+  };
+}
 
 export function getClientById(id: string): Client | undefined {
   return CLIENTS.find((client) => client.id === id);

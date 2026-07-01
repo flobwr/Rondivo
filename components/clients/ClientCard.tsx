@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { ClientQuickActions } from '@/components/clients/ClientQuickActions';
@@ -18,11 +18,43 @@ type ClientCardProps = {
   onNavigate: (client: Client) => void;
 };
 
+/** Compact relative label for the top-right slot — kept short on purpose so it
+ *  never competes with the client name for width. Returns null when there is
+ *  nothing meaningful to show (brand-new clients). */
+function shortLastLabel(daysAgo: number): string | null {
+  if (daysAgo >= 9999) return null;
+  if (daysAgo <= 0) return "Auj.";
+  if (daysAgo === 1) return 'Hier';
+  if (daysAgo < 31) return `${daysAgo} j`;
+  const months = Math.round(daysAgo / 30);
+  return `${months} mois`;
+}
+
+function StatChip({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  value: string | number;
+  label: string;
+}) {
+  return (
+    <View style={styles.statChip}>
+      <Feather name={icon} size={13} color={Palette.textTertiary} />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 function ClientCardComponent({ client, variant, onPress, onCall, onNavigate }: ClientCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
-  const accentColor = STATUS_META[client.status].color;
+  const accentColor = STATUS_META[client.status].accent;
   const highlightColor = TINT_COLORS[client.highlightTint].color;
-  const footerColor = TINT_COLORS[client.footerTint].color;
+  const lastLabel = shortLastLabel(client.lastInterventionDaysAgo);
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -38,16 +70,18 @@ function ClientCardComponent({ client, variant, onPress, onCall, onNavigate }: C
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={() => onPress(client)}>
         <Animated.View style={[styles.compactCard, { transform: [{ scale }] }]}>
           <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          <ClientAvatar initials={client.initials} tint={client.avatarTint} size={40} />
+          <ClientAvatar initials={client.initials} tint={client.avatarTint} size={38} />
           <View style={styles.compactInfo}>
             <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
               {client.name}
             </Text>
-            <Text style={styles.compactPhone} numberOfLines={1}>
-              {client.phone}
-            </Text>
+            <View style={styles.compactMetaRow}>
+              <Feather name={client.highlightIcon} size={12} color={highlightColor} />
+              <Text style={[styles.compactMeta, { color: highlightColor }]} numberOfLines={1} ellipsizeMode="tail">
+                {client.highlightText}
+              </Text>
+            </View>
           </View>
-          <ClientStatusBadge status={client.status} />
           <Feather name="chevron-right" size={19} color={Palette.textTertiary} style={styles.compactChevron} />
         </Animated.View>
       </Pressable>
@@ -59,79 +93,50 @@ function ClientCardComponent({ client, variant, onPress, onCall, onNavigate }: C
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
 
-        <View style={styles.topRow}>
+        {/* Identity */}
+        <View style={styles.header}>
           <ClientAvatar initials={client.initials} tint={client.avatarTint} />
 
           <View style={styles.identity}>
-            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-              {client.name}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+                {client.name}
+              </Text>
+              {lastLabel ? <Text style={styles.timeAgo}>{lastLabel}</Text> : null}
+            </View>
 
             <View style={styles.badgeRow}>
               <ClientStatusBadge status={client.status} />
             </View>
-
-            <View style={styles.metaRow}>
-              <Feather name="map-pin" size={12} color={Palette.textTertiary} />
-              <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
-                {client.address}
-              </Text>
-            </View>
-
-            <View style={styles.metaRow}>
-              <Feather name="phone" size={12} color={Palette.textTertiary} />
-              <Text style={styles.metaText} numberOfLines={1}>
-                {client.phone}
-              </Text>
-            </View>
           </View>
+        </View>
 
-          <View style={styles.highlightCol}>
-            <Text style={[styles.highlightText, { color: highlightColor }]} numberOfLines={2}>
-              {client.highlightText}
-            </Text>
-            <Text style={styles.highlightSub} numberOfLines={1}>
-              Dernière intervention {client.lastInterventionLabel}
-            </Text>
-          </View>
+        {/* Address */}
+        <View style={styles.metaRow}>
+          <Feather name="map-pin" size={13} color={Palette.textTertiary} />
+          <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="tail">
+            {client.address}
+          </Text>
+        </View>
+
+        {/* Primary status — full width so it never truncates */}
+        <View style={styles.highlightRow}>
+          <Feather name={client.highlightIcon} size={14} color={highlightColor} />
+          <Text style={[styles.highlightText, { color: highlightColor }]} numberOfLines={1} ellipsizeMode="tail">
+            {client.highlightText}
+          </Text>
         </View>
 
         <View style={styles.divider} />
 
-        <View style={styles.footer}>
-          <View style={styles.statsRow}>
-            <View style={styles.statGroup}>
-              <View style={styles.statTop}>
-                <Feather name="calendar" size={12} color={Palette.textTertiary} />
-                <Text style={styles.statValue}>{client.interventionsCount}</Text>
-              </View>
-              <Text style={styles.statLabel} numberOfLines={1}>
-                interventions
-              </Text>
-            </View>
+        {/* Counts */}
+        <View style={styles.statsRow}>
+          <StatChip icon="calendar" value={client.interventionsCount} label="interventions" />
+          <StatChip icon="file-text" value={client.quotesPending || '—'} label="devis" />
+        </View>
 
-            <View style={styles.footerDivider} />
-
-            <View style={styles.statGroup}>
-              <View style={styles.statTop}>
-                <Feather name="file-text" size={12} color={Palette.textTertiary} />
-                <Text style={styles.statValue}>{client.quotesPending || '—'}</Text>
-              </View>
-              <Text style={styles.statLabel} numberOfLines={1}>
-                devis en attente
-              </Text>
-            </View>
-
-            <View style={styles.footerDivider} />
-
-            <View style={styles.statusGroup}>
-              <Feather name={client.footerIcon} size={13} color={footerColor} />
-              <Text style={[styles.statusText, { color: footerColor }]} numberOfLines={1} ellipsizeMode="tail">
-                {client.footerText}
-              </Text>
-            </View>
-          </View>
-
+        {/* Actions */}
+        <View style={styles.actions}>
           <ClientQuickActions
             onCall={() => onCall(client)}
             onNavigate={() => onNavigate(client)}
@@ -151,8 +156,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
     overflow: 'hidden',
     ...cardShadow,
   },
@@ -162,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
     paddingVertical: 12,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     overflow: 'hidden',
     gap: 12,
     ...cardShadow,
@@ -174,30 +179,42 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: ACCENT_WIDTH,
   },
-  topRow: {
+
+  header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   identity: {
     flex: 1,
-    marginLeft: Spacing.md,
-    marginRight: Spacing.sm,
+    marginLeft: 12,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   name: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
-  badgeRow: {
-    alignSelf: 'flex-start',
-    marginTop: 5,
+  timeAgo: {
+    marginLeft: 8,
+    fontSize: 12,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
   },
+  badgeRow: {
+    marginTop: 7,
+  },
+
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 5,
+    gap: 7,
+    marginTop: 12,
   },
   metaText: {
     flex: 1,
@@ -206,83 +223,71 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
-  highlightCol: {
-    alignItems: 'flex-end',
-    maxWidth: 112,
+
+  highlightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: 8,
   },
   highlightText: {
+    flex: 1,
     fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'right',
+    fontWeight: '600',
     letterSpacing: -0.1,
   },
-  highlightSub: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    marginTop: 4,
-    textAlign: 'right',
-  },
+
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
-    marginVertical: 14,
+    marginVertical: 13,
   },
-  footer: {
-    gap: 12,
-  },
+
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 18,
   },
-  statGroup: {
-    flexShrink: 0,
-  },
-  statTop: {
+  statChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
+    flexShrink: 1,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '700',
     color: Palette.textPrimary,
+    letterSpacing: -0.2,
   },
   statLabel: {
-    fontSize: 10.5,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    marginTop: 2,
-  },
-  footerDivider: {
-    width: StyleSheet.hairlineWidth,
-    alignSelf: 'stretch',
-    backgroundColor: Palette.border,
-    marginHorizontal: 12,
-  },
-  statusGroup: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minWidth: 0,
-  },
-  statusText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: -0.1,
-  },
-  compactInfo: {
-    flex: 1,
-  },
-  compactPhone: {
     fontSize: 12.5,
     fontWeight: '400',
     color: Palette.textTertiary,
-    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+
+  actions: {
+    marginTop: 14,
+  },
+
+  // Compact
+  compactInfo: {
+    flex: 1,
+  },
+  compactMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 3,
+  },
+  compactMeta: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   compactChevron: {
-    marginLeft: 2,
+    marginLeft: 4,
   },
 });

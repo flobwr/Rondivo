@@ -2,51 +2,43 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
+  Platform,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ClientCard } from '@/components/clients/ClientCard';
-import { ClientFilters } from '@/components/clients/ClientFilters';
+import { ClientFilterSheet } from '@/components/clients/ClientFilterSheet';
 import { ClientHeader } from '@/components/clients/ClientHeader';
+import { ClientListSkeleton } from '@/components/clients/ClientCardSkeleton';
+import { ClientsEmptyState, ClientsErrorState } from '@/components/clients/ClientListStates';
 import { ClientSearch } from '@/components/clients/ClientSearch';
 import { ClientStats } from '@/components/clients/ClientStats';
-import { SORT_META, type Client, type ClientStatus, type SortKey, type ViewMode } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { CLIENTS } from '@/data/clients';
+import {
+  type Client,
+  type ClientStatus,
+  type SortKey,
+  type ViewMode,
+} from '@/components/clients/types';
+import { Palette, Spacing } from '@/constants/design';
+import { countByStatus } from '@/data/clients';
+import { useClients } from '@/hooks/use-clients';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { usePersistentState } from '@/hooks/use-persistent-state';
 
-function normalize(text: string) {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
-}
+type StatKey = ClientStatus | 'new-clients';
 
-function matchesQuery(client: Client, query: string) {
-  if (!query) return true;
-  const q = normalize(query);
-  return (
-    normalize(client.name).includes(q) ||
-    normalize(client.phone).includes(q) ||
-    normalize(client.address).includes(q) ||
-    normalize(client.email).includes(q) ||
-    (client.company ? normalize(client.company).includes(q) : false)
-  );
-}
-
-function sortClients(clients: Client[], sortKey: SortKey) {
-  const sorted = [...clients];
-  if (sortKey === 'name') {
-    sorted.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortKey === 'recent') {
-    sorted.sort((a, b) => a.lastInterventionDaysAgo - b.lastInterventionDaysAgo);
-  } else {
-    sorted.sort((a, b) => a.priority - b.priority || a.lastInterventionDaysAgo - b.lastInterventionDaysAgo);
-  }
-  return sorted;
-}
-
-function statKeyToStatus(key: ClientStatus | 'new-clients'): ClientStatus {
+function statKeyToStatus(key: StatKey): ClientStatus {
   return key === 'new-clients' ? 'new' : key;
 }
 
@@ -54,32 +46,33 @@ export default function ClientsScreen() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<ClientStatus[]>([]);
-  const [sortKey, setSortKey] = useState<SortKey>('priority');
-  const [viewMode, setViewMode] = useState<ViewMode>('comfortable');
+  // Sort + view are remembered across visits within the session.
+  const [sortKey, setSortKey] = usePersistentState<SortKey>('clients.sort', 'priority');
+  const [viewMode, setViewMode] = usePersistentState<ViewMode>('clients.view', 'comfortable');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const counts = useMemo(() => {
-    const result: Record<ClientStatus, number> = {
-      'action-required': 0,
-      'follow-up': 0,
-      'up-to-date': 0,
-      new: 0,
-    };
-    for (const client of CLIENTS) {
-      result[client.status] += 1;
-    }
-    return result;
-  }, []);
+  // The input stays instant; the query (and thus the fetch) settles after typing.
+  const debouncedSearch = useDebouncedValue(searchQuery, 280);
+  const query = useMemo(
+    () => ({ search: debouncedSearch, statuses: selectedStatuses, sort: sortKey }),
+    [debouncedSearch, selectedStatuses, sortKey]
+  );
 
-  const visibleClients = useMemo(() => {
-    const filtered = CLIENTS.filter(
-      (client) =>
-        matchesQuery(client, searchQuery) &&
-        (selectedStatuses.length === 0 || selectedStatuses.includes(client.status))
-    );
-    return sortClients(filtered, sortKey);
-  }, [searchQuery, selectedStatuses, sortKey]);
+  const {
+    clients,
+    isInitialLoading,
+    isRefreshing,
+    isLoadingMore,
+    error,
+    total,
+    refresh,
+    loadMore,
+    retry,
+  } = useClients(query);
+
+  // Stat cards reflect the whole dataset, independent of the active filters.
+  const counts = useMemo(() => countByStatus(), []);
 
   const toggleStatus = useCallback((status: ClientStatus) => {
     setSelectedStatuses((prev) =>
@@ -88,7 +81,7 @@ export default function ClientsScreen() {
   }, []);
 
   const handleStatSelect = useCallback(
-    (key: ClientStatus | 'new-clients') => {
+    (key: StatKey) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       toggleStatus(statKeyToStatus(key));
     },
@@ -98,15 +91,17 @@ export default function ClientsScreen() {
   const resetFilters = useCallback(() => {
     setSelectedStatuses([]);
     setSortKey('priority');
-  }, []);
+    setSearchQuery('');
+  }, [setSortKey]);
 
   const toggleViewMode = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setViewMode((prev) => (prev === 'comfortable' ? 'compact' : 'comfortable'));
-  }, []);
+  }, [setViewMode]);
 
   const handleAddPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // Creation flow not built yet — the button is wired and ready for it.
     Alert.alert('Nouveau client', 'Le formulaire de création arrive bientôt.');
   }, []);
 
@@ -124,11 +119,11 @@ export default function ClientsScreen() {
 
   const handleNavigate = useCallback((client: Client) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const query = encodeURIComponent(client.address);
+    const q = encodeURIComponent(client.address);
     const url = Platform.select({
-      ios: `maps://?daddr=${query}`,
-      android: `geo:0,0?q=${query}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${query}`,
+      ios: `maps://?daddr=${q}`,
+      android: `geo:0,0?q=${q}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${q}`,
     });
     Linking.openURL(url!);
   }, []);
@@ -146,94 +141,115 @@ export default function ClientsScreen() {
     [viewMode, handleOpenClient, handleCall, handleNavigate]
   );
 
-  const activeStatCount = selectedStatuses.length;
+  const filtersActive = selectedStatuses.length > 0 || sortKey !== 'priority';
+  const activeStatKey: StatKey | null =
+    selectedStatuses.length === 1
+      ? selectedStatuses[0] === 'new'
+        ? 'new-clients'
+        : selectedStatuses[0]
+      : null;
+
+  const listHeader = (
+    <View>
+      <ClientStats
+        counts={counts}
+        newClientsCount={counts.new}
+        activeKey={activeStatKey}
+        onSelect={handleStatSelect}
+      />
+
+      <View style={styles.toolbar}>
+        <Text style={styles.count}>
+          {isInitialLoading ? 'Chargement…' : `${total} client${total > 1 ? 's' : ''}`}
+        </Text>
+
+        <Pressable
+          style={styles.viewToggle}
+          onPress={toggleViewMode}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={viewMode === 'comfortable' ? 'Vue compacte' : 'Vue détaillée'}>
+          <Feather
+            name={viewMode === 'comfortable' ? 'list' : 'grid'}
+            size={17}
+            color={Palette.textPrimary}
+          />
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const listEmpty = isInitialLoading ? (
+    <ClientListSkeleton />
+  ) : error ? (
+    <ClientsErrorState onRetry={retry} />
+  ) : (
+    <ClientsEmptyState hasQuery={filtersActive || searchQuery.length > 0} onReset={resetFilters} />
+  );
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {/* Fixed — keeps the search field focused while typing */}
+        <View style={styles.fixedHeader}>
+          <ClientHeader onAddPress={handleAddPress} />
+          <View style={styles.searchWrap}>
+            <ClientSearch
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onFilterPress={() => setFiltersOpen(true)}
+              filtersActive={filtersActive}
+            />
+          </View>
+        </View>
+
         <FlatList
-          data={visibleClients}
+          data={clients}
           keyExtractor={(client) => client.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
+          ListHeaderComponent={listHeader}
+          ListEmptyComponent={listEmpty}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          initialNumToRender={8}
-          maxToRenderPerBatch={8}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
           windowSize={9}
           removeClippedSubviews
-          ListHeaderComponent={
-            <View style={styles.header}>
-              <ClientHeader onAddPress={handleAddPress} />
-
-              <View style={styles.section}>
-                <ClientSearch
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  onFilterPress={() => setFiltersOpen((prev) => !prev)}
-                  filtersActive={activeStatCount > 0}
-                />
-              </View>
-
-              <View style={styles.section}>
-                <ClientFilters
-                  visible={filtersOpen}
-                  selectedStatuses={selectedStatuses}
-                  onToggleStatus={toggleStatus}
-                  sortKey={sortKey}
-                  onChangeSort={setSortKey}
-                  onReset={resetFilters}
-                />
-              </View>
-
-              <View style={styles.section}>
-                <ClientStats
-                  counts={counts}
-                  newClientsCount={counts.new}
-                  activeKey={
-                    selectedStatuses.length === 1
-                      ? selectedStatuses[0] === 'new'
-                        ? 'new-clients'
-                        : selectedStatuses[0]
-                      : null
-                  }
-                  onSelect={handleStatSelect}
-                />
-              </View>
-
-              <View style={styles.toolbar}>
-                <Text style={styles.count}>{visibleClients.length} clients</Text>
-
-                <View style={styles.toolbarActions}>
-                  <Pressable
-                    style={styles.sortPill}
-                    onPress={() => setFiltersOpen((prev) => !prev)}
-                    hitSlop={6}>
-                    <Feather name="sliders" size={13} color={Palette.textSecondary} />
-                    <Text style={styles.sortText}>Tri : {SORT_META[sortKey].label}</Text>
-                  </Pressable>
-
-                  <Pressable style={styles.viewToggle} onPress={toggleViewMode} hitSlop={6}>
-                    <Feather
-                      name={viewMode === 'comfortable' ? 'list' : 'align-justify'}
-                      size={17}
-                      color={Palette.textPrimary}
-                    />
-                  </Pressable>
-                </View>
-              </View>
-            </View>
+          onEndReachedThreshold={0.4}
+          onEndReached={loadMore}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={refresh}
+              tintColor={Palette.blue}
+              colors={[Palette.blue]}
+            />
           }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Aucun client trouvé</Text>
-              <Text style={styles.emptySubtitle}>Essayez une autre recherche ou réinitialisez les filtres.</Text>
-            </View>
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator color={Palette.blue} />
+              </View>
+            ) : null
           }
         />
       </SafeAreaView>
 
       <BottomNav activeIndex={2} />
+
+      <ClientFilterSheet
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        selectedStatuses={selectedStatuses}
+        onToggleStatus={toggleStatus}
+        sortKey={sortKey}
+        onChangeSort={setSortKey}
+        onReset={resetFilters}
+        resultCount={total}
+      />
     </View>
   );
 }
@@ -246,57 +262,35 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  fixedHeader: {
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  searchWrap: {
+    marginTop: Spacing.lg,
+  },
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
-  },
-  header: {
-    paddingTop: Spacing.lg,
-  },
-  section: {
-    marginTop: Spacing.section,
-  },
-  separator: {
-    height: Spacing.md,
+    flexGrow: 1,
   },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing.section,
+    marginTop: Spacing.xl,
     marginBottom: Spacing.md,
   },
   count: {
-    fontSize: FontSize.section,
+    fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
-  toolbarActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sortPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Palette.cardMuted,
-    borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E8EF',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  sortText: {
-    fontSize: 12.5,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-    letterSpacing: -0.1,
-  },
   viewToggle: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     backgroundColor: Palette.cardMuted,
     borderWidth: StyleSheet.hairlineWidth,
@@ -304,24 +298,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyState: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
+  separator: {
+    height: Spacing.md,
+  },
+  footerLoader: {
+    paddingVertical: 20,
     alignItems: 'center',
-    marginTop: Spacing.md,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Palette.textPrimary,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    marginTop: 6,
-    textAlign: 'center',
   },
 });

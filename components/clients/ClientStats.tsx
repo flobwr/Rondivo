@@ -7,8 +7,10 @@ import { Palette } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 import { STATUS_META, type ClientStatus } from '@/components/clients/types';
 
+type StatKey = ClientStatus | 'new-clients';
+
 type StatDef = {
-  key: ClientStatus | 'new-clients';
+  key: StatKey;
   label: string;
   icon: React.ComponentProps<typeof Feather>['name'];
   color: string;
@@ -19,8 +21,8 @@ type StatDef = {
 type ClientStatsProps = {
   counts: Record<ClientStatus, number>;
   newClientsCount: number;
-  activeKey: ClientStatus | 'new-clients' | null;
-  onSelect: (key: ClientStatus | 'new-clients') => void;
+  activeKey: StatKey | null;
+  onSelect: (key: StatKey) => void;
 };
 
 function StatCard({ def, active, onPress }: { def: StatDef; active: boolean; onPress: () => void }) {
@@ -28,7 +30,7 @@ function StatCard({ def, active, onPress }: { def: StatDef; active: boolean; onP
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, friction: 5, tension: 300 }).start();
+    Animated.spring(scale, { toValue: 0.95, useNativeDriver: true, friction: 5, tension: 300 }).start();
   };
 
   const onPressOut = () => {
@@ -36,18 +38,27 @@ function StatCard({ def, active, onPress }: { def: StatDef; active: boolean; onP
   };
 
   return (
-    <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
+    <Pressable
+      style={styles.wrapper}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={`${def.count} ${def.label}`}>
       <Animated.View
         style={[
           styles.card,
           { transform: [{ scale }] },
           active ? { borderColor: def.color, backgroundColor: def.soft } : null,
         ]}>
-        <View style={[styles.iconTile, { backgroundColor: def.soft }]}>
-          <Feather name={def.icon} size={14} color={def.color} />
+        <View style={styles.topRow}>
+          <View style={[styles.iconTile, { backgroundColor: def.soft }]}>
+            <Feather name={def.icon} size={13} color={def.color} />
+          </View>
+          <Text style={styles.count}>{def.count}</Text>
         </View>
-        <Text style={styles.count}>{def.count}</Text>
-        <Text style={styles.label} numberOfLines={2}>
+        <Text style={styles.label} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8}>
           {def.label}
         </Text>
       </Animated.View>
@@ -59,7 +70,7 @@ function ClientStatsComponent({ counts, newClientsCount, activeKey, onSelect }: 
   const defs: StatDef[] = [
     {
       key: 'action-required',
-      label: STATUS_META['action-required'].label,
+      label: 'Action requise',
       icon: STATUS_META['action-required'].icon,
       color: STATUS_META['action-required'].color,
       soft: STATUS_META['action-required'].soft,
@@ -67,7 +78,7 @@ function ClientStatsComponent({ counts, newClientsCount, activeKey, onSelect }: 
     },
     {
       key: 'follow-up',
-      label: STATUS_META['follow-up'].label,
+      label: 'À relancer',
       icon: STATUS_META['follow-up'].icon,
       color: STATUS_META['follow-up'].color,
       soft: STATUS_META['follow-up'].soft,
@@ -75,7 +86,7 @@ function ClientStatsComponent({ counts, newClientsCount, activeKey, onSelect }: 
     },
     {
       key: 'up-to-date',
-      label: STATUS_META['up-to-date'].label,
+      label: 'À jour',
       icon: STATUS_META['up-to-date'].icon,
       color: STATUS_META['up-to-date'].color,
       soft: STATUS_META['up-to-date'].soft,
@@ -105,39 +116,44 @@ export const ClientStats = memo(ClientStatsComponent);
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   wrapper: {
     flex: 1,
   },
   card: {
     backgroundColor: Palette.cardMuted,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E4E8EF',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    gap: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    gap: 6,
     ...actionShadow,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   iconTile: {
-    width: 26,
-    height: 26,
-    borderRadius: 9,
+    width: 22,
+    height: 22,
+    borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
   },
   count: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.5,
   },
   label: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
     color: Palette.textSecondary,
-    letterSpacing: -0.1,
-    lineHeight: 13,
+    letterSpacing: -0.2,
+    lineHeight: 12.5,
   },
 });
