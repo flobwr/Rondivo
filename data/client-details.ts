@@ -39,11 +39,22 @@ export type Equipment = {
   tint: Tint;
 };
 
+export type DocumentCategory = 'Contrat' | 'Notice' | 'Photo' | 'Garantie' | 'Autre';
+
+export const DOCUMENT_CATEGORIES: DocumentCategory[] = [
+  'Contrat',
+  'Notice',
+  'Photo',
+  'Garantie',
+  'Autre',
+];
+
 export type ClientDocument = {
   id: string;
   name: string;
   kind: string; // "Document PDF", "Photo"…
   size: string;
+  category: DocumentCategory;
   icon: FeatherIconName;
   tint: Tint;
 };
@@ -334,9 +345,11 @@ function buildDefaults(client: Client): ClientDetail {
     ],
     equipment: [],
     documents: [
-      { id: 'd1', name: "Contrat d'entretien.pdf", kind: 'Document PDF', size: '320 Ko', icon: 'file-text', tint: 'blue' },
-      { id: 'd2', name: 'Notice technique.pdf', kind: 'Document PDF', size: '1,2 Mo', icon: 'file', tint: 'red' },
-      { id: 'd3', name: 'Plan installation.pdf', kind: 'Document PDF', size: '540 Ko', icon: 'file', tint: 'purple' },
+      { id: 'd1', name: "Contrat d'entretien.pdf", kind: 'Document PDF', size: '320 Ko', category: 'Contrat', icon: 'file-text', tint: 'blue' },
+      { id: 'd2', name: 'Notice chaudière.pdf', kind: 'Document PDF', size: '1,2 Mo', category: 'Notice', icon: 'file', tint: 'red' },
+      { id: 'd3', name: 'Attestation garantie.pdf', kind: 'Document PDF', size: '210 Ko', category: 'Garantie', icon: 'shield', tint: 'green' },
+      { id: 'd4', name: 'Photo installation.jpg', kind: 'Photo', size: '2,4 Mo', category: 'Photo', icon: 'image', tint: 'orange' },
+      { id: 'd5', name: 'Plan installation.pdf', kind: 'Document PDF', size: '540 Ko', category: 'Autre', icon: 'file', tint: 'purple' },
     ],
     activity: buildActivity(client),
     interventions: buildInterventions(client),
@@ -412,6 +425,14 @@ function buildActivity(client: Client): ActivityEntry[] {
 function buildInterventions(client: Client): InterventionItem[] {
   const base: InterventionItem[] = [
     {
+      id: 'i0',
+      title: 'Entretien chaudière',
+      dateLabel: '18 juin 2025',
+      time: '09:00',
+      status: 'Planifiée',
+      statusTint: 'blue',
+    },
+    {
       id: 'i1',
       title: 'Entretien chaudière',
       dateLabel: '6 juin 2025',
@@ -429,9 +450,18 @@ function buildInterventions(client: Client): InterventionItem[] {
       statusTint: 'green',
       amount: 180,
     },
+    {
+      id: 'i3',
+      title: 'Remplacement thermostat',
+      dateLabel: '12 février 2025',
+      time: '11:15',
+      status: 'Terminée',
+      statusTint: 'green',
+      amount: 95,
+    },
   ];
   if (client.status === 'new') return [];
-  return base.slice(0, Math.max(1, Math.min(base.length, client.interventionsCount)));
+  return base;
 }
 
 function buildFinances(client: Client): ClientFinances {

@@ -5,23 +5,23 @@ import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ActivityCard } from '@/components/clients/detail/ActivityCard';
-import { AlertsCard } from '@/components/clients/detail/AlertsCard';
+import { AlertsBanner } from '@/components/clients/detail/AlertsBanner';
 import { ContactsCard } from '@/components/clients/detail/ContactsCard';
 import { DetailHeader } from '@/components/clients/detail/DetailHeader';
 import { DetailTabs, type DetailTab } from '@/components/clients/detail/DetailTabs';
-import { DocumentsCard } from '@/components/clients/detail/DocumentsCard';
 import { EquipmentCard } from '@/components/clients/detail/EquipmentCard';
 import { IdentityCard } from '@/components/clients/detail/IdentityCard';
 import { InformationsCard } from '@/components/clients/detail/InformationsCard';
 import { NextAppointmentCard } from '@/components/clients/detail/NextAppointmentCard';
+import { NotesPreviewCard } from '@/components/clients/detail/NotesPreviewCard';
 import { QuickActionsBar } from '@/components/clients/detail/QuickActionsBar';
-import { StatsCard } from '@/components/clients/detail/StatsCard';
+import { QuickStatsCard } from '@/components/clients/detail/QuickStatsCard';
 import {
+  DocumentsSection,
   FinancesSection,
   InterventionsSection,
   NotesSection,
 } from '@/components/clients/detail/TabSections';
-import { ImportantNotesCard } from '@/components/clients/detail/ImportantNotesCard';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { FontSize, Palette, Spacing } from '@/constants/design';
 import { getClientAlerts, getClientDetail, type ClientAlert } from '@/data/client-details';
@@ -62,7 +62,7 @@ export default function ClientDetailScreen() {
     light();
     Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`);
   };
-  const sms = () => {
+  const message = () => {
     light();
     Linking.openURL(`sms:${client.phone.replace(/\s+/g, '')}`);
   };
@@ -82,6 +82,7 @@ export default function ClientDetailScreen() {
   };
 
   const alerts: ClientAlert[] = getClientAlerts(client, detail);
+  const stats = detail.stats['12m'];
 
   return (
     <View style={styles.root}>
@@ -97,29 +98,35 @@ export default function ClientDetailScreen() {
             styles.flex,
             { opacity: enter, transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] },
           ]}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-            <IdentityCard client={client} detail={detail} onCall={() => call()} onEmail={email} onAddress={openMaps} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.content}>
+            {/* Top zone — the "at a glance" essentials, kept tight. */}
+            <IdentityCard client={client} onAddress={openMaps} />
 
             <View style={styles.gap} />
             <QuickActionsBar
               onCall={() => call()}
-              onSms={sms}
+              onMessage={message}
               onNewIntervention={() => soon('Nouvelle intervention')}
               onNewQuote={() => soon('Nouveau devis')}
               onNewInvoice={() => soon('Nouvelle facture')}
             />
 
-            <View style={styles.gap} />
-            <AlertsCard alerts={alerts} onPressAlert={(a) => soon(a.title)} />
+            {alerts.length > 0 ? (
+              <>
+                <View style={styles.gap} />
+                <AlertsBanner alerts={alerts} onPressAlert={(a) => soon(a.title)} />
+              </>
+            ) : null}
 
-            <View style={styles.gap} />
-            <NextAppointmentCard
-              appointment={detail.nextAppointment}
-              onOpenPlanning={() => router.push('/planning')}
-            />
-
-            <View style={styles.gap} />
-            <ImportantNotesCard notes={notes} onChange={setNotes} />
+            {detail.nextAppointment ? (
+              <>
+                <View style={styles.gap} />
+                <NextAppointmentCard appointment={detail.nextAppointment} onOpen={() => router.push('/planning')} />
+              </>
+            ) : null}
 
             <View style={styles.tabsWrap}>
               <DetailTabs active={activeTab} onChange={setActiveTab} />
@@ -127,7 +134,7 @@ export default function ClientDetailScreen() {
 
             {activeTab === 'resume' ? (
               <View style={styles.stack}>
-                <InformationsCard detail={detail} />
+                <InformationsCard client={client} detail={detail} onCall={() => call()} onEmail={email} />
                 <ContactsCard
                   contacts={detail.contacts}
                   onAddContact={() => soon('Ajouter un contact')}
@@ -138,40 +145,34 @@ export default function ClientDetailScreen() {
                   onOpenEquipment={(e) => soon(e.name)}
                   onSeeAll={() => soon('Tous les équipements')}
                 />
-                <StatsCard detail={detail} />
-                <DocumentsCard
-                  documents={detail.documents}
-                  onOpenDocument={(d) => soon(d.name)}
-                  onSeeAll={() => setActiveTab('documents')}
-                />
-                <ActivityCard activity={detail.activity} onSeeAll={() => soon("Toute l'activité")} />
+                <QuickStatsCard detail={detail} onSeeAll={() => soon('Toutes les statistiques')} />
+                <ActivityCard activity={detail.activity} limit={3} onSeeAll={() => soon("Toute l'activité")} />
+                <NotesPreviewCard notes={notes} onSeeMore={() => setActiveTab('notes')} />
               </View>
             ) : null}
 
             {activeTab === 'interventions' ? (
-              <View style={styles.stack}>
-                <InterventionsSection
-                  interventions={detail.interventions}
-                  onOpen={(i) => soon(i.title)}
-                  onNew={() => soon('Nouvelle intervention')}
-                />
-              </View>
+              <InterventionsSection
+                interventions={detail.interventions}
+                onOpen={(i) => soon(i.title)}
+                onNew={() => soon('Nouvelle intervention')}
+              />
             ) : null}
 
             {activeTab === 'documents' ? (
-              <View style={styles.stack}>
-                <DocumentsCard
-                  documents={detail.documents}
-                  onOpenDocument={(d) => soon(d.name)}
-                  onSeeAll={() => soon('Importer un document')}
-                  limit={detail.documents.length}
-                />
-              </View>
+              <DocumentsSection
+                documents={detail.documents}
+                onOpen={(d) => soon(d.name)}
+                onAdd={() => soon('Ajouter un document')}
+              />
             ) : null}
 
             {activeTab === 'finances' ? (
               <FinancesSection
                 finances={detail.finances}
+                revenue={stats.revenue}
+                paid={stats.totalPaid}
+                unpaid={stats.totalUnpaid}
                 onOpenItem={(item) => item && soon(item.reference)}
                 onNewQuote={() => soon('Nouveau devis')}
                 onNewInvoice={() => soon('Nouvelle facture')}
@@ -206,10 +207,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.xs,
   },
   gap: {
-    height: 14,
+    height: 12,
   },
   tabsWrap: {
-    marginTop: Spacing.section,
+    marginTop: Spacing.lg,
     marginBottom: Spacing.lg,
   },
   stack: {

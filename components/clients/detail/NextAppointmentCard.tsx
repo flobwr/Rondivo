@@ -8,60 +8,33 @@ import { PressableScale, TintIcon } from './primitives';
 
 type Props = {
   appointment: NextAppointment;
-  onOpenPlanning: () => void;
+  onOpen: () => void;
 };
 
-function MetaRow({ icon, label }: { icon: React.ComponentProps<typeof Feather>['name']; label: string }) {
-  return (
-    <View style={styles.metaRow}>
-      <Feather name={icon} size={14} color={Palette.textTertiary} />
-      <Text style={styles.metaText}>{label}</Text>
-    </View>
-  );
-}
+// Slim single-card summary of the next visit. Everything on three tight lines
+// plus one "Ouvrir" button — no travel-departure block, no big padding.
+export function NextAppointmentCard({ appointment, onOpen }: Props) {
+  if (!appointment) return null;
 
-export function NextAppointmentCard({ appointment, onOpenPlanning }: Props) {
-  if (!appointment) {
-    return (
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <TintIcon icon="calendar" tint="blue" size={38} />
-          <View style={styles.headerTexts}>
-            <Text style={styles.eyebrow}>PROCHAIN RENDEZ-VOUS</Text>
-            <Text style={styles.empty}>Aucun rendez-vous planifié</Text>
-          </View>
-        </View>
-      </View>
-    );
-  }
+  const shortDate = appointment.dateLabel.replace(/^\w+\s/, ''); // drop weekday word
 
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <TintIcon icon="calendar" tint="blue" size={38} />
-        <View style={styles.headerTexts}>
-          <Text style={styles.eyebrow}>PROCHAIN RENDEZ-VOUS</Text>
-          <Text style={styles.title} numberOfLines={1}>
-            {appointment.title}
-          </Text>
-        </View>
+      <TintIcon icon="calendar" tint="blue" size={38} />
+
+      <View style={styles.texts}>
+        <Text style={styles.eyebrow}>PROCHAIN RENDEZ-VOUS</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {appointment.title}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          {shortDate} · {appointment.time} · {appointment.travelMinutes} min · {appointment.distanceKm} km
+        </Text>
       </View>
 
-      <Text style={styles.date}>
-        {appointment.dateLabel} à {appointment.time}
-      </Text>
-
-      <View style={styles.metaGrid}>
-        <MetaRow
-          icon="navigation"
-          label={`${appointment.travelMinutes} min (${appointment.distanceKm} km)`}
-        />
-        <MetaRow icon="clock" label={`Départ conseillé : ${appointment.recommendedDeparture}`} />
-      </View>
-
-      <PressableScale onPress={onOpenPlanning} to={0.97} style={styles.button} accessibilityLabel="Ouvrir dans le planning">
-        <Feather name="calendar" size={16} color={Palette.blue} />
-        <Text style={styles.buttonText}>Ouvrir dans le planning</Text>
+      <PressableScale onPress={onOpen} to={0.94} style={styles.button} accessibilityLabel="Ouvrir dans le planning">
+        <Text style={styles.buttonText}>Ouvrir</Text>
+        <Feather name="chevron-right" size={14} color={Palette.blue} />
       </PressableScale>
     </View>
   );
@@ -69,74 +42,52 @@ export function NextAppointmentCard({ appointment, onOpenPlanning }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
-    ...cardShadow,
-  },
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
+    backgroundColor: Palette.card,
+    borderRadius: Radius.card,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
+    ...cardShadow,
   },
-  headerTexts: {
+  texts: {
     flex: 1,
   },
   eyebrow: {
-    fontSize: FontSize.tiny,
+    fontSize: 10.5,
     fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 0.7,
     color: Palette.blue,
   },
   title: {
-    fontSize: FontSize.body,
+    fontSize: FontSize.label,
     fontWeight: '700',
     color: Palette.textPrimary,
     marginTop: 3,
     letterSpacing: -0.2,
   },
-  empty: {
-    fontSize: FontSize.label,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    marginTop: 3,
-  },
-  date: {
-    fontSize: FontSize.label,
-    fontWeight: '500',
-    color: Palette.textSecondary,
-    marginTop: 14,
-    letterSpacing: -0.1,
-  },
-  metaGrid: {
-    marginTop: 12,
-    gap: 8,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  metaText: {
+  meta: {
     fontSize: FontSize.small,
     fontWeight: '500',
     color: Palette.textSecondary,
+    marginTop: 3,
     letterSpacing: -0.1,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    gap: 1,
     backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.tile,
-    paddingVertical: 13,
-    marginTop: Spacing.lg,
+    borderRadius: Radius.pill,
+    paddingVertical: 8,
+    paddingLeft: 14,
+    paddingRight: 10,
   },
   buttonText: {
-    fontSize: FontSize.label,
+    fontSize: FontSize.small,
     fontWeight: '700',
     color: Palette.blue,
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
 });
