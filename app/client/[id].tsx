@@ -1,162 +1,190 @@
-import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ClientAvatar } from '@/components/clients/ClientAvatar';
-import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
-import { STATUS_META, TINT_COLORS } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { ActivityCard } from '@/components/clients/detail/ActivityCard';
+import { AlertsCard } from '@/components/clients/detail/AlertsCard';
+import { ContactsCard } from '@/components/clients/detail/ContactsCard';
+import { DetailHeader } from '@/components/clients/detail/DetailHeader';
+import { DetailTabs, type DetailTab } from '@/components/clients/detail/DetailTabs';
+import { DocumentsCard } from '@/components/clients/detail/DocumentsCard';
+import { EquipmentCard } from '@/components/clients/detail/EquipmentCard';
+import { IdentityCard } from '@/components/clients/detail/IdentityCard';
+import { InformationsCard } from '@/components/clients/detail/InformationsCard';
+import { NextAppointmentCard } from '@/components/clients/detail/NextAppointmentCard';
+import { QuickActionsBar } from '@/components/clients/detail/QuickActionsBar';
+import { StatsCard } from '@/components/clients/detail/StatsCard';
+import {
+  FinancesSection,
+  InterventionsSection,
+  NotesSection,
+} from '@/components/clients/detail/TabSections';
+import { ImportantNotesCard } from '@/components/clients/detail/ImportantNotesCard';
+import { BottomNav } from '@/components/home/bottom-nav';
+import { FontSize, Palette, Spacing } from '@/constants/design';
+import { getClientAlerts, getClientDetail, type ClientAlert } from '@/data/client-details';
 import { getClientById } from '@/data/clients';
 
-function InfoRow({
-  icon,
-  label,
-  value,
-  onPress,
-}: {
-  icon: React.ComponentProps<typeof Feather>['name'];
-  label: string;
-  value: string;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable style={styles.infoRow} onPress={onPress} disabled={!onPress}>
-      <View style={styles.infoIcon}>
-        <Feather name={icon} size={16} color={Palette.blue} />
-      </View>
-      <View style={styles.infoText}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">
-          {value}
-        </Text>
-      </View>
-      {onPress ? <Feather name="chevron-right" size={18} color={Palette.textTertiary} /> : null}
-    </Pressable>
-  );
-}
+const light = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
 export default function ClientDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const client = getClientById(id);
 
-  if (!client) {
+  const detail = useMemo(() => (client ? getClientDetail(client) : null), [client]);
+  const [notes, setNotes] = useState<string[]>(detail?.importantNotes ?? []);
+  const [activeTab, setActiveTab] = useState<DetailTab>('resume');
+
+  // Gentle fade + rise on mount — matches the app's calm, premium motion.
+  const enter = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(enter, { toValue: 1, duration: 320, useNativeDriver: true }).start();
+  }, [enter]);
+
+  if (!client || !detail) {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
-          <View style={styles.header}>
-            <Pressable style={styles.backButton} hitSlop={8} onPress={() => router.back()}>
-              <Feather name="chevron-left" size={24} color={Palette.textPrimary} />
-            </Pressable>
-          </View>
+          <DetailHeader onBack={() => router.back()} onEdit={() => {}} onMenu={() => {}} />
           <Text style={styles.notFound}>Client introuvable.</Text>
         </SafeAreaView>
       </View>
     );
   }
 
-  const accentColor = STATUS_META[client.status].color;
-  const footerColor = TINT_COLORS[client.footerTint].color;
-  const footerSoft = TINT_COLORS[client.footerTint].soft;
+  const soon = (feature: string) =>
+    Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
-  const handleCall = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL(`tel:${client.phone.replace(/\s+/g, '')}`);
+  const call = (phone = client.phone) => {
+    light();
+    Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`);
   };
-
-  const handleNavigate = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const query = encodeURIComponent(client.address);
+  const sms = () => {
+    light();
+    Linking.openURL(`sms:${client.phone.replace(/\s+/g, '')}`);
+  };
+  const email = () => {
+    light();
+    Linking.openURL(`mailto:${client.email}`);
+  };
+  const openMaps = () => {
+    light();
+    const q = encodeURIComponent(client.address);
     const url = Platform.select({
-      ios: `maps://?daddr=${query}`,
-      android: `geo:0,0?q=${query}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${query}`,
+      ios: `maps://?daddr=${q}`,
+      android: `geo:0,0?q=${q}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${q}`,
     });
     Linking.openURL(url!);
   };
 
+  const alerts: ClientAlert[] = getClientAlerts(client, detail);
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} hitSlop={8} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color={Palette.textPrimary} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Fiche client</Text>
-        </View>
+        <DetailHeader
+          onBack={() => router.back()}
+          onEdit={() => soon('Modifier le client')}
+          onMenu={() => soon('Options')}
+        />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          <View style={styles.identityCard}>
-            <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-            <ClientAvatar initials={client.initials} tint={client.avatarTint} size={64} />
-            <Text style={styles.name}>{client.name}</Text>
-            <View style={styles.badgeRow}>
-              <ClientStatusBadge status={client.status} />
+        <Animated.View
+          style={[
+            styles.flex,
+            { opacity: enter, transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] },
+          ]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <IdentityCard client={client} detail={detail} onCall={() => call()} onEmail={email} onAddress={openMaps} />
+
+            <View style={styles.gap} />
+            <QuickActionsBar
+              onCall={() => call()}
+              onSms={sms}
+              onNewIntervention={() => soon('Nouvelle intervention')}
+              onNewQuote={() => soon('Nouveau devis')}
+              onNewInvoice={() => soon('Nouvelle facture')}
+            />
+
+            <View style={styles.gap} />
+            <AlertsCard alerts={alerts} onPressAlert={(a) => soon(a.title)} />
+
+            <View style={styles.gap} />
+            <NextAppointmentCard
+              appointment={detail.nextAppointment}
+              onOpenPlanning={() => router.push('/planning')}
+            />
+
+            <View style={styles.gap} />
+            <ImportantNotesCard notes={notes} onChange={setNotes} />
+
+            <View style={styles.tabsWrap}>
+              <DetailTabs active={activeTab} onChange={setActiveTab} />
             </View>
-            <Text style={styles.since}>Client depuis {client.clientSince}</Text>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Coordonnées</Text>
-            <View style={styles.card}>
-              <InfoRow icon="phone" label="Téléphone" value={client.phone} onPress={handleCall} />
-              <View style={styles.separator} />
-              <InfoRow icon="map-pin" label="Adresse" value={client.address} onPress={handleNavigate} />
-              <View style={styles.separator} />
-              <InfoRow icon="mail" label="Email" value={client.email} />
-            </View>
-          </View>
+            {activeTab === 'resume' ? (
+              <View style={styles.stack}>
+                <InformationsCard detail={detail} />
+                <ContactsCard
+                  contacts={detail.contacts}
+                  onAddContact={() => soon('Ajouter un contact')}
+                  onCallContact={(c) => call(c.phone)}
+                />
+                <EquipmentCard
+                  equipment={detail.equipment}
+                  onOpenEquipment={(e) => soon(e.name)}
+                  onSeeAll={() => soon('Tous les équipements')}
+                />
+                <StatsCard detail={detail} />
+                <DocumentsCard
+                  documents={detail.documents}
+                  onOpenDocument={(d) => soon(d.name)}
+                  onSeeAll={() => setActiveTab('documents')}
+                />
+                <ActivityCard activity={detail.activity} onSeeAll={() => soon("Toute l'activité")} />
+              </View>
+            ) : null}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Activité</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{client.interventionsCount}</Text>
-                <Text style={styles.statLabel}>interventions</Text>
+            {activeTab === 'interventions' ? (
+              <View style={styles.stack}>
+                <InterventionsSection
+                  interventions={detail.interventions}
+                  onOpen={(i) => soon(i.title)}
+                  onNew={() => soon('Nouvelle intervention')}
+                />
               </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statValue}>{client.quotesPending}</Text>
-                <Text style={styles.statLabel}>devis en attente</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text
-                  style={[styles.statValue, styles.statValueCompact]}
-                  numberOfLines={2}
-                  adjustsFontSizeToFit>
-                  {client.lastInterventionLabel}
-                </Text>
-                <Text style={styles.statLabel}>dernière intervention</Text>
-              </View>
-            </View>
-          </View>
+            ) : null}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statut</Text>
-            <View style={styles.statusCard}>
-              <View style={[styles.statusIcon, { backgroundColor: footerSoft }]}>
-                <Feather name={client.footerIcon} size={18} color={footerColor} />
+            {activeTab === 'documents' ? (
+              <View style={styles.stack}>
+                <DocumentsCard
+                  documents={detail.documents}
+                  onOpenDocument={(d) => soon(d.name)}
+                  onSeeAll={() => soon('Importer un document')}
+                  limit={detail.documents.length}
+                />
               </View>
-              <View style={styles.statusText}>
-                <Text style={styles.statusTitle}>{client.footerText}</Text>
-                <Text style={styles.statusSubtitle}>{client.highlightText}</Text>
-              </View>
-            </View>
-          </View>
+            ) : null}
 
-          <View style={styles.actionsRow}>
-            <Pressable style={styles.primaryAction} onPress={handleCall}>
-              <Feather name="phone" size={18} color={Palette.white} />
-              <Text style={styles.primaryActionText}>Appeler</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryAction} onPress={handleNavigate}>
-              <Feather name="navigation" size={18} color={Palette.blue} />
-              <Text style={styles.secondaryActionText}>Itinéraire</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
+            {activeTab === 'finances' ? (
+              <FinancesSection
+                finances={detail.finances}
+                onOpenItem={(item) => item && soon(item.reference)}
+                onNewQuote={() => soon('Nouveau devis')}
+                onNewInvoice={() => soon('Nouvelle facture')}
+              />
+            ) : null}
+
+            {activeTab === 'notes' ? <NotesSection notes={notes} onChangeNotes={setNotes} /> : null}
+
+            <View style={styles.bottomSpacer} />
+          </ScrollView>
+        </Animated.View>
+
+        <BottomNav activeIndex={2} />
       </SafeAreaView>
     </View>
   );
@@ -170,214 +198,30 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.screen,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.lg,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#EFF1F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: FontSize.title,
-    fontWeight: '700',
-    color: Palette.textPrimary,
+  flex: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
+    paddingTop: Spacing.xs,
+  },
+  gap: {
+    height: 14,
+  },
+  tabsWrap: {
+    marginTop: Spacing.section,
+    marginBottom: Spacing.lg,
+  },
+  stack: {
+    gap: 14,
+  },
+  bottomSpacer: {
+    height: Spacing.section,
   },
   notFound: {
     fontSize: FontSize.body,
     color: Palette.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.section,
-  },
-  identityCard: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 28,
-    paddingHorizontal: Spacing.lg,
-    alignItems: 'center',
-    overflow: 'hidden',
-    ...cardShadow,
-  },
-  accentBar: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-    marginTop: 14,
-  },
-  badgeRow: {
-    marginTop: 8,
-  },
-  since: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    marginTop: 8,
-  },
-  section: {
-    marginTop: Spacing.section,
-  },
-  sectionTitle: {
-    fontSize: FontSize.label,
-    fontWeight: '700',
-    color: Palette.textSecondary,
-    marginBottom: Spacing.sm,
-    marginLeft: Spacing.xs,
-  },
-  card: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingHorizontal: Spacing.lg,
-    ...cardShadow,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Palette.border,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-  },
-  infoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.tile,
-    backgroundColor: Palette.blueSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoText: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  infoLabel: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: Palette.textTertiary,
-  },
-  infoValue: {
-    fontSize: FontSize.body,
-    fontWeight: '500',
-    color: Palette.textPrimary,
-    marginTop: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Palette.card,
-    borderRadius: Radius.tile,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    ...cardShadow,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Palette.textPrimary,
-    letterSpacing: -0.3,
-    textAlign: 'center',
-  },
-  statValueCompact: {
-    fontSize: 14,
-    lineHeight: 17,
-  },
-  statLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  statusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 14,
-    paddingHorizontal: Spacing.lg,
-    ...cardShadow,
-  },
-  statusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.tile,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statusText: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  statusTitle: {
-    fontSize: FontSize.label,
-    fontWeight: '600',
-    color: Palette.textPrimary,
-  },
-  statusSubtitle: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    marginTop: 2,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: Spacing.section,
-  },
-  primaryAction: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Palette.blue,
-    borderRadius: Radius.tile,
-    paddingVertical: 15,
-  },
-  primaryActionText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.white,
-    letterSpacing: -0.2,
-  },
-  secondaryAction: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.tile,
-    paddingVertical: 15,
-  },
-  secondaryActionText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.blue,
-    letterSpacing: -0.2,
   },
 });
