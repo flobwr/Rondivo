@@ -63,10 +63,11 @@ function ClientCardComponent({ client, variant, onPress, onCall, onNavigate }: C
           <ClientAvatar initials={client.initials} tint={client.avatarTint} />
 
           <View style={styles.identity}>
-            <View style={styles.nameRow}>
-              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                {client.name}
-              </Text>
+            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+              {client.name}
+            </Text>
+
+            <View style={styles.badgeRow}>
               <ClientStatusBadge status={client.status} />
             </View>
 
@@ -182,17 +183,15 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.md,
     marginRight: Spacing.sm,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   name: {
     fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
-    flexShrink: 1,
+  },
+  badgeRow: {
+    alignSelf: 'flex-start',
+    marginTop: 5,
   },
   metaRow: {
     flexDirection: 'row',
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
   },
   highlightCol: {
     alignItems: 'flex-end',
-    maxWidth: 128,
+    maxWidth: 112,
   },
   highlightText: {
     fontSize: 13,
