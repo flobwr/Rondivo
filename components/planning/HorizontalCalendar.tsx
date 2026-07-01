@@ -60,9 +60,11 @@ function DayCell({
     inputRange: [0, 1],
     outputRange: [Palette.textPrimary, Palette.white],
   });
+  // The label sits above the bubble on the screen background, not inside it —
+  // unlike the date number, it must never crossfade to white or it disappears.
   const labelColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textTertiary, Palette.white],
+    outputRange: [Palette.textTertiary, Palette.textPrimary],
   });
   const dotColor = baseDot
     ? sel.interpolate({ inputRange: [0, 1], outputRange: [baseDot, Palette.white] })

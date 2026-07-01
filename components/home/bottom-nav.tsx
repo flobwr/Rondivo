@@ -30,7 +30,9 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
     if (!tab.route) return; // screen not built yet
     if (index === activeIndex || pathname === tab.route) return; // already here
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.navigate(tab.route as never);
+    // Tabs are flat, not a push hierarchy — replace so switching back and
+    // forth never grows the stack (and its mounted screens/timers) unbounded.
+    router.replace(tab.route as never);
   };
 
   return (

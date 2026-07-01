@@ -153,11 +153,13 @@ function PlanningAppointmentCardBase({ appointment, index = 0, onPress }: Props)
           <Text style={[styles.time, { color: s.timeColor }]}>{appointment.time}</Text>
           <Text style={styles.duration}>{appointment.duration}</Text>
 
-          {s.badgeLabel ? (
-            <View style={[styles.badge, { backgroundColor: s.badgeBg }]}>
+          {/* Reserve the badge's footprint even when absent so every card,
+              regardless of status, renders at the same height. */}
+          <View style={[styles.badge, s.badgeLabel ? { backgroundColor: s.badgeBg } : null]}>
+            {s.badgeLabel ? (
               <Text style={[styles.badgeText, { color: s.badgeColor }]}>{s.badgeLabel}</Text>
-            </View>
-          ) : null}
+            ) : null}
+          </View>
         </View>
       </Animated.View>
     </Pressable>
@@ -264,9 +266,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   badge: {
+    height: 18,
     borderRadius: Radius.pill,
     paddingHorizontal: 8,
-    paddingVertical: 3,
     marginTop: 5,
     alignItems: 'center',
     justifyContent: 'center',
