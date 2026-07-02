@@ -13,6 +13,13 @@ import { cardShadow } from '@/constants/shadow';
  * rhythm — no card ends up looking "heavier" than another.
  */
 
+// The single source of truth for card inner padding on this screen. Every card
+// (SectionCard + the bespoke ones) imports it so depth/spacing stay identical.
+export const DETAIL_CARD_PADDING = 16;
+
+// Vertical gap between stacked cards / sections on this screen.
+export const DETAIL_GAP = 12;
+
 // A press wrapper that reuses the app-wide spring + haptic feel.
 export function PressableScale({
   children,
@@ -143,14 +150,14 @@ const primitives = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
+    padding: DETAIL_CARD_PADDING,
     ...cardShadow,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
+    marginBottom: 14,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -159,7 +166,7 @@ const primitives = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: FontSize.section,
+    fontSize: 16,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,

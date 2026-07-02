@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { type Tint } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import {
   DOCUMENT_CATEGORIES,
@@ -15,7 +15,7 @@ import {
   type InterventionItem,
 } from '@/data/client-details';
 import { ListRow } from './ListRow';
-import { PressableScale, SectionCard, TintIcon } from './primitives';
+import { DETAIL_CARD_PADDING, DETAIL_GAP, PressableScale, SectionCard, TintIcon } from './primitives';
 import { FilterChips, SearchField } from './TabControls';
 
 function Separator() {
@@ -361,7 +361,7 @@ export function NotesSection({
 
 const styles = StyleSheet.create({
   stack: {
-    gap: 14,
+    gap: DETAIL_GAP,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   revenueCard: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.cardPadding,
+    padding: DETAIL_CARD_PADDING,
     ...cardShadow,
   },
   revenueLabel: {

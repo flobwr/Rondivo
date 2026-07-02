@@ -210,11 +210,11 @@ const styles = StyleSheet.create({
     height: 12,
   },
   tabsWrap: {
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginTop: 14,
+    marginBottom: 12,
   },
   stack: {
-    gap: 14,
+    gap: 12,
   },
   bottomSpacer: {
     height: Spacing.section,

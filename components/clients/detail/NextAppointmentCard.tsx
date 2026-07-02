@@ -11,15 +11,15 @@ type Props = {
   onOpen: () => void;
 };
 
-// Slim single-card summary of the next visit. Everything on three tight lines
-// plus one "Ouvrir" button — no travel-departure block, no big padding.
+// Slim single-line-per-row summary of the next visit. No big CTA — just a small
+// discreet chevron button on the right, so the card breathes.
 export function NextAppointmentCard({ appointment, onOpen }: Props) {
   if (!appointment) return null;
 
   const shortDate = appointment.dateLabel.replace(/^\w+\s/, ''); // drop weekday word
 
   return (
-    <View style={styles.card}>
+    <PressableScale onPress={onOpen} to={0.98} style={styles.card} accessibilityLabel="Ouvrir le rendez-vous dans le planning">
       <TintIcon icon="calendar" tint="blue" size={38} />
 
       <View style={styles.texts}>
@@ -32,11 +32,10 @@ export function NextAppointmentCard({ appointment, onOpen }: Props) {
         </Text>
       </View>
 
-      <PressableScale onPress={onOpen} to={0.94} style={styles.button} accessibilityLabel="Ouvrir dans le planning">
-        <Text style={styles.buttonText}>Ouvrir</Text>
-        <Feather name="chevron-right" size={14} color={Palette.blue} />
-      </PressableScale>
-    </View>
+      <View style={styles.chevron}>
+        <Feather name="chevron-right" size={18} color={Palette.blue} />
+      </View>
+    </PressableScale>
   );
 }
 
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: Spacing.lg,
     ...cardShadow,
   },
@@ -64,30 +63,22 @@ const styles = StyleSheet.create({
     fontSize: FontSize.label,
     fontWeight: '700',
     color: Palette.textPrimary,
-    marginTop: 3,
+    marginTop: 2,
     letterSpacing: -0.2,
   },
   meta: {
     fontSize: FontSize.small,
     fontWeight: '500',
     color: Palette.textSecondary,
-    marginTop: 3,
+    marginTop: 2,
     letterSpacing: -0.1,
   },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 1,
+  chevron: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.pill,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 10,
-  },
-  buttonText: {
-    fontSize: FontSize.small,
-    fontWeight: '700',
-    color: Palette.blue,
-    letterSpacing: -0.1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

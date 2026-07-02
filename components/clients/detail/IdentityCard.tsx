@@ -16,14 +16,14 @@ type Props = {
 /**
  * Compact identity header — the "who + where" glance.
  *
- * Phone, email and "client depuis" intentionally live in the Informations card
- * only: the phone is already one tap away behind Appeler, so showing it here
- * would just be noise. Keeps the top of the sheet under half a screen.
+ * Phone and email live only in the Informations card: the phone is already one
+ * tap away behind Appeler, so repeating it here would just add height. Kept as
+ * tight as possible so the summary starts near the top of the screen.
  */
 export function IdentityCard({ client, onAddress }: Props) {
   return (
     <View style={styles.card}>
-      <ClientAvatar initials={client.initials} tint={client.avatarTint} size={52} />
+      <ClientAvatar initials={client.initials} tint={client.avatarTint} size={48} />
 
       <View style={styles.texts}>
         <Text style={styles.name} numberOfLines={1}>
@@ -47,20 +47,21 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: 14,
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
     ...cardShadow,
   },
   texts: {
     flex: 1,
   },
   name: {
-    fontSize: 20,
+    fontSize: 23,
     fontWeight: '800',
     color: Palette.textPrimary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
   },
   badgeRow: {
     marginTop: 6,
