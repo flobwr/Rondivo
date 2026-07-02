@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,6 +109,7 @@ type Status = 'loading' | 'error' | 'loaded';
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function PlanningScreen() {
+  const router = useRouter();
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
   const [status, setStatus] = useState<Status>('loading');
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -135,7 +137,7 @@ export default function PlanningScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
           {/* Fixed header — title, month, add button, calendar all stay put */}
-          <PlanningHeader monthLabel="JUIN 2025" />
+          <PlanningHeader monthLabel="JUIN 2025" onAdd={() => router.push('/appointment/new')} />
           <HorizontalCalendar
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}

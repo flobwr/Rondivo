@@ -109,7 +109,7 @@ export default function ClientDetailScreen() {
             <QuickActionsBar
               onCall={() => call()}
               onMessage={message}
-              onNewIntervention={() => soon('Nouvelle intervention')}
+              onNewIntervention={() => router.push({ pathname: '/appointment/new', params: { clientId: client.id } })}
               onNewQuote={() => soon('Nouveau devis')}
               onNewInvoice={() => soon('Nouvelle facture')}
             />
@@ -155,7 +155,7 @@ export default function ClientDetailScreen() {
               <InterventionsSection
                 interventions={detail.interventions}
                 onOpen={(i) => soon(i.title)}
-                onNew={() => soon('Nouvelle intervention')}
+                onNew={() => router.push({ pathname: '/appointment/new', params: { clientId: client.id } })}
               />
             ) : null}
 
