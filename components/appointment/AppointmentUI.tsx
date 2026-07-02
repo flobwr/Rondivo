@@ -4,7 +4,7 @@ import { useRef, type ReactNode } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/constants/design';
 
 export function PressableScale({
   children,
@@ -53,9 +53,13 @@ export function Field({ label, trailing, children }: { label: string; trailing?:
 
 export type ChipTone = 'busy' | 'short';
 
-const TONE_STYLE: Record<ChipTone, { background: string; border: string; text: string; sub: string }> = {
-  busy: { background: '#EEF0F3', border: '#EEF0F3', text: Palette.textTertiary, sub: Palette.textTertiary },
-  short: { background: Palette.orangeSoft, border: Palette.orangeSoft, text: Palette.orange, sub: Palette.orange },
+// Both disabled tones share the same quiet grey fill — a slot that can't be
+// booked should recede, never compete with the available ones. "short" adds a
+// small discreet orange badge instead of orange-tinted text, so it reads as
+// "almost, but not quite" rather than as an alert.
+const TONE_STYLE: Record<ChipTone, { background: string; border: string; text: string }> = {
+  busy: { background: Palette.border, border: Palette.border, text: Palette.textTertiary },
+  short: { background: Palette.border, border: Palette.border, text: Palette.textSecondary },
 };
 
 // The one canonical selectable pill used by every strip (date, time, duration,
@@ -95,12 +99,18 @@ export function Chip({
           { backgroundColor: toneStyle?.background ?? styles.chipInactive.backgroundColor, borderColor: toneStyle?.border ?? styles.chipInactive.borderColor },
         ]}
         accessibilityLabel={sublabel ? `${label}, ${sublabel}` : label}>
-        <View>
+        <View style={styles.disabledContent}>
           <Text style={[styles.chipLabel, { color: toneStyle?.text ?? Palette.textTertiary }]} numberOfLines={1}>
             {label}
           </Text>
-          {sublabel ? (
-            <Text style={[styles.chipSub, { color: toneStyle?.sub ?? Palette.textTertiary }]} numberOfLines={1}>
+          {sublabel && tone === 'short' ? (
+            <View style={styles.shortBadge}>
+              <Text style={styles.shortBadgeText} numberOfLines={1}>
+                {sublabel}
+              </Text>
+            </View>
+          ) : sublabel ? (
+            <Text style={[styles.chipSub, { color: toneStyle?.text ?? Palette.textTertiary }]} numberOfLines={1}>
               {sublabel}
             </Text>
           ) : null}
@@ -134,25 +144,6 @@ export function Chip({
   );
 }
 
-// Tiny legend explaining the three time-slot states — kept discreet, single line.
-export function AvailabilityLegend() {
-  const items: { label: string; color: string }[] = [
-    { label: 'Disponible', color: Palette.blue },
-    { label: 'Occupé', color: Palette.textTertiary },
-    { label: 'Trop court', color: Palette.orange },
-  ];
-  return (
-    <View style={styles.legend}>
-      {items.map((item) => (
-        <View key={item.label} style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-          <Text style={styles.legendText}>{item.label}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
 export function ChipScroll({ children }: { children: ReactNode }) {
   return (
     <ScrollView
@@ -167,13 +158,13 @@ export function ChipScroll({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   field: {
-    marginTop: Spacing.xl,
+    marginTop: 17,
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 11,
+    marginBottom: 9,
   },
   label: {
     fontSize: FontSize.tiny,
@@ -183,7 +174,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   chipRow: {
-    gap: 8,
+    gap: 7,
     paddingVertical: 2,
   },
   chip: {
@@ -191,8 +182,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 7,
     borderRadius: Radius.pill,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
   },
@@ -217,25 +208,20 @@ const styles = StyleSheet.create({
     marginTop: 1,
     textAlign: 'center',
   },
-  legend: {
-    flexDirection: 'row',
-    gap: 14,
-    marginTop: 10,
-  },
-  legendItem: {
-    flexDirection: 'row',
+  disabledContent: {
     alignItems: 'center',
-    gap: 5,
   },
-  legendDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  shortBadge: {
+    marginTop: 3,
+    backgroundColor: Palette.orangeSoft,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
-  legendText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: Palette.textTertiary,
+  shortBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: Palette.orange,
     letterSpacing: -0.1,
   },
 });

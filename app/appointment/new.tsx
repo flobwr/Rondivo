@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { TINT_COLORS, type Client } from '@/components/clients/types';
-import { AvailabilityLegend, Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
+import { Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
 import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { TemplatePicker } from '@/components/appointment/TemplatePicker';
 import {
@@ -32,7 +32,7 @@ import {
   buildDays,
   computeSlots,
   defaultStart,
-  formatDayFooter,
+  formatDayShort,
   formatDuration,
   nearestAvailableSlot,
   type AttachmentItem,
@@ -43,7 +43,7 @@ import {
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { getClientById } from '@/data/clients';
-import { type InterventionTemplate } from '@/data/intervention-templates';
+import { getTemplateById, type InterventionTemplate } from '@/data/intervention-templates';
 import { CURRENT_TECHNICIAN, TECHNICIANS } from '@/data/technicians';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -67,7 +67,6 @@ export default function NewAppointmentScreen() {
 
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [customTitle, setCustomTitle] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
   const [price, setPrice] = useState(0);
   const [tva, setTva] = useState(20);
 
@@ -88,13 +87,28 @@ export default function NewAppointmentScreen() {
   const endTime = addMinutesToTime(time, duration);
   const isCustom = templateId === 'custom';
   const hasType = (templateId && !isCustom) || (isCustom && customTitle.trim().length > 0);
-  const canCreate = !!client && !!hasType && !created;
   const totalTTC = price > 0 ? Math.round(price * (1 + tva / 100)) : 0;
+
+  const selectedTemplate = useMemo(() => getTemplateById(templateId ?? undefined), [templateId]);
+  const typeLabel = isCustom ? customTitle.trim() || 'Personnalisé' : selectedTemplate?.name ?? null;
 
   // Recomputes instantly on every day/duration change — three real states
   // (available / busy / too short) so the artisan can book confidently on the
   // phone instead of guessing at a plain list of free slots.
   const slots = useMemo(() => computeSlots(dayKey, duration), [dayKey, duration]);
+  // Whether the day/duration combination has any bookable slot at all — stable
+  // the instant duration/day changes (doesn't wait for the auto-advance effect
+  // below), so the Créer button never flashes an incorrect state.
+  const hasValidTime = slots.some((s) => s.status === 'available');
+
+  // The button always guides toward the next thing to do — never a dead end.
+  const missingStep = !client
+    ? 'Choisir un client'
+    : !hasType
+    ? 'Choisir une intervention'
+    : !hasValidTime
+    ? 'Choisir un horaire'
+    : null;
 
   // If the day or duration change makes the current slot invalid, silently
   // jump to the nearest available one — one fewer decision for the user.
@@ -114,7 +128,6 @@ export default function NewAppointmentScreen() {
   const applyTemplate = (t: InterventionTemplate) => {
     easeLayout();
     setTemplateId(t.id);
-    setCategory(t.category);
     setPrice(t.price);
     setTva(t.tvaRate);
     setDuration(t.durationMinutes);
@@ -123,7 +136,6 @@ export default function NewAppointmentScreen() {
   const selectCustom = () => {
     easeLayout();
     setTemplateId('custom');
-    setCategory(null);
     setPrice(0);
     setTva(20);
   };
@@ -138,9 +150,14 @@ export default function NewAppointmentScreen() {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const create = () => {
-    if (!canCreate) {
+  const handleCreatePress = () => {
+    if (created) return;
+    if (missingStep) {
+      // The button doubles as a shortcut to the next thing to do — the most
+      // common blocker (no client yet) jumps straight to the picker instead
+      // of just complaining.
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      if (!client) setClientSheet(true);
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -225,7 +242,7 @@ export default function NewAppointmentScreen() {
             </Field>
 
             {/* Time */}
-            <Field label="Heure" trailing={<Text style={styles.endLabel}>Fin ~ {endTime}</Text>}>
+            <Field label="Heure">
               <ChipScroll>
                 {slots.map((slot) => (
                   <Chip
@@ -239,7 +256,6 @@ export default function NewAppointmentScreen() {
                   />
                 ))}
               </ChipScroll>
-              <AvailabilityLegend />
             </Field>
 
             {/* Duration */}
@@ -361,36 +377,34 @@ export default function NewAppointmentScreen() {
             <View style={{ height: 12 }} />
           </ScrollView>
 
-          {/* Sticky footer */}
+          {/* Sticky footer — a real validation recap, not just a date/time reminder */}
           <View style={styles.footer}>
             <SafeAreaView edges={['bottom']}>
               <View style={styles.footerInner}>
                 <View style={styles.recap}>
-                  <View style={styles.recapRow}>
-                    <Feather name="calendar" size={11} color={Palette.textSecondary} />
-                    <Text style={styles.recapMain} numberOfLines={1}>
-                      {formatDayFooter(dayKey)}
+                  <Text style={[styles.recapClient, !client && styles.recapPlaceholder]} numberOfLines={1}>
+                    {client ? client.name : 'Choisir un client'}
+                  </Text>
+                  {typeLabel ? (
+                    <Text style={styles.recapType} numberOfLines={1}>
+                      {typeLabel}
                     </Text>
-                  </View>
-                  <View style={styles.recapRow}>
-                    <Feather name="clock" size={11} color={Palette.textSecondary} />
-                    <Text style={styles.recapMain} numberOfLines={1}>
-                      {time} → {endTime}
-                    </Text>
-                  </View>
-                  <View style={styles.recapRow}>
-                    <Feather name="watch" size={11} color={Palette.textTertiary} />
-                    <Text style={styles.recapSub} numberOfLines={1}>
-                      {formatDuration(duration)}
-                      {totalTTC > 0 ? ` · ${formatEuro(totalTTC)} TTC · TVA ${tva}%` : category ? ` · ${category}` : ''}
-                    </Text>
-                  </View>
+                  ) : null}
+                  <Text style={styles.recapMeta} numberOfLines={1}>
+                    {formatDayShort(dayKey)} • {time} → {endTime}
+                  </Text>
+                  <Text style={styles.recapMeta} numberOfLines={1}>
+                    {formatDuration(duration)}
+                    {totalTTC > 0 ? ` • ${formatEuro(totalTTC)} TTC` : ''}
+                  </Text>
                 </View>
 
-                <PressableScale onPress={create} to={0.96} disabled={!canCreate} accessibilityLabel="Créer le rendez-vous">
-                  <View style={[styles.createBtn, !canCreate && styles.createBtnDisabled, created && styles.createBtnDone]}>
-                    <Feather name={created ? 'check' : 'calendar'} size={17} color={Palette.white} />
-                    <Text style={styles.createText}>{created ? 'Créé' : 'Créer'}</Text>
+                <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={missingStep ?? 'Créer le rendez-vous'}>
+                  <View style={[styles.createBtn, !!missingStep && styles.createBtnDisabled, created && styles.createBtnDone]}>
+                    <Feather name={created ? 'check' : 'calendar'} size={16} color={missingStep ? Palette.blue : Palette.white} />
+                    <Text style={[styles.createText, !!missingStep && styles.createTextMuted]} numberOfLines={1}>
+                      {created ? 'Créé' : missingStep ?? 'Créer le rendez-vous'}
+                    </Text>
                   </View>
                 </PressableScale>
               </View>
@@ -499,11 +513,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
-  endLabel: {
-    fontSize: FontSize.small,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-  },
   segment: {
     flexDirection: 'row',
     gap: 8,
@@ -514,7 +523,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 9,
+    paddingVertical: 8,
     borderRadius: Radius.pill,
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,
@@ -534,8 +543,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: Spacing.section,
-    paddingVertical: 12,
+    marginTop: 20,
+    paddingVertical: 11,
     paddingHorizontal: 14,
     backgroundColor: Palette.card,
     borderRadius: Radius.tile,
@@ -608,49 +617,58 @@ const styles = StyleSheet.create({
   footerInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingTop: 12,
+    gap: 12,
+    paddingTop: 11,
     paddingBottom: 4,
   },
   recap: { flex: 1 },
-  recapRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  recapClient: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    letterSpacing: -0.3,
+  },
+  recapType: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Palette.textSecondary,
+    letterSpacing: -0.1,
     marginTop: 2,
   },
-  recapMain: {
-    fontSize: 12.5,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.2,
-    flexShrink: 1,
-  },
-  recapSub: {
-    fontSize: 11.5,
+  recapMeta: {
+    fontSize: 11,
     fontWeight: '500',
     color: Palette.textTertiary,
-    flexShrink: 1,
+    marginTop: 2,
+  },
+  recapPlaceholder: {
+    color: Palette.textTertiary,
+    fontWeight: '600',
   },
   createBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: Palette.blue,
     borderRadius: Radius.tile,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingVertical: 13,
+    paddingHorizontal: 12,
   },
+  // A soft primary tint instead of dull grey — still clearly "Rondivo blue",
+  // just resting until the last required step is done.
   createBtnDisabled: {
-    backgroundColor: '#B9C6DE',
+    backgroundColor: Palette.blueSoft,
   },
   createBtnDone: {
     backgroundColor: Palette.green,
   },
   createText: {
-    fontSize: FontSize.label,
+    fontSize: 13,
     fontWeight: '700',
     color: Palette.white,
     letterSpacing: -0.2,
+  },
+  createTextMuted: {
+    color: Palette.blue,
   },
 });

@@ -63,7 +63,7 @@ export function TemplatePicker({ selectedId, onSelect, onSelectCustom }: Props) 
         style={StyleSheet.flatten([styles.customRow, customActive && styles.customRowActive])}
         accessibilityLabel="Intervention personnalisée">
         <View style={[styles.iconTile, { backgroundColor: Palette.cardMuted }]}>
-          <Feather name="edit-3" size={15} color={Palette.textSecondary} />
+          <Feather name="edit-3" size={14} color={Palette.textSecondary} />
         </View>
         <View style={styles.texts}>
           <Text style={styles.customTitle}>Personnalisé</Text>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 7,
   },
   cell: {
     width: '48.4%',
@@ -90,11 +90,11 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 9,
     backgroundColor: Palette.card,
     borderRadius: Radius.tile,
-    paddingVertical: 9,
-    paddingHorizontal: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 9,
     borderWidth: 1.5,
     borderColor: Palette.border,
     position: 'relative',
@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.blueSoft,
   },
   iconTile: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 29,
+    height: 29,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

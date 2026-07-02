@@ -203,7 +203,7 @@ export function computeSlots(dayKey: string, durationMinutes: number): SlotInfo[
       return {
         time,
         status: 'short',
-        note: availableMinutes > 0 ? `${availableMinutes} min disponibles` : 'Créneau trop court',
+        note: availableMinutes > 0 ? `${availableMinutes} min` : 'Trop court',
       };
     }
 
