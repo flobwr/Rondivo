@@ -51,8 +51,16 @@ export function Field({ label, trailing, children }: { label: string; trailing?:
   );
 }
 
+export type ChipTone = 'busy' | 'short';
+
+const TONE_STYLE: Record<ChipTone, { background: string; border: string; text: string; sub: string }> = {
+  busy: { background: '#EEF0F3', border: '#EEF0F3', text: Palette.textTertiary, sub: Palette.textTertiary },
+  short: { background: Palette.orangeSoft, border: Palette.orangeSoft, text: Palette.orange, sub: Palette.orange },
+};
+
 // The one canonical selectable pill used by every strip (date, time, duration,
-// priority…). Active = solid accent; inactive = white with a hairline border.
+// priority…). Active = solid accent; inactive = white with a hairline border;
+// disabled (busy/short) = flat tone fill, no press feedback, no onPress.
 export function Chip({
   label,
   sublabel,
@@ -62,16 +70,45 @@ export function Chip({
   dotColor,
   icon,
   minWidth,
+  disabled,
+  tone,
 }: {
   label: string;
   sublabel?: string;
   active: boolean;
-  onPress: () => void;
+  onPress?: () => void;
   accent?: string;
   dotColor?: string;
   icon?: FeatherIconName;
   minWidth?: number;
+  disabled?: boolean;
+  tone?: ChipTone;
 }) {
+  const toneStyle = tone ? TONE_STYLE[tone] : null;
+
+  if (disabled) {
+    return (
+      <View
+        style={[
+          styles.chip,
+          minWidth ? { minWidth } : null,
+          { backgroundColor: toneStyle?.background ?? styles.chipInactive.backgroundColor, borderColor: toneStyle?.border ?? styles.chipInactive.borderColor },
+        ]}
+        accessibilityLabel={sublabel ? `${label}, ${sublabel}` : label}>
+        <View>
+          <Text style={[styles.chipLabel, { color: toneStyle?.text ?? Palette.textTertiary }]} numberOfLines={1}>
+            {label}
+          </Text>
+          {sublabel ? (
+            <Text style={[styles.chipSub, { color: toneStyle?.sub ?? Palette.textTertiary }]} numberOfLines={1}>
+              {sublabel}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <PressableScale onPress={onPress} to={0.93} style={undefined} accessibilityLabel={label}>
       <View
@@ -83,13 +120,36 @@ export function Chip({
         {dotColor ? <View style={[styles.dot, { backgroundColor: active ? Palette.white : dotColor }]} /> : null}
         {icon ? <Feather name={icon} size={14} color={active ? Palette.white : Palette.textSecondary} /> : null}
         <View>
-          <Text style={[styles.chipLabel, { color: active ? Palette.white : Palette.textPrimary }]}>{label}</Text>
+          <Text style={[styles.chipLabel, { color: active ? Palette.white : Palette.textPrimary }]} numberOfLines={1}>
+            {label}
+          </Text>
           {sublabel ? (
-            <Text style={[styles.chipSub, { color: active ? Palette.white : Palette.textTertiary }]}>{sublabel}</Text>
+            <Text style={[styles.chipSub, { color: active ? Palette.white : Palette.textTertiary }]} numberOfLines={1}>
+              {sublabel}
+            </Text>
           ) : null}
         </View>
       </View>
     </PressableScale>
+  );
+}
+
+// Tiny legend explaining the three time-slot states — kept discreet, single line.
+export function AvailabilityLegend() {
+  const items: { label: string; color: string }[] = [
+    { label: 'Disponible', color: Palette.blue },
+    { label: 'Occupé', color: Palette.textTertiary },
+    { label: 'Trop court', color: Palette.orange },
+  ];
+  return (
+    <View style={styles.legend}>
+      {items.map((item) => (
+        <View key={item.label} style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+          <Text style={styles.legendText}>{item.label}</Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -156,5 +216,26 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 1,
     textAlign: 'center',
+  },
+  legend: {
+    flexDirection: 'row',
+    gap: 14,
+    marginTop: 10,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  legendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  legendText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
   },
 });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type Client } from '@/components/clients/types';
-import { fetchClientsPage, type ClientQuery } from '@/data/clients';
+import { fetchClientsPage, paginateClients, type ClientQuery } from '@/data/clients';
 
 export type ClientsStatus = 'loading' | 'refreshing' | 'error' | 'success';
 
@@ -40,11 +40,28 @@ export function useClients(query: ClientQuery): UseClientsResult {
   const pageRef = useRef(1);
   // Guards against out-of-order responses when the query changes mid-flight.
   const requestRef = useRef(0);
+  // Whether we've ever completed a real load. Filtering/sorting/searching an
+  // already-loaded local dataset is a pure, synchronous recompute — it must
+  // never show a loading/skeleton state or block the list. Only the very
+  // first mount (no data yet) and an explicit pull-to-refresh go through the
+  // "network-like" path with its simulated latency.
+  const hasLoadedOnceRef = useRef(false);
 
   const load = useCallback(
     async (mode: 'initial' | 'refresh' | 'more') => {
       const requestId = ++requestRef.current;
       const nextPage = mode === 'more' ? pageRef.current + 1 : 1;
+
+      if (mode === 'initial' && hasLoadedOnceRef.current) {
+        // Instant client-side filter/sort/search — no fetch, no status change,
+        // so nothing about the list (RefreshControl included) ever flickers.
+        const result = paginateClients(query, 1);
+        pageRef.current = result.page;
+        setTotal(result.total);
+        setHasMore(result.hasMore);
+        setClients(result.items);
+        return;
+      }
 
       if (mode === 'more') setIsLoadingMore(true);
       else {
@@ -61,6 +78,7 @@ export function useClients(query: ClientQuery): UseClientsResult {
         setHasMore(result.hasMore);
         setClients((prev) => (mode === 'more' ? [...prev, ...result.items] : result.items));
         setStatus('success');
+        hasLoadedOnceRef.current = true;
       } catch {
         if (requestId !== requestRef.current) return;
         if (mode === 'more') {

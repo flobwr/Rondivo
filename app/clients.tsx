@@ -1,11 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   FlatList,
   Linking,
   Pressable,
@@ -122,14 +121,6 @@ export default function ClientsScreen() {
   const activeStatus: ClientStatus | null =
     selectedStatuses.length === 1 ? selectedStatuses[0] : null;
 
-  // Premium micro-interaction: cross-fade the list when the filter/sort changes.
-  const listFade = useRef(new Animated.Value(1)).current;
-  const filterSignature = `${selectedStatuses.join(',')}|${sortKey}`;
-  useEffect(() => {
-    listFade.setValue(0.35);
-    Animated.timing(listFade, { toValue: 1, duration: 260, useNativeDriver: true }).start();
-  }, [filterSignature, listFade]);
-
   const emptyMode: EmptyMode =
     searchQuery.length > 0 ? 'no-results' : selectedStatuses.length > 0 ? 'no-filter-match' : 'no-clients';
 
@@ -185,7 +176,7 @@ export default function ClientsScreen() {
           </View>
         </View>
 
-        <Animated.View style={[styles.flex, { opacity: listFade }]}>
+        <View style={styles.flex}>
           <FlatList
             data={clients}
             keyExtractor={(client) => client.id}
@@ -219,7 +210,7 @@ export default function ClientsScreen() {
               ) : null
             }
           />
-        </Animated.View>
+        </View>
       </SafeAreaView>
 
       <BottomNav activeIndex={2} />

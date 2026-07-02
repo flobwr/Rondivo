@@ -1,22 +1,24 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  LayoutAnimation,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  UIManager,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { TINT_COLORS, type Client } from '@/components/clients/types';
-import { Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
+import { AvailabilityLegend, Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
 import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { TemplatePicker } from '@/components/appointment/TemplatePicker';
 import {
@@ -24,14 +26,19 @@ import {
   PRIORITY_META,
   RECURRENCE_META,
   RECURRENCE_ORDER,
-  TIME_SLOTS,
+  REMINDER_META,
+  REMINDER_ORDER,
   addMinutesToTime,
   buildDays,
+  computeSlots,
   defaultStart,
-  formatDayShort,
+  formatDayFooter,
   formatDuration,
+  nearestAvailableSlot,
+  type AttachmentItem,
   type Priority,
   type Recurrence,
+  type Reminder,
 } from '@/components/appointment/appointment-utils';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
@@ -39,7 +46,12 @@ import { getClientById } from '@/data/clients';
 import { type InterventionTemplate } from '@/data/intervention-templates';
 import { CURRENT_TECHNICIAN, TECHNICIANS } from '@/data/technicians';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const DAYS = buildDays(14);
+const easeLayout = () => LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
 function formatEuro(value: number): string {
   return `${value.toLocaleString('fr-FR')} €`;
@@ -67,6 +79,8 @@ export default function NewAppointmentScreen() {
   const [advanced, setAdvanced] = useState(false);
   const [technicianId, setTechnicianId] = useState(CURRENT_TECHNICIAN.id);
   const [recurrence, setRecurrence] = useState<Recurrence>('none');
+  const [reminder, setReminder] = useState<Reminder>('none');
+  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [notes, setNotes] = useState('');
 
   const [created, setCreated] = useState(false);
@@ -77,7 +91,28 @@ export default function NewAppointmentScreen() {
   const canCreate = !!client && !!hasType && !created;
   const totalTTC = price > 0 ? Math.round(price * (1 + tva / 100)) : 0;
 
+  // Recomputes instantly on every day/duration change — three real states
+  // (available / busy / too short) so the artisan can book confidently on the
+  // phone instead of guessing at a plain list of free slots.
+  const slots = useMemo(() => computeSlots(dayKey, duration), [dayKey, duration]);
+
+  // If the day or duration change makes the current slot invalid, silently
+  // jump to the nearest available one — one fewer decision for the user.
+  useEffect(() => {
+    const current = slots.find((s) => s.time === time);
+    if (current && current.status !== 'available') {
+      const next = nearestAvailableSlot(slots, time);
+      if (next) {
+        easeLayout();
+        setTime(next);
+      }
+    }
+    // Only the day/duration should trigger a re-check, not every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayKey, duration]);
+
   const applyTemplate = (t: InterventionTemplate) => {
+    easeLayout();
     setTemplateId(t.id);
     setCategory(t.category);
     setPrice(t.price);
@@ -86,10 +121,21 @@ export default function NewAppointmentScreen() {
   };
 
   const selectCustom = () => {
+    easeLayout();
     setTemplateId('custom');
     setCategory(null);
     setPrice(0);
     setTva(20);
+  };
+
+  const addAttachment = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Structural placeholder — wires up to a real picker (camera/files) later.
+    setAttachments((prev) => [...prev, { id: `${Date.now()}`, name: `Photo ${prev.length + 1}.jpg` }]);
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const create = () => {
@@ -121,30 +167,20 @@ export default function NewAppointmentScreen() {
             keyboardDismissMode="on-drag"
             contentContainerStyle={styles.content}>
             {/* Client */}
-            <Field
-              label="Client"
-              trailing={
-                client ? (
-                  <PressableScale onPress={() => setClientSheet(true)} to={0.94} haptic={false} accessibilityLabel="Changer de client">
-                    <Text style={styles.changeLink}>Changer</Text>
-                  </PressableScale>
-                ) : undefined
-              }>
+            <Field label="Client">
               {client ? (
-                <View style={styles.clientCard}>
-                  <ClientAvatar initials={client.initials} tint={client.avatarTint} size={46} elevated />
+                <PressableScale onPress={() => setClientSheet(true)} to={0.98} style={styles.clientCard} accessibilityLabel={`Client : ${client.name}, changer`}>
+                  <ClientAvatar initials={client.initials} tint={client.avatarTint} size={40} elevated />
                   <View style={styles.clientInfo}>
                     <Text style={styles.clientName} numberOfLines={1}>
                       {client.name}
                     </Text>
-                    <View style={styles.addressRow}>
-                      <Feather name="map-pin" size={12} color={Palette.textTertiary} />
-                      <Text style={styles.clientAddress} numberOfLines={1}>
-                        {client.address}
-                      </Text>
-                    </View>
+                    <Text style={styles.clientAddress} numberOfLines={1}>
+                      {client.address}
+                    </Text>
                   </View>
-                </View>
+                  <Feather name="chevron-right" size={18} color={Palette.textTertiary} />
+                </PressableScale>
               ) : (
                 <PressableScale onPress={() => setClientSheet(true)} to={0.98} style={styles.clientEmpty} accessibilityLabel="Choisir un client">
                   <View style={styles.clientEmptyIcon}>
@@ -177,11 +213,12 @@ export default function NewAppointmentScreen() {
                 {DAYS.map((d) => (
                   <Chip
                     key={d.key}
-                    label={d.weekdayLabel}
-                    sublabel={String(d.dayNum)}
+                    label={d.chipLabel}
                     active={d.key === dayKey}
-                    onPress={() => setDayKey(d.key)}
-                    minWidth={54}
+                    onPress={() => {
+                      easeLayout();
+                      setDayKey(d.key);
+                    }}
                   />
                 ))}
               </ChipScroll>
@@ -190,17 +227,35 @@ export default function NewAppointmentScreen() {
             {/* Time */}
             <Field label="Heure" trailing={<Text style={styles.endLabel}>Fin ~ {endTime}</Text>}>
               <ChipScroll>
-                {TIME_SLOTS.map((slot) => (
-                  <Chip key={slot} label={slot} active={slot === time} onPress={() => setTime(slot)} minWidth={62} />
+                {slots.map((slot) => (
+                  <Chip
+                    key={slot.time}
+                    label={slot.time}
+                    sublabel={slot.status !== 'available' ? slot.note : undefined}
+                    active={slot.time === time}
+                    onPress={slot.status === 'available' ? () => setTime(slot.time) : undefined}
+                    disabled={slot.status !== 'available'}
+                    tone={slot.status === 'busy' ? 'busy' : slot.status === 'short' ? 'short' : undefined}
+                  />
                 ))}
               </ChipScroll>
+              <AvailabilityLegend />
             </Field>
 
             {/* Duration */}
             <Field label="Durée">
               <ChipScroll>
                 {DURATION_OPTIONS.map((min) => (
-                  <Chip key={min} label={formatDuration(min)} active={min === duration} onPress={() => setDuration(min)} minWidth={62} />
+                  <Chip
+                    key={min}
+                    label={formatDuration(min)}
+                    active={min === duration}
+                    onPress={() => {
+                      easeLayout();
+                      setDuration(min);
+                    }}
+                    minWidth={62}
+                  />
                 ))}
               </ChipScroll>
             </Field>
@@ -231,7 +286,14 @@ export default function NewAppointmentScreen() {
             </Field>
 
             {/* Advanced */}
-            <PressableScale onPress={() => setAdvanced((v) => !v)} to={0.98} haptic style={styles.advancedToggle} accessibilityLabel="Options avancées">
+            <PressableScale
+              onPress={() => {
+                easeLayout();
+                setAdvanced((v) => !v);
+              }}
+              to={0.98}
+              style={styles.advancedToggle}
+              accessibilityLabel="Options avancées">
               <Feather name="sliders" size={16} color={Palette.textSecondary} />
               <Text style={styles.advancedText}>Options avancées</Text>
               <Feather name={advanced ? 'chevron-up' : 'chevron-down'} size={18} color={Palette.textTertiary} />
@@ -265,6 +327,34 @@ export default function NewAppointmentScreen() {
                     multiline
                   />
                 </Field>
+
+                <Field label="Pièces jointes">
+                  <View style={styles.attachRow}>
+                    {attachments.map((a) => (
+                      <View key={a.id} style={styles.attachChip}>
+                        <Feather name="paperclip" size={12} color={Palette.textSecondary} />
+                        <Text style={styles.attachName} numberOfLines={1}>
+                          {a.name}
+                        </Text>
+                        <PressableScale onPress={() => removeAttachment(a.id)} to={0.85} haptic={false} accessibilityLabel={`Retirer ${a.name}`}>
+                          <Feather name="x" size={13} color={Palette.textTertiary} />
+                        </PressableScale>
+                      </View>
+                    ))}
+                    <PressableScale onPress={addAttachment} to={0.96} style={styles.addAttachBtn} accessibilityLabel="Ajouter une pièce jointe">
+                      <Feather name="plus" size={14} color={Palette.blue} />
+                      <Text style={styles.addAttachText}>Ajouter</Text>
+                    </PressableScale>
+                  </View>
+                </Field>
+
+                <Field label="Rappel">
+                  <ChipScroll>
+                    {REMINDER_ORDER.map((r) => (
+                      <Chip key={r} label={REMINDER_META[r]} active={r === reminder} onPress={() => setReminder(r)} />
+                    ))}
+                  </ChipScroll>
+                </Field>
               </View>
             ) : null}
 
@@ -276,14 +366,25 @@ export default function NewAppointmentScreen() {
             <SafeAreaView edges={['bottom']}>
               <View style={styles.footerInner}>
                 <View style={styles.recap}>
-                  <Text style={styles.recapMain} numberOfLines={1}>
-                    {formatDayShort(dayKey)} · {time}–{endTime}
-                  </Text>
-                  {totalTTC > 0 ? (
-                    <Text style={styles.recapSub}>{formatEuro(totalTTC)} TTC · TVA {tva}%</Text>
-                  ) : (
-                    <Text style={styles.recapSub}>{formatDuration(duration)}{category ? ` · ${category}` : ''}</Text>
-                  )}
+                  <View style={styles.recapRow}>
+                    <Feather name="calendar" size={11} color={Palette.textSecondary} />
+                    <Text style={styles.recapMain} numberOfLines={1}>
+                      {formatDayFooter(dayKey)}
+                    </Text>
+                  </View>
+                  <View style={styles.recapRow}>
+                    <Feather name="clock" size={11} color={Palette.textSecondary} />
+                    <Text style={styles.recapMain} numberOfLines={1}>
+                      {time} → {endTime}
+                    </Text>
+                  </View>
+                  <View style={styles.recapRow}>
+                    <Feather name="watch" size={11} color={Palette.textTertiary} />
+                    <Text style={styles.recapSub} numberOfLines={1}>
+                      {formatDuration(duration)}
+                      {totalTTC > 0 ? ` · ${formatEuro(totalTTC)} TTC · TVA ${tva}%` : category ? ` · ${category}` : ''}
+                    </Text>
+                  </View>
                 </View>
 
                 <PressableScale onPress={create} to={0.96} disabled={!canCreate} accessibilityLabel="Créer le rendez-vous">
@@ -337,38 +438,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen,
     paddingBottom: 20,
   },
-  changeLink: {
-    fontSize: FontSize.small,
-    fontWeight: '700',
-    color: Palette.blue,
-  },
   clientCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    padding: 14,
+    borderRadius: Radius.tile,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     ...cardShadow,
   },
   clientInfo: { flex: 1 },
   clientName: {
-    fontSize: FontSize.body,
+    fontSize: FontSize.label,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.3,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 4,
+    letterSpacing: -0.2,
   },
   clientAddress: {
-    flex: 1,
-    fontSize: FontSize.small,
+    fontSize: 12,
     fontWeight: '500',
     color: Palette.textTertiary,
+    marginTop: 2,
   },
   clientEmpty: {
     flexDirection: 'row',
@@ -423,7 +514,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 9,
     borderRadius: Radius.pill,
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,
@@ -470,6 +561,44 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
+  attachRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  attachChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Palette.card,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+    maxWidth: 160,
+  },
+  attachName: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: Palette.textPrimary,
+    letterSpacing: -0.1,
+    flexShrink: 1,
+  },
+  addAttachBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Palette.blueSoft,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+  },
+  addAttachText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: Palette.blue,
+  },
   footer: {
     backgroundColor: Palette.card,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -484,17 +613,24 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   recap: { flex: 1 },
+  recapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
   recapMain: {
-    fontSize: FontSize.label,
+    fontSize: 12.5,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.2,
+    flexShrink: 1,
   },
   recapSub: {
-    fontSize: FontSize.small,
+    fontSize: 11.5,
     fontWeight: '500',
     color: Palette.textTertiary,
-    marginTop: 2,
+    flexShrink: 1,
   },
   createBtn: {
     flexDirection: 'row',

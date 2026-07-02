@@ -435,6 +435,23 @@ export type ClientsPage = {
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
+ * Pure, synchronous slice of {@link queryClients} — no artificial latency.
+ * Filtering/sorting an already-loaded local dataset is instant; only the very
+ * first load and pull-to-refresh should look like a real network round trip.
+ */
+export function paginateClients(query: ClientQuery, page: number): ClientsPage {
+  const all = queryClients(query);
+  const start = (page - 1) * CLIENTS_PAGE_SIZE;
+  const items = all.slice(start, start + CLIENTS_PAGE_SIZE);
+  return {
+    items,
+    page,
+    total: all.length,
+    hasMore: start + CLIENTS_PAGE_SIZE < all.length,
+  };
+}
+
+/**
  * Mocked paginated fetch. Swap the body for a Supabase `.range()` query and the
  * rest of the app keeps working. `shouldFail` lets the UI exercise its error
  * state on demand.
@@ -446,16 +463,7 @@ export async function fetchClientsPage(
 ): Promise<ClientsPage> {
   await wait(delay);
   if (shouldFail) throw new Error('network');
-
-  const all = queryClients(query);
-  const start = (page - 1) * CLIENTS_PAGE_SIZE;
-  const items = all.slice(start, start + CLIENTS_PAGE_SIZE);
-  return {
-    items,
-    page,
-    total: all.length,
-    hasMore: start + CLIENTS_PAGE_SIZE < all.length,
-  };
+  return paginateClients(query, page);
 }
 
 export function getClientById(id: string): Client | undefined {
