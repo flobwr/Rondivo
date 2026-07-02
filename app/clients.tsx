@@ -1,13 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   FlatList,
   Linking,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -18,12 +18,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ClientCard } from '@/components/clients/ClientCard';
+import { ClientFilterChips } from '@/components/clients/ClientFilterChips';
 import { ClientFilterSheet } from '@/components/clients/ClientFilterSheet';
 import { ClientHeader } from '@/components/clients/ClientHeader';
 import { ClientListSkeleton } from '@/components/clients/ClientCardSkeleton';
-import { ClientsEmptyState, ClientsErrorState } from '@/components/clients/ClientListStates';
+import { ClientsEmptyState, ClientsErrorState, type EmptyMode } from '@/components/clients/ClientListStates';
 import { ClientSearch } from '@/components/clients/ClientSearch';
-import { ClientStats } from '@/components/clients/ClientStats';
 import {
   type Client,
   type ClientStatus,
@@ -35,12 +35,6 @@ import { countByStatus } from '@/data/clients';
 import { useClients } from '@/hooks/use-clients';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { usePersistentState } from '@/hooks/use-persistent-state';
-
-type StatKey = ClientStatus | 'new-clients';
-
-function statKeyToStatus(key: StatKey): ClientStatus {
-  return key === 'new-clients' ? 'new' : key;
-}
 
 export default function ClientsScreen() {
   const router = useRouter();
@@ -71,8 +65,12 @@ export default function ClientsScreen() {
     retry,
   } = useClients(query);
 
-  // Stat cards reflect the whole dataset, independent of the active filters.
+  // Chip counts reflect the whole dataset, independent of the active filters.
   const counts = useMemo(() => countByStatus(), []);
+  const allCount = useMemo(
+    () => Object.values(counts).reduce((sum, n) => sum + n, 0),
+    [counts]
+  );
 
   const toggleStatus = useCallback((status: ClientStatus) => {
     setSelectedStatuses((prev) =>
@@ -80,13 +78,10 @@ export default function ClientsScreen() {
     );
   }, []);
 
-  const handleStatSelect = useCallback(
-    (key: StatKey) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      toggleStatus(statKeyToStatus(key));
-    },
-    [toggleStatus]
-  );
+  // Chips are single-select quick shortcuts: pick one status, or "Tous" clears.
+  const handleChipSelect = useCallback((status: ClientStatus | null) => {
+    setSelectedStatuses(status ? [status] : []);
+  }, []);
 
   const resetFilters = useCallback(() => {
     setSelectedStatuses([]);
@@ -113,50 +108,41 @@ export default function ClientsScreen() {
   );
 
   const handleCall = useCallback((client: Client) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Linking.openURL(`tel:${client.phone.replace(/\s+/g, '')}`);
-  }, []);
-
-  const handleNavigate = useCallback((client: Client) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const q = encodeURIComponent(client.address);
-    const url = Platform.select({
-      ios: `maps://?daddr=${q}`,
-      android: `geo:0,0?q=${q}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${q}`,
-    });
-    Linking.openURL(url!);
   }, []);
 
   const renderItem = useCallback(
     ({ item }: { item: Client }) => (
-      <ClientCard
-        client={item}
-        variant={viewMode}
-        onPress={handleOpenClient}
-        onCall={handleCall}
-        onNavigate={handleNavigate}
-      />
+      <ClientCard client={item} variant={viewMode} onPress={handleOpenClient} onCall={handleCall} />
     ),
-    [viewMode, handleOpenClient, handleCall, handleNavigate]
+    [viewMode, handleOpenClient, handleCall]
   );
 
   const filtersActive = selectedStatuses.length > 0 || sortKey !== 'priority';
-  const activeStatKey: StatKey | null =
-    selectedStatuses.length === 1
-      ? selectedStatuses[0] === 'new'
-        ? 'new-clients'
-        : selectedStatuses[0]
-      : null;
+  const activeStatus: ClientStatus | null =
+    selectedStatuses.length === 1 ? selectedStatuses[0] : null;
+
+  // Premium micro-interaction: cross-fade the list when the filter/sort changes.
+  const listFade = useRef(new Animated.Value(1)).current;
+  const filterSignature = `${selectedStatuses.join(',')}|${sortKey}`;
+  useEffect(() => {
+    listFade.setValue(0.35);
+    Animated.timing(listFade, { toValue: 1, duration: 260, useNativeDriver: true }).start();
+  }, [filterSignature, listFade]);
+
+  const emptyMode: EmptyMode =
+    searchQuery.length > 0 ? 'no-results' : selectedStatuses.length > 0 ? 'no-filter-match' : 'no-clients';
 
   const listHeader = (
     <View>
-      <ClientStats
-        counts={counts}
-        newClientsCount={counts.new}
-        activeKey={activeStatKey}
-        onSelect={handleStatSelect}
-      />
+      <View style={styles.chipsWrap}>
+        <ClientFilterChips
+          counts={counts}
+          total={allCount}
+          activeStatus={activeStatus}
+          onSelect={handleChipSelect}
+        />
+      </View>
 
       <View style={styles.toolbar}>
         <Text style={styles.count}>
@@ -169,11 +155,7 @@ export default function ClientsScreen() {
           hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel={viewMode === 'comfortable' ? 'Vue compacte' : 'Vue détaillée'}>
-          <Feather
-            name={viewMode === 'comfortable' ? 'list' : 'grid'}
-            size={17}
-            color={Palette.textPrimary}
-          />
+          <Feather name={viewMode === 'comfortable' ? 'list' : 'grid'} size={17} color={Palette.textPrimary} />
         </Pressable>
       </View>
     </View>
@@ -184,7 +166,7 @@ export default function ClientsScreen() {
   ) : error ? (
     <ClientsErrorState onRetry={retry} />
   ) : (
-    <ClientsEmptyState hasQuery={filtersActive || searchQuery.length > 0} onReset={resetFilters} />
+    <ClientsEmptyState mode={emptyMode} onReset={resetFilters} />
   );
 
   return (
@@ -203,39 +185,41 @@ export default function ClientsScreen() {
           </View>
         </View>
 
-        <FlatList
-          data={clients}
-          keyExtractor={(client) => client.id}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-          ListHeaderComponent={listHeader}
-          ListEmptyComponent={listEmpty}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          initialNumToRender={6}
-          maxToRenderPerBatch={6}
-          windowSize={9}
-          removeClippedSubviews
-          onEndReachedThreshold={0.4}
-          onEndReached={loadMore}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor={Palette.blue}
-              colors={[Palette.blue]}
-            />
-          }
-          ListFooterComponent={
-            isLoadingMore ? (
-              <View style={styles.footerLoader}>
-                <ActivityIndicator color={Palette.blue} />
-              </View>
-            ) : null
-          }
-        />
+        <Animated.View style={[styles.flex, { opacity: listFade }]}>
+          <FlatList
+            data={clients}
+            keyExtractor={(client) => client.id}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
+            ListHeaderComponent={listHeader}
+            ListEmptyComponent={listEmpty}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            initialNumToRender={8}
+            maxToRenderPerBatch={8}
+            windowSize={9}
+            removeClippedSubviews
+            onEndReachedThreshold={0.4}
+            onEndReached={loadMore}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor={Palette.blue}
+                colors={[Palette.blue]}
+              />
+            }
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View style={styles.footerLoader}>
+                  <ActivityIndicator color={Palette.blue} />
+                </View>
+              ) : null
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={2} />
@@ -262,10 +246,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  flex: {
+    flex: 1,
+  },
   fixedHeader: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   searchWrap: {
     marginTop: Spacing.lg,
@@ -275,15 +262,20 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.section,
     flexGrow: 1,
   },
+  chipsWrap: {
+    // Full-bleed so the chips can scroll edge to edge, cancelling the list padding.
+    marginHorizontal: -Spacing.screen,
+    marginBottom: Spacing.sm,
+  },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.md,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   count: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
@@ -299,7 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   separator: {
-    height: Spacing.md,
+    height: 10,
   },
   footerLoader: {
     paddingVertical: 20,

@@ -26,37 +26,23 @@ function Shimmer({ style }: { style?: object }) {
   return <Animated.View style={[{ backgroundColor }, style]} />;
 }
 
-/** A single skeleton card that mirrors {@link ClientCard} so the load feels seamless. */
+/** A single skeleton row that mirrors the minimalist {@link ClientCard}. */
 export function ClientCardSkeleton() {
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <Shimmer style={styles.avatar} />
-        <View style={styles.identity}>
-          <Shimmer style={[styles.line, { width: '55%' }]} />
-          <Shimmer style={[styles.line, styles.badge, { width: '38%' }]} />
-        </View>
+      <Shimmer style={styles.avatar} />
+      <View style={styles.info}>
+        <Shimmer style={[styles.line, { width: '52%' }]} />
+        <Shimmer style={[styles.line, styles.badge, { width: '34%' }]} />
+        <Shimmer style={[styles.line, styles.address, { width: '68%' }]} />
       </View>
-
-      <Shimmer style={[styles.line, styles.address, { width: '72%' }]} />
-      <Shimmer style={[styles.line, styles.highlight, { width: '50%' }]} />
-
-      <View style={styles.divider} />
-
-      <View style={styles.footer}>
-        <Shimmer style={[styles.line, { width: 90 }]} />
-        <Shimmer style={[styles.line, { width: 60 }]} />
-      </View>
-      <View style={styles.actions}>
-        <Shimmer style={styles.circle} />
-        <Shimmer style={styles.circle} />
-      </View>
+      <Shimmer style={styles.circle} />
     </View>
   );
 }
 
-/** A short stack of skeleton cards for the initial page load. */
-export function ClientListSkeleton({ count = 4 }: { count?: number }) {
+/** A short stack of skeleton rows for the initial page load. */
+export function ClientListSkeleton({ count = 7 }: { count?: number }) {
   return (
     <View style={styles.list}>
       {Array.from({ length: count }).map((_, i) => (
@@ -70,63 +56,44 @@ export function ClientListSkeleton({ count = 4 }: { count?: number }) {
 
 const styles = StyleSheet.create({
   list: {
-    paddingTop: 4,
+    paddingTop: 2,
   },
   gap: {
-    marginTop: 12,
+    marginTop: 10,
   },
   card: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-    ...cardShadow,
-  },
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+    backgroundColor: Palette.card,
+    borderRadius: Radius.card,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    ...cardShadow,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
   },
-  identity: {
+  info: {
     flex: 1,
-    marginLeft: 12,
-    gap: 8,
+    gap: 7,
   },
   line: {
     height: 11,
     borderRadius: 6,
   },
   badge: {
-    height: 16,
+    height: 15,
     borderRadius: 8,
   },
   address: {
-    marginTop: 14,
-  },
-  highlight: {
-    marginTop: 12,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Palette.border,
-    marginVertical: 14,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 18,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
+    height: 10,
   },
   circle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });

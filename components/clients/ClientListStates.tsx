@@ -34,26 +34,46 @@ function PrimaryButton({
   );
 }
 
-/** Shown when the search / filters return nothing. */
-export function ClientsEmptyState({ hasQuery, onReset }: { hasQuery: boolean; onReset?: () => void }) {
+export type EmptyMode = 'no-clients' | 'no-results' | 'no-filter-match';
+
+const EMPTY_COPY: Record<EmptyMode, { icon: React.ComponentProps<typeof Feather>['name']; title: string; subtitle: string; reset: boolean }> = {
+  'no-clients': {
+    icon: 'users',
+    title: 'Aucun client',
+    subtitle: 'Ajoutez votre premier client pour le voir apparaître ici.',
+    reset: false,
+  },
+  'no-results': {
+    icon: 'search',
+    title: 'Aucun résultat',
+    subtitle: 'Aucun client ne correspond à votre recherche. Essayez un autre terme.',
+    reset: true,
+  },
+  'no-filter-match': {
+    icon: 'filter',
+    title: 'Aucun client ici',
+    subtitle: 'Aucun client dans cette catégorie pour le moment.',
+    reset: true,
+  },
+};
+
+/** Shown when the list is empty — the exact copy depends on why. */
+export function ClientsEmptyState({ mode, onReset }: { mode: EmptyMode; onReset?: () => void }) {
   const enter = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.spring(enter, { toValue: 1, useNativeDriver: true, friction: 8, tension: 70 }).start();
   }, [enter]);
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  const copy = EMPTY_COPY[mode];
 
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter, transform: [{ translateY }] }]}>
       <View style={styles.iconRing}>
-        <Feather name="search" size={26} color={Palette.blue} />
+        <Feather name={copy.icon} size={26} color={Palette.blue} />
       </View>
-      <Text style={styles.title}>Aucun client trouvé</Text>
-      <Text style={styles.subtitle}>
-        {hasQuery
-          ? 'Aucun résultat pour cette recherche. Essayez d’ajuster vos filtres.'
-          : 'Ajoutez votre premier client pour le voir apparaître ici.'}
-      </Text>
-      {hasQuery && onReset ? <PrimaryButton icon="rotate-ccw" label="Réinitialiser" onPress={onReset} /> : null}
+      <Text style={styles.title}>{copy.title}</Text>
+      <Text style={styles.subtitle}>{copy.subtitle}</Text>
+      {copy.reset && onReset ? <PrimaryButton icon="rotate-ccw" label="Réinitialiser" onPress={onReset} /> : null}
     </Animated.View>
   );
 }
