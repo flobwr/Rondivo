@@ -26,6 +26,8 @@ export const Palette = {
   orange: '#F59E0B',
   orangeSoft: '#FEF1DC',
 
+  redSoft: '#FDEAEA', // soft tile bg for the red ("erreur") accent — pairs with `notification`
+
   purple: '#7C3AED',
   purpleSoft: '#EDE7FE',
 

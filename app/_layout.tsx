@@ -13,6 +13,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="planning" />
         <Stack.Screen name="rappels" />
+        <Stack.Screen name="documents" />
       </Stack>
       <StatusBar style="dark" />
     </>
