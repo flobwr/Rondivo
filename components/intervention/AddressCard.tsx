@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -13,16 +14,29 @@ type Props = {
   onNavigate?: () => void;
 };
 
-export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Props) {
+function useMiniPress() {
   const scale = useRef(new Animated.Value(1)).current;
-  const kmLabel = travelKm.toFixed(1).replace('.', ',');
-
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    Animated.spring(scale, { toValue: 0.94, useNativeDriver: true, friction: 6, tension: 300 }).start();
   };
   const onPressOut = () => {
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+  };
+  return { scale, onPressIn, onPressOut };
+}
+
+export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Props) {
+  const [copied, setCopied] = useState(false);
+  const copyPress = useMiniPress();
+  const navPress = useMiniPress();
+  const kmLabel = travelKm.toFixed(1).replace('.', ',');
+
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(address);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
   };
 
   return (
@@ -37,12 +51,20 @@ export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Pr
           </Text>
         </View>
 
-        <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onNavigate} hitSlop={6}>
-          <Animated.View style={[styles.navButton, { transform: [{ scale }] }]}>
-            <Feather name="navigation" size={14} color={Palette.blue} />
-            <Text style={styles.navButtonText}>Itinéraire</Text>
-          </Animated.View>
-        </Pressable>
+        <View style={styles.actions}>
+          <Pressable onPressIn={copyPress.onPressIn} onPressOut={copyPress.onPressOut} onPress={handleCopy} hitSlop={6}>
+            <Animated.View style={[styles.iconButton, { transform: [{ scale: copyPress.scale }] }]}>
+              <Feather name={copied ? 'check' : 'copy'} size={15} color={Palette.blue} />
+            </Animated.View>
+          </Pressable>
+
+          <Pressable onPressIn={navPress.onPressIn} onPressOut={navPress.onPressOut} onPress={onNavigate} hitSlop={6}>
+            <Animated.View style={[styles.navButton, { transform: [{ scale: navPress.scale }] }]}>
+              <Feather name="navigation" size={14} color={Palette.blue} />
+              <Text style={styles.navButtonText}>Itinéraire</Text>
+            </Animated.View>
+          </Pressable>
+        </View>
       </View>
     </SectionCard>
   );
@@ -72,6 +94,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: Palette.blueSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   navButton: {
     flexDirection: 'row',

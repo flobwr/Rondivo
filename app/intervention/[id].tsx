@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef } from 'react';
-import { Animated, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddressCard } from '@/components/intervention/AddressCard';
+import { AnimatedSection } from '@/components/intervention/AnimatedSection';
 import { DescriptionCard } from '@/components/intervention/DescriptionCard';
 import { DocumentsCard } from '@/components/intervention/DocumentsCard';
 import { EquipmentCard } from '@/components/intervention/EquipmentCard';
@@ -16,17 +17,22 @@ import { PhotosCard } from '@/components/intervention/PhotosCard';
 import { QuickActionsCard } from '@/components/intervention/QuickActionsCard';
 import { ReportCard } from '@/components/intervention/ReportCard';
 import { TimingCard } from '@/components/intervention/TimingCard';
+import { Photo } from '@/components/intervention/types';
 import { Palette, Spacing } from '@/constants/design';
 
 export default function InterventionScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const intervention = useMemo(() => getIntervention(id), [id]);
-  const fadeIn = useRef(new Animated.Value(0)).current;
+  const [photos, setPhotos] = useState<Photo[]>(intervention.photos);
 
   useEffect(() => {
-    Animated.timing(fadeIn, { toValue: 1, duration: 260, useNativeDriver: true }).start();
-  }, [fadeIn]);
+    setPhotos(intervention.photos);
+  }, [intervention]);
+
+  const handleAddPhoto = useCallback((uri: string) => {
+    setPhotos((prev) => [...prev, { id: `photo-${Date.now()}`, source: { uri } }]);
+  }, []);
 
   const handleCall = () => Linking.openURL(`tel:${intervention.phone}`);
   const handleSms = () => Linking.openURL(`sms:${intervention.phone}`);
@@ -43,76 +49,76 @@ export default function InterventionScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-            <InterventionHeader intervention={intervention} onBack={() => router.back()} />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <InterventionHeader intervention={intervention} onBack={() => router.back()} />
 
-            <View style={styles.section}>
-              <QuickActionsCard
-                onCall={handleCall}
-                onSms={handleSms}
-                onNavigate={handleNavigate}
-                onEdit={() => {}}
-                onStart={() => {}}
-              />
-            </View>
+          <AnimatedSection index={0}>
+            <QuickActionsCard
+              onCall={handleCall}
+              onSms={handleSms}
+              onNavigate={handleNavigate}
+              onEdit={() => {}}
+              onStart={() => {}}
+            />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <AddressCard
-                address={intervention.address}
-                travelMinutes={intervention.travelMinutes}
-                travelKm={intervention.travelKm}
-                onNavigate={handleNavigate}
-              />
-            </View>
+          <AnimatedSection index={1}>
+            <AddressCard
+              address={intervention.address}
+              travelMinutes={intervention.travelMinutes}
+              travelKm={intervention.travelKm}
+              onNavigate={handleNavigate}
+            />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <DescriptionCard
-                description={intervention.description}
-                notes={intervention.notes}
-                priority={intervention.priority}
-              />
-            </View>
+          <AnimatedSection index={2}>
+            <DescriptionCard
+              description={intervention.description}
+              notes={intervention.notes}
+              priority={intervention.priority}
+            />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <EquipmentCard equipment={intervention.equipment} />
-            </View>
+          <AnimatedSection index={3}>
+            <EquipmentCard equipment={intervention.equipment} />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <PhotosCard photos={intervention.photos} />
-            </View>
+          <AnimatedSection index={4}>
+            <PhotosCard photos={photos} onAddPhoto={handleAddPhoto} />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <TimingCard
-                startTime={intervention.startTime}
-                endTime={intervention.endTime}
-                duration={intervention.duration}
-              />
-            </View>
+          <AnimatedSection index={5}>
+            <TimingCard
+              startTime={intervention.startTime}
+              endTime={intervention.endTime}
+              duration={intervention.duration}
+            />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <MaterialCard material={intervention.material} />
-            </View>
+          <AnimatedSection index={6}>
+            <MaterialCard material={intervention.material} />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <ReportCard
-                reportNote={intervention.reportNote}
-                hasVoiceNote={intervention.hasVoiceNote}
-                checklist={intervention.checklist}
-              />
-            </View>
+          <AnimatedSection index={7}>
+            <ReportCard
+              reportNote={intervention.reportNote}
+              hasVoiceNote={intervention.hasVoiceNote}
+              checklist={intervention.checklist}
+              hasSignature={intervention.hasSignature}
+              reportPdfReady={intervention.reportPdfReady}
+            />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <DocumentsCard documents={intervention.documents} />
-            </View>
+          <AnimatedSection index={8}>
+            <DocumentsCard documents={intervention.documents} />
+          </AnimatedSection>
 
-            <View style={styles.section}>
-              <HistoryCard history={intervention.history} />
-            </View>
-          </ScrollView>
+          <AnimatedSection index={9}>
+            <HistoryCard history={intervention.history} />
+          </AnimatedSection>
+        </ScrollView>
 
-          <InterventionFooter onStart={() => {}} onEdit={() => {}} />
-        </Animated.View>
+        <InterventionFooter onStart={() => {}} onEdit={() => {}} />
       </SafeAreaView>
     </View>
   );
@@ -126,15 +132,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  flex: {
-    flex: 1,
-  },
   content: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.section,
-  },
-  section: {
-    marginTop: Spacing.section,
   },
 });

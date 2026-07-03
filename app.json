@@ -39,7 +39,14 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Rondivo a besoin d'accéder à vos photos pour illustrer vos interventions.",
+          "cameraPermission": "Rondivo a besoin d'accéder à l'appareil photo pour documenter vos interventions."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,21 +1,81 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { SectionCard } from './SectionCard';
+import { ReportItem } from './types';
 
 type Props = {
   reportNote: string;
   hasVoiceNote: boolean;
   checklist: { completed: number; total: number };
+  hasSignature: boolean;
+  reportPdfReady: boolean;
   onComplete?: () => void;
 };
 
-export function ReportCard({ reportNote, hasVoiceNote, checklist, onComplete }: Props) {
+function buildItems({
+  reportNote,
+  hasVoiceNote,
+  checklist,
+  hasSignature,
+  reportPdfReady,
+}: Omit<Props, 'onComplete'>): ReportItem[] {
+  return [
+    {
+      id: 'notes',
+      icon: 'file-text',
+      label: 'Notes',
+      value: reportNote ? 'Renseignées' : 'Aucune note',
+      done: Boolean(reportNote),
+    },
+    {
+      id: 'voice',
+      icon: 'mic',
+      label: 'Dictée vocale',
+      value: hasVoiceNote ? '1 enregistrement' : 'Aucun enregistrement',
+      done: hasVoiceNote,
+    },
+    {
+      id: 'checklist',
+      icon: 'check-square',
+      label: 'Checklist',
+      value: `${checklist.completed}/${checklist.total}`,
+      done: checklist.total > 0 && checklist.completed === checklist.total,
+    },
+    {
+      id: 'signature',
+      icon: 'edit-3',
+      label: 'Signature client',
+      value: hasSignature ? 'Signée' : 'Non signée',
+      done: hasSignature,
+    },
+    {
+      id: 'liveTime',
+      icon: 'activity',
+      label: 'Temps réel',
+      value: 'Bientôt disponible',
+      done: false,
+    },
+    {
+      id: 'pdf',
+      icon: 'file',
+      label: 'Rapport PDF',
+      value: reportPdfReady ? 'Généré' : 'Non généré',
+      done: reportPdfReady,
+    },
+  ];
+}
+
+export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, reportPdfReady, onComplete }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
-  const progress = checklist.total > 0 ? checklist.completed / checklist.total : 0;
+  const items = useMemo(
+    () => buildItems({ reportNote, hasVoiceNote, checklist, hasSignature, reportPdfReady }),
+    [reportNote, hasVoiceNote, checklist, hasSignature, reportPdfReady]
+  );
+  const doneCount = items.filter((item) => item.done).length;
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -26,31 +86,38 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, onComplete }: 
   };
 
   return (
-    <SectionCard icon="clipboard" iconColor={Palette.purple} iconBackground={Palette.purpleSoft} title="Rapport">
-      <Text style={styles.note}>{reportNote || 'Aucune note pour le moment.'}</Text>
-
-      <View style={styles.rows}>
-        <View style={styles.row}>
-          <View style={styles.rowIconTile}>
-            <Feather name="mic" size={15} color={Palette.purple} />
-          </View>
-          <Text style={styles.rowLabel}>Dictée vocale</Text>
-          <Text style={styles.rowValue}>{hasVoiceNote ? '1 enregistrement' : 'Aucun enregistrement'}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.rowIconTile}>
-            <Feather name="check-square" size={15} color={Palette.purple} />
-          </View>
-          <Text style={styles.rowLabel}>Checklist</Text>
-          <Text style={styles.rowValue}>
-            {checklist.completed}/{checklist.total}
+    <SectionCard
+      icon="clipboard"
+      iconColor={Palette.purple}
+      iconBackground={Palette.purpleSoft}
+      title="Rapport"
+      right={
+        <View style={styles.summaryPill}>
+          <Text style={styles.summaryText}>
+            {doneCount}/{items.length}
           </Text>
         </View>
-
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-        </View>
+      }>
+      <View>
+        {items.map((item, index) => {
+          const isLive = item.id === 'liveTime';
+          return (
+            <View key={item.id}>
+              {index > 0 ? <View style={styles.separator} /> : null}
+              <View style={[styles.row, isLive ? styles.rowDisabled : null]}>
+                <View style={[styles.rowIconTile, item.done ? styles.rowIconTileDone : null]}>
+                  <Feather name={item.icon} size={15} color={item.done ? Palette.green : Palette.purple} />
+                </View>
+                <Text style={styles.rowLabel} numberOfLines={1}>
+                  {item.label}
+                </Text>
+                <Text style={styles.rowValue} numberOfLines={1}>
+                  {item.value}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
       </View>
 
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onComplete} style={styles.ctaWrapper}>
@@ -63,21 +130,30 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, onComplete }: 
 }
 
 const styles = StyleSheet.create({
-  note: {
-    fontSize: FontSize.label,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    fontStyle: 'italic',
-    lineHeight: 20,
+  summaryPill: {
+    backgroundColor: Palette.purpleSoft,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
-  rows: {
-    marginTop: Spacing.md,
-    gap: 10,
+  summaryText: {
+    fontSize: FontSize.tiny,
+    fontWeight: '700',
+    color: Palette.purple,
+    letterSpacing: -0.1,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Palette.border,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    paddingVertical: 10,
+  },
+  rowDisabled: {
+    opacity: 0.55,
   },
   rowIconTile: {
     width: 30,
@@ -86,6 +162,9 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.purpleSoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  rowIconTileDone: {
+    backgroundColor: Palette.greenSoft,
   },
   rowLabel: {
     flex: 1,
@@ -98,20 +177,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.small,
     fontWeight: '500',
     color: Palette.textTertiary,
-  },
-  progressTrack: {
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: Palette.cardMuted,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: Palette.purple,
+    flexShrink: 1,
+    textAlign: 'right',
   },
   ctaWrapper: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
   },
   cta: {
     height: 48,

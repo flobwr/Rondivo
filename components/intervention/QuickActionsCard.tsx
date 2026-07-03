@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow, heroShadow } from '@/constants/shadow';
@@ -29,9 +29,9 @@ function MiniActionButton({ label, icon, color, background, onPress }: MiniActio
 
   return (
     <Pressable style={styles.miniWrapper} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
-      <Animated.View style={{ transform: [{ scale }] }}>
+      <Animated.View style={[styles.miniInner, { transform: [{ scale }] }]}>
         <View style={[styles.miniTile, { backgroundColor: background }]}>
-          <Feather name={icon} size={19} color={color} />
+          <Feather name={icon} size={20} color={color} />
         </View>
         <Text style={styles.miniLabel} numberOfLines={1}>
           {label}
@@ -69,11 +69,14 @@ export function QuickActionsCard({ onCall, onSms, onNavigate, onEdit, onStart }:
 
   return (
     <SectionCard icon="zap" iconColor={Palette.blue} iconBackground={Palette.blueSoft} title="Actions rapides">
-      <View style={styles.row}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.row}>
         {actions.map((action) => (
           <MiniActionButton key={action.label} {...action} />
         ))}
-      </View>
+      </ScrollView>
 
       <Pressable onPressIn={onCtaPressIn} onPressOut={onCtaPressOut} onPress={onStart} style={styles.ctaWrapper}>
         <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
@@ -97,22 +100,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   miniWrapper: {
-    flex: 1,
+    width: 68,
+  },
+  miniInner: {
     alignItems: 'center',
   },
   miniTile: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 52,
+    height: 52,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     ...actionShadow,
   },
   miniLabel: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: 7,
+    marginTop: 8,
     letterSpacing: -0.1,
     textAlign: 'center',
   },

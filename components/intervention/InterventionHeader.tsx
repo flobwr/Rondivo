@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { PRIORITY_CONFIG } from './priority';
 import { Intervention, InterventionStatus } from './types';
 
 const STATUS_CONFIG: Record<InterventionStatus, { label: string; color: string; background: string }> = {
@@ -49,6 +50,8 @@ type Props = {
 
 export function InterventionHeader({ intervention, onBack, onMore }: Props) {
   const status = STATUS_CONFIG[intervention.status];
+  const priority = PRIORITY_CONFIG[intervention.priority];
+  const kmLabel = intervention.travelKm.toFixed(1).replace('.', ',');
 
   return (
     <View style={styles.container}>
@@ -96,6 +99,17 @@ export function InterventionHeader({ intervention, onBack, onMore }: Props) {
         <View style={styles.metaItem}>
           <Feather name="hash" size={13} color={Palette.textSecondary} />
           <Text style={styles.metaText}>{intervention.duration}</Text>
+        </View>
+      </View>
+
+      <View style={styles.chipsRow}>
+        <View style={[styles.chip, { backgroundColor: priority.background }]}>
+          <Feather name="flag" size={11} color={priority.color} />
+          <Text style={[styles.chipText, { color: priority.color }]}>{priority.shortLabel}</Text>
+        </View>
+        <View style={[styles.chip, styles.chipMuted]}>
+          <Feather name="navigation" size={11} color={Palette.textSecondary} />
+          <Text style={[styles.chipText, { color: Palette.textSecondary }]}>{kmLabel} km</Text>
         </View>
       </View>
     </View>
@@ -203,6 +217,27 @@ const styles = StyleSheet.create({
     fontSize: FontSize.small,
     fontWeight: '500',
     color: Palette.textSecondary,
+    letterSpacing: -0.1,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  chipMuted: {
+    backgroundColor: Palette.cardMuted,
+  },
+  chipText: {
+    fontSize: FontSize.tiny,
+    fontWeight: '700',
     letterSpacing: -0.1,
   },
 });

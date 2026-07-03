@@ -1,38 +1,56 @@
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette } from '@/constants/design';
+import { pickFromCamera, pickFromLibrary } from './photo-picker';
+import { PhotoGalleryModal } from './PhotoGalleryModal';
+import { PhotoPickerSheet } from './PhotoPickerSheet';
 import { SectionCard } from './SectionCard';
-import { Photo, PhotoCategory } from './types';
+import { Photo } from './types';
 
-const CATEGORY_CONFIG: Record<PhotoCategory, { label: string; background: string; color: string }> = {
-  avant: { label: 'Avant', background: '#E7E9ED', color: Palette.textSecondary },
-  apres: { label: 'Après', background: Palette.greenSoft, color: Palette.green },
-  document: { label: 'Document', background: Palette.blueSoft, color: Palette.blue },
-};
+const VISIBLE_COUNT = 2;
+const TILE = 92;
 
-const VISIBLE_COUNT = 4;
+function AddTile({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable style={styles.addTile} onPress={onPress} accessibilityLabel="Ajouter une photo">
+      <Feather name="plus" size={22} color={Palette.blue} />
+    </Pressable>
+  );
+}
 
 type Props = {
   photos: Photo[];
-  onSeeAll?: () => void;
-  onAdd?: () => void;
+  onAddPhoto: (uri: string) => void;
 };
 
-export function PhotosCard({ photos, onSeeAll, onAdd }: Props) {
-  const visible = photos.slice(0, VISIBLE_COUNT);
-  const remaining = photos.length - VISIBLE_COUNT;
-  const addScale = useRef(new Animated.Value(1)).current;
+export function PhotosCard({ photos, onAddPhoto }: Props) {
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [galleryVisible, setGalleryVisible] = useState(false);
 
-  const onAddPressIn = () => {
+  const openPicker = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(addScale, { toValue: 0.97, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    setPickerVisible(true);
   };
-  const onAddPressOut = () => {
-    Animated.spring(addScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+
+  const handlePickCamera = async () => {
+    setPickerVisible(false);
+    const uri = await pickFromCamera();
+    if (uri) onAddPhoto(uri);
+    else Alert.alert("Impossible d'accéder à l'appareil photo", "Vérifiez les autorisations de l'application.");
   };
+
+  const handlePickLibrary = async () => {
+    setPickerVisible(false);
+    const uri = await pickFromLibrary();
+    if (uri) onAddPhoto(uri);
+  };
+
+  const visiblePhotos = photos.slice(0, VISIBLE_COUNT);
+  const hasMore = photos.length > VISIBLE_COUNT;
 
   return (
     <SectionCard
@@ -41,49 +59,51 @@ export function PhotosCard({ photos, onSeeAll, onAdd }: Props) {
       iconBackground={Palette.greenSoft}
       title="Photos"
       right={
-        <Pressable style={styles.seeAll} onPress={onSeeAll} hitSlop={6}>
-          <Text style={styles.seeAllText}>Voir tout ({photos.length})</Text>
-          <Feather name="chevron-right" size={13} color={Palette.blue} />
-        </Pressable>
+        hasMore ? (
+          <Pressable style={styles.seeAll} onPress={() => setGalleryVisible(true)} hitSlop={6}>
+            <Text style={styles.seeAllText}>Voir tout ({photos.length})</Text>
+            <Feather name="chevron-right" size={13} color={Palette.blue} />
+          </Pressable>
+        ) : undefined
       }>
-      <View style={styles.grid}>
-        {visible.map((photo, index) => {
-          const isLastVisible = index === VISIBLE_COUNT - 1;
-          const showOverflow = isLastVisible && remaining > 0;
-          const category = CATEGORY_CONFIG[photo.category];
+      {photos.length === 0 ? (
+        <Pressable style={styles.emptyFrame} onPress={openPicker} accessibilityLabel="Ajouter une photo">
+          <View style={styles.emptyIcon}>
+            <Feather name="plus" size={26} color={Palette.blue} />
+          </View>
+          <Text style={styles.emptyText}>Ajouter une photo</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.row}>
+          {visiblePhotos.map((photo) => (
+            <Pressable
+              key={photo.id}
+              style={styles.thumb}
+              onPress={() => setGalleryVisible(true)}
+              accessibilityLabel="Voir la photo">
+              <Image source={photo.source} style={styles.thumbImage} contentFit="cover" />
+            </Pressable>
+          ))}
+          <AddTile onPress={openPicker} />
+        </View>
+      )}
 
-          return (
-            <View key={photo.id} style={[styles.thumb, { backgroundColor: category.background }]}>
-              {showOverflow ? (
-                <View style={styles.overflow}>
-                  <Text style={styles.overflowText}>+{remaining}</Text>
-                </View>
-              ) : (
-                <>
-                  <Feather name="image" size={20} color={category.color} style={styles.thumbIcon} />
-                  <View style={styles.labelChip}>
-                    <Text style={styles.labelChipText} numberOfLines={1}>
-                      {category.label}
-                    </Text>
-                  </View>
-                </>
-              )}
-            </View>
-          );
-        })}
-      </View>
+      <PhotoPickerSheet
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onPickCamera={handlePickCamera}
+        onPickLibrary={handlePickLibrary}
+      />
 
-      <Pressable onPressIn={onAddPressIn} onPressOut={onAddPressOut} onPress={onAdd} style={styles.addWrapper}>
-        <Animated.View style={[styles.addButton, { transform: [{ scale: addScale }] }]}>
-          <Feather name="plus" size={15} color={Palette.blue} />
-          <Text style={styles.addButtonText}>Ajouter une photo</Text>
-        </Animated.View>
-      </Pressable>
+      <PhotoGalleryModal
+        visible={galleryVisible}
+        photos={photos}
+        onClose={() => setGalleryVisible(false)}
+        onAddPhoto={openPicker}
+      />
     </SectionCard>
   );
 }
-
-const THUMB = 72;
 
 const styles = StyleSheet.create({
   seeAll: {
@@ -97,62 +117,55 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-  grid: {
+  emptyFrame: {
+    height: 132,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Palette.border,
+    backgroundColor: Palette.cardMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  emptyIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Palette.blueSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: FontSize.small,
+    fontWeight: '600',
+    color: Palette.textSecondary,
+    letterSpacing: -0.1,
+  },
+  row: {
     flexDirection: 'row',
     gap: 10,
   },
   thumb: {
-    width: THUMB,
-    height: THUMB,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: TILE,
+    height: TILE,
+    borderRadius: 18,
     overflow: 'hidden',
+    backgroundColor: Palette.cardMuted,
   },
-  thumbIcon: {
-    opacity: 0.9,
+  thumbImage: {
+    width: '100%',
+    height: '100%',
   },
-  labelChip: {
-    position: 'absolute',
-    bottom: 5,
-    left: 5,
-    right: 5,
-    backgroundColor: 'rgba(15, 23, 41, 0.55)',
-    borderRadius: 6,
-    paddingVertical: 2,
-    alignItems: 'center',
-  },
-  labelChipText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: Palette.white,
-    letterSpacing: 0.2,
-  },
-  overflow: {
+  addTile: {
+    width: TILE,
+    height: TILE,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Palette.border,
+    backgroundColor: Palette.cardMuted,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  overflowText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Palette.textSecondary,
-  },
-  addWrapper: {
-    marginTop: Spacing.lg,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    height: 44,
-    borderRadius: Radius.pill,
-    backgroundColor: Palette.blueSoft,
-  },
-  addButtonText: {
-    fontSize: FontSize.small,
-    fontWeight: '700',
-    color: Palette.blue,
-    letterSpacing: -0.1,
   },
 });

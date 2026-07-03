@@ -1,14 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { PRIORITY_CONFIG } from './priority';
 import { SectionCard } from './SectionCard';
 import { Priority } from './types';
-
-const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; background: string }> = {
-  basse: { label: 'Priorité basse', color: Palette.textSecondary, background: Palette.cardMuted },
-  normale: { label: 'Priorité normale', color: Palette.blue, background: Palette.blueSoft },
-  haute: { label: 'Priorité haute', color: Palette.orange, background: Palette.orangeSoft },
-};
 
 type Props = {
   description: string;
