@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -20,6 +21,7 @@ type AppointmentCardProps = {
 };
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
+  const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -42,7 +44,10 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
   };
 
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
+    <Pressable
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={() => router.push({ pathname: '/intervention/[id]', params: { id: appointment.id } })}>
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <View style={styles.timeColumn}>
           <Text style={styles.time}>{appointment.time}</Text>

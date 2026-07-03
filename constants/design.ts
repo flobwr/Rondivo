@@ -32,6 +32,9 @@ export const Palette = {
   green: '#10B981',
   greenSoft: '#E4F6EE',
 
+  red: '#DC2626',
+  redSoft: '#FCE8E8',
+
   // Hero gradient (blue -> turquoise)
   gradientStart: '#3B7DF0',
   gradientEnd: '#3FC9B0',
