@@ -17,6 +17,7 @@ import { AsYouType, getCountries, getCountryCallingCode, getExampleNumber, parse
 // "exports" entry), so it resolves the same way "." does — see the note
 // above about why "/mobile" specifically broke under Metro.
 import PHONE_NUMBER_EXAMPLES from 'libphonenumber-js/examples.mobile.json';
+import { getLocales } from 'expo-localization';
 
 export type { CountryCode };
 
@@ -66,7 +67,24 @@ export const COUNTRY_OPTIONS: CountryOption[] = (Object.entries(COUNTRY_NAMES_FR
   .map(([iso2, name]) => ({ iso2, name, flag: flagEmoji(iso2), callingCode: getCountryCallingCode(iso2) }))
   .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 
-export const DEFAULT_PHONE_COUNTRY: CountryCode = 'FR';
+const FALLBACK_PHONE_COUNTRY: CountryCode = 'FR';
+
+/**
+ * Most artisans work in one country almost exclusively, so the dial code
+ * shouldn't be a decision the artisan makes on every client — it defaults to
+ * the device's own region (Settings → Language & Region on iOS, Region on
+ * Android; there's no user-account concept in this app to key off instead)
+ * and stays a one-tap change via the picker for the artisan who occasionally
+ * needs it. Computed once per app run: the device region doesn't change
+ * mid-session, and this reaches into native locale data, so it isn't free.
+ */
+export const DEFAULT_PHONE_COUNTRY: CountryCode = (() => {
+  const region = getLocales()[0]?.regionCode as CountryCode | null;
+  // Must be one of *our* listed countries, not just anything libphonenumber
+  // supports — otherwise the picker button would show a flag/code for a
+  // country that isn't actually in its own list.
+  return region && region in COUNTRY_NAMES_FR ? region : FALLBACK_PHONE_COUNTRY;
+})();
 
 export function getCountryOption(iso2: CountryCode): CountryOption | undefined {
   return COUNTRY_OPTIONS.find((c) => c.iso2 === iso2);
