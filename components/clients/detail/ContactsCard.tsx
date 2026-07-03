@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
+import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
 import { FontSize, Palette, Radius } from '@/constants/design';
 import { type ContactPerson } from '@/data/client-details';
 import { PressableScale, SectionCard } from './primitives';
@@ -30,7 +31,7 @@ function ContactRow({ contact, onCall }: { contact: ContactPerson; onCall: () =>
         <Text style={styles.role} numberOfLines={1}>
           {contact.role}
         </Text>
-        <Text style={styles.phone}>{contact.phone}</Text>
+        <Text style={styles.phone}>{formatPhoneDisplay(contact.phone)}</Text>
       </View>
       <PressableScale onPress={onCall} to={0.9} style={styles.callBtn} accessibilityLabel={`Appeler ${contact.name}`}>
         <Feather name="phone" size={16} color={Palette.blue} />

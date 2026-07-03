@@ -2,6 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { type Client } from '@/components/clients/types';
+import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
 import { FontSize, Palette } from '@/constants/design';
 import { type ClientDetail } from '@/data/client-details';
 import { CardSeparator, PressableScale, SectionCard } from './primitives';
@@ -66,7 +67,7 @@ export function InformationsCard({ client, detail, onCall, onEmail }: Props) {
   }[] = [
     { label: 'Type de client', value: detail.type === 'entreprise' ? 'Entreprise' : 'Particulier' },
     { label: 'Client depuis', value: formatSince(client.createdAt) },
-    { label: 'Téléphone', value: client.phone, onPress: onCall, action: 'phone' },
+    { label: 'Téléphone', value: formatPhoneDisplay(client.phone), onPress: onCall, action: 'phone' },
     { label: 'Email', value: client.email, onPress: onEmail, action: 'mail' },
     { label: 'Adresse', value: client.address },
     { label: 'Mode de paiement', value: detail.paymentMethod },

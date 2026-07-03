@@ -18,12 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { AddressField } from '@/components/clients/new/AddressField';
-import {
-  easeLayout,
-  formatPhoneFr,
-  lookupCompanyByVat,
-  PAYMENT_METHODS,
-} from '@/components/clients/new/client-form-utils';
+import { easeLayout, PAYMENT_METHODS } from '@/components/clients/new/client-form-utils';
+import { mockCompanyLookupProvider } from '@/components/clients/new/company-lookup-provider';
+import { PhoneField } from '@/components/clients/new/PhoneField';
+import { DEFAULT_PHONE_COUNTRY, formatNational, toE164, type CountryCode } from '@/components/clients/new/phone-utils';
 import { FormInput } from '@/components/ui/FormInput';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { computeInitials, createClient, tintForName } from '@/data/clients';
@@ -67,7 +65,8 @@ export default function NewClientScreen() {
   const router = useRouter();
 
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>(DEFAULT_PHONE_COUNTRY);
+  const [phoneRaw, setPhoneRaw] = useState('');
   const [address, setAddress] = useState('');
   const [isCompany, setIsCompany] = useState(false);
 
@@ -75,7 +74,8 @@ export default function NewClientScreen() {
   const [email, setEmail] = useState('');
   const [vatNumber, setVatNumber] = useState('');
   const [secondaryName, setSecondaryName] = useState('');
-  const [secondaryPhone, setSecondaryPhone] = useState('');
+  const [secondaryPhoneCountry, setSecondaryPhoneCountry] = useState<CountryCode>(DEFAULT_PHONE_COUNTRY);
+  const [secondaryPhoneRaw, setSecondaryPhoneRaw] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
 
@@ -94,7 +94,7 @@ export default function NewClientScreen() {
   const trimmedAddress = address.trim();
 
   const hasName = trimmedName.length > 0;
-  const hasPhone = phone.trim().length > 0;
+  const hasPhone = phoneRaw.trim().length > 0;
   const hasAddress = trimmedAddress.length > 0;
 
   // Name is the only real gate — phone and address are recommended, never
@@ -128,14 +128,18 @@ export default function NewClientScreen() {
   };
 
   // A recognised VAT number fills in what it can — but never overwrites
-  // something the artisan already typed themselves.
+  // something the artisan already typed themselves. Async-shaped so a real
+  // SIRENE/VIES-backed provider drops in later without touching this call site.
+  const vatRequestRef = useRef(0);
   const handleVatChange = (value: string) => {
     setVatNumber(value);
-    const match = lookupCompanyByVat(value);
-    if (!match) return;
-    easeLayout();
-    setName((prev) => (prev.trim() ? prev : match.name));
-    setAddress((prev) => (prev.trim() ? prev : match.address));
+    const requestId = ++vatRequestRef.current;
+    Promise.resolve(mockCompanyLookupProvider.lookup(value)).then((match) => {
+      if (!match || requestId !== vatRequestRef.current) return;
+      easeLayout();
+      setName((prev) => (prev.trim() ? prev : match.name));
+      setAddress((prev) => (prev.trim() ? prev : match.address));
+    });
   };
 
   const startAddEquipment = () => {
@@ -175,14 +179,21 @@ export default function NewClientScreen() {
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    // E.164 for storage when the number is complete/valid; otherwise fall
+    // back to the readable national form rather than losing a partial entry
+    // (phone is recommended, never required, so "incomplete" is allowed).
+    const phoneToStore = hasPhone ? toE164(phoneRaw, phoneCountry) ?? formatNational(phoneRaw, phoneCountry) : undefined;
+    const secondaryPhoneToStore = secondaryPhoneRaw.trim()
+      ? toE164(secondaryPhoneRaw, secondaryPhoneCountry) ?? formatNational(secondaryPhoneRaw, secondaryPhoneCountry)
+      : '';
     const client = createClient({
       name: trimmedName,
-      phone: hasPhone ? phone.trim() : undefined,
+      phone: phoneToStore,
       address: hasAddress ? trimmedAddress : undefined,
       isCompany,
       email: email.trim() || undefined,
       vatNumber: isCompany ? vatNumber.trim() || undefined : undefined,
-      secondaryContact: secondaryName.trim() ? { name: secondaryName.trim(), phone: secondaryPhone.trim() } : undefined,
+      secondaryContact: secondaryName.trim() ? { name: secondaryName.trim(), phone: secondaryPhoneToStore } : undefined,
       paymentMethod: paymentMethod ?? undefined,
       notes: notes.trim() || undefined,
       equipment: equipment.length ? equipment : undefined,
@@ -265,16 +276,12 @@ export default function NewClientScreen() {
             ) : null}
 
             <Field label="Téléphone" compact>
-              <FormInput
+              <PhoneField
                 ref={phoneRef}
-                icon="phone"
-                value={phone}
-                onChangeText={(v) => setPhone(formatPhoneFr(v))}
-                placeholder="06 12 34 56 78"
-                keyboardType="phone-pad"
-                textContentType="telephoneNumber"
-                autoComplete="tel"
-                returnKeyType="next"
+                country={phoneCountry}
+                onChangeCountry={setPhoneCountry}
+                rawValue={phoneRaw}
+                onChangeRawValue={setPhoneRaw}
                 onSubmitEditing={() => addressRef.current?.focus()}
               />
             </Field>
@@ -316,14 +323,12 @@ export default function NewClientScreen() {
                 <Field label="Contact secondaire" compact>
                   <View style={styles.stackGap}>
                     <FormInput icon="user" value={secondaryName} onChangeText={setSecondaryName} placeholder="Nom du contact" autoCapitalize="words" />
-                    <FormInput
-                      icon="phone"
-                      value={secondaryPhone}
-                      onChangeText={(v) => setSecondaryPhone(formatPhoneFr(v))}
-                      placeholder="06 12 34 56 78"
-                      keyboardType="phone-pad"
-                      textContentType="telephoneNumber"
-                      autoComplete="tel"
+                    <PhoneField
+                      country={secondaryPhoneCountry}
+                      onChangeCountry={setSecondaryPhoneCountry}
+                      rawValue={secondaryPhoneRaw}
+                      onChangeRawValue={setSecondaryPhoneRaw}
+                      returnKeyType="done"
                     />
                   </View>
                 </Field>
@@ -401,7 +406,7 @@ export default function NewClientScreen() {
                   </Text>
                   {hasPhone ? (
                     <Text style={styles.recapMeta} numberOfLines={1}>
-                      {phone}
+                      {formatNational(phoneRaw, phoneCountry)}
                     </Text>
                   ) : null}
                   {hasAddress ? (

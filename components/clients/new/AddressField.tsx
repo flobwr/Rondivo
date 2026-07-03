@@ -1,30 +1,44 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { forwardRef, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FormInput } from '@/components/ui/FormInput';
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { easeLayout, formatAddress, searchAddresses, type AddressSuggestion } from './client-form-utils';
+import { formatAddress, mockAddressProvider, type AddressProvider, type AddressSuggestion } from './address-provider';
+import { easeLayout } from './client-form-utils';
 
 type Props = {
   value: string;
   onChangeText: (value: string) => void;
   onSubmitEditing?: () => void;
+  /** Defaults to the local mock — pass a real Google Places/Mapbox/HERE-backed
+   *  provider here later; the field itself never needs to change. */
+  provider?: AddressProvider;
 };
 
-// Free text always works — the mock suggestion list below is a fast path, not
-// a gate. Selecting a suggestion just fills the same field faster.
+// Free text always works — the suggestion list below is a fast path, not a
+// gate. Selecting a suggestion just fills the same field faster.
 export const AddressField = forwardRef<TextInput, Props>(function AddressField(
-  { value, onChangeText, onSubmitEditing },
+  { value, onChangeText, onSubmitEditing, provider = mockAddressProvider },
   ref
 ) {
   const [focused, setFocused] = useState(false);
-  const results = useMemo(() => (focused ? searchAddresses(value) : []), [focused, value]);
+  const [results, setResults] = useState<AddressSuggestion[]>([]);
+  const requestRef = useRef(0);
 
   useEffect(() => {
-    easeLayout();
-  }, [results.length]);
+    if (!focused) {
+      setResults([]);
+      return;
+    }
+    const requestId = ++requestRef.current;
+    Promise.resolve(provider.search(value)).then((next) => {
+      if (requestId !== requestRef.current) return; // stale response — a newer keystroke already fired
+      easeLayout();
+      setResults(next);
+    });
+  }, [focused, value, provider]);
 
   const select = (suggestion: AddressSuggestion) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
