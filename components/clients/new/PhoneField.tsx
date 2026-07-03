@@ -1,12 +1,13 @@
 import { Feather } from '@expo/vector-icons';
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { formatWithMask, useMaskedInputProps } from 'react-native-mask-input';
 
 import { PressableScale } from '@/components/appointment/AppointmentUI';
 import { FormInput } from '@/components/ui/FormInput';
 import { FontSize, Palette, Radius } from '@/constants/design';
 import { CountryPickerSheet } from './CountryPickerSheet';
-import { diffEditRegion, digitsOnly, formatNational, getCountryOption, getPhonePlaceholder, indexAfterDigitCount, type CountryCode } from './phone-utils';
+import { buildPhoneMask, digitsOnly, getCountryOption, getPhonePlaceholder, type CountryCode } from './phone-utils';
 
 type Props = {
   country: CountryCode;
@@ -19,85 +20,58 @@ type Props = {
 };
 
 /**
- * A WhatsApp-style dial-code selector + national number field, reformatted
- * live via libphonenumber-js's AsYouType.
+ * A WhatsApp-style dial-code selector + national number field.
  *
- * The displayed text and the cursor are both *local* state, set together in
- * a single call inside the same keystroke handler — so React commits them in
- * one batch, in one render, and RN's TextInput applies both natively in the
- * same pass. The parent is still notified (`onChangeRawValue`) for its own
- * purposes — the footer preview, E.164 computation at submit — but that's a
- * separate, independent update this field's own redraw never waits on.
- * That decoupling is what removes the flash/jump: previously the displayed
- * text was *derived from the parent's state* on every keystroke, so the
- * field's own redraw was hostage to the parent re-rendering everything else
- * (footer, avatar…) first.
+ * Live masking, cursor placement, mid-string deletion and paste are all
+ * delegated to `react-native-mask-input` via `useMaskedInputProps` — not
+ * hand-rolled. Three prior attempts at doing this ourselves (feeding
+ * AsYouType the wrong text, tracking the cursor through onSelectionChange,
+ * then diffing text by hand) each fixed one symptom and left the underlying
+ * issue: any of those approaches actively *computes and reassigns* the
+ * cursor position on every keystroke, and that's exactly where the reversed/
+ * jumping-cursor behaviour kept coming from. `useMaskedInputProps`
+ * deliberately does not touch `selection` at all for a plain mask (see its
+ * source: `selection: undefined` in the non-obfuscated case) — it lets the
+ * platform's own native cursor behaviour stand, which is what every native
+ * masked field (Contacts, Phone, WhatsApp) actually relies on. That's a
+ * well-exercised library default, not a guess.
  *
- * `display`/`country` are also mirrored into refs, read (and written)
- * synchronously inside the handler instead of the closed-over state value —
- * two keystrokes fired back-to-back, faster than React can re-render between
- * them, would otherwise diff the second one against a stale "before" string.
- * That also keeps `handleChangeText` itself referentially stable (it no
- * longer needs `display`/`country` in its dependency array), so AsYouType is
- * only ever constructed inside an actual keystroke/country-change handler —
- * never as a side effect of some unrelated re-render.
+ * libphonenumber-js is still doing exactly what it's best at — parsing,
+ * validating, converting to E.164 (see phone-utils.ts) — just no longer
+ * anywhere near the keystroke path. Its only role here is building the
+ * per-country mask shape once (`buildPhoneMask`, memoized on country).
  */
 export const PhoneField = forwardRef<TextInput, Props>(function PhoneField(
   { country, onChangeCountry, rawValue, onChangeRawValue, returnKeyType = 'next', onSubmitEditing },
   ref
 ) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [display, setDisplay] = useState(() => formatNational(rawValue, country));
-  const [selection, setSelection] = useState<{ start: number; end: number } | undefined>(undefined);
 
-  const displayRef = useRef(display);
-  const countryRef = useRef(country);
-  countryRef.current = country;
-
+  const mask = useMemo(() => buildPhoneMask(country), [country]);
   const option = useMemo(() => getCountryOption(country), [country]);
   const placeholder = useMemo(() => getPhonePlaceholder(country), [country]);
 
-  // The only other time the displayed text should change: switching country
-  // via the picker reformats whatever digits are already there under the new
-  // country's rules.
+  // The masked text is local state — the mask library owns it end to end;
+  // the parent only ever hears the raw digits (onChangeRawValue below).
+  const [masked, setMasked] = useState(() => formatWithMask({ text: rawValue, mask }).masked);
+
+  // Country switch: reformat the same digits under the new country's shape.
   useEffect(() => {
-    const reformatted = formatNational(rawValue, country);
-    displayRef.current = reformatted;
-    setDisplay(reformatted);
-    setSelection(undefined);
+    setMasked(formatWithMask({ text: rawValue, mask }).masked);
     // Reacts only to the country changing; a rawValue change from typing is
     // already applied synchronously by handleChangeText below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country]);
+  }, [country, mask]);
 
   const handleChangeText = useCallback(
-    (nativeText: string) => {
-      // Diffs this keystroke's result against what was just on screen to
-      // find exactly what changed and where — independent of any selection
-      // event, whose ordering relative to onChangeText isn't guaranteed
-      // (see diffEditRegion's doc comment).
-      const before = displayRef.current;
-      const { position, insertedCount } = diffEditRegion(before, nativeText);
-      const digitsBeforeEdit = digitsOnly(before.slice(0, position)).length;
-      const insertedDigits = digitsOnly(nativeText.slice(position, position + insertedCount)).length;
-
-      const digits = digitsOnly(nativeText);
-      const reformatted = formatNational(digits, countryRef.current);
-      const nextCursor = indexAfterDigitCount(reformatted, digitsBeforeEdit + insertedDigits);
-
-      displayRef.current = reformatted;
-      setDisplay(reformatted);
-      setSelection({ start: nextCursor, end: nextCursor });
-      onChangeRawValue(digits);
+    (newMasked: string, newUnmasked: string) => {
+      setMasked(newMasked);
+      onChangeRawValue(digitsOnly(newUnmasked));
     },
     [onChangeRawValue]
   );
 
-  // Only for a manual tap-to-reposition (no text change) — mirrors reality
-  // back into state so a stale `selection` never fights the user's own tap.
-  const handleSelectionChange = useCallback((e: { nativeEvent: { selection: { start: number; end: number } } }) => {
-    setSelection(e.nativeEvent.selection);
-  }, []);
+  const maskedInputProps = useMaskedInputProps({ value: masked, onChangeText: handleChangeText, mask });
 
   return (
     <View style={styles.row}>
@@ -110,10 +84,7 @@ export const PhoneField = forwardRef<TextInput, Props>(function PhoneField(
       <View style={styles.flex}>
         <FormInput
           ref={ref}
-          value={display}
-          selection={selection}
-          onChangeText={handleChangeText}
-          onSelectionChange={handleSelectionChange}
+          {...maskedInputProps}
           placeholder={placeholder}
           keyboardType="phone-pad"
           textContentType="telephoneNumber"

@@ -18,6 +18,7 @@ import { AsYouType, getCountries, getCountryCallingCode, getExampleNumber, parse
 // above about why "/mobile" specifically broke under Metro.
 import PHONE_NUMBER_EXAMPLES from 'libphonenumber-js/examples.mobile.json';
 import { getLocales } from 'expo-localization';
+import { type Mask, type MaskArray } from 'react-native-mask-input';
 
 export type { CountryCode };
 
@@ -131,42 +132,40 @@ export function getPhonePlaceholder(country: CountryCode): string {
   return example ? example.formatNational() : '';
 }
 
-/** The index in `text` right after its Nth digit — used to place the cursor after reformatting. */
-export function indexAfterDigitCount(text: string, count: number): number {
-  if (count <= 0) return 0;
-  let seen = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (/\d/.test(text[i])) {
-      seen++;
-      if (seen === count) return i + 1;
-    }
-  }
-  return text.length;
+function maskArrayFromTemplate(template: string, minDigitSlots = 0): MaskArray {
+  const mask: MaskArray = [...template].map((char) => (/\d/.test(char) ? /\d/ : char));
+  const digitSlots = mask.filter((item) => item instanceof RegExp).length;
+  // Lets typing continue past whatever grouping was templated — extra bare
+  // digit slots, no forced separator. Harmless even when unused: a dynamic
+  // mask (below) recomputes the real grouping on the very next keystroke.
+  for (let i = digitSlots; i < Math.max(minDigitSlots, MAX_NATIONAL_DIGITS); i++) mask.push(/\d/);
+  return mask;
 }
 
 /**
- * Finds where `oldText` and `newText` diverge — the common prefix and common
- * suffix around whatever was typed/deleted — by comparing the two strings
- * directly. Deliberately independent of `onSelectionChange`: that event's
- * timing relative to `onChangeText` isn't guaranteed across platforms (it
- * arrived too late — or not at all before the next keystroke — under
- * react-native-web in testing, which left the tracked cursor stuck at 0 and
- * inserted every new digit at the *front* instead of the end). Diffing two
- * plain strings has no such race: `oldText` is exactly what this render
- * displayed, and `newText` is exactly what the field reports.
+ * A per-country mask for react-native-mask-input's `value` prop — this is
+ * the only thing driving the live text field now. libphonenumber-js stays
+ * out of the keystroke *state* path entirely (no more hand-tracked cursor
+ * math); it's used only to compute what the mask *should look like*, and
+ * again at submit time to validate/convert to E.164 (see toE164 below).
+ * Applying the mask, positioning the cursor, mid-string deletion and paste
+ * are all handled by the mask library — chosen specifically because it
+ * doesn't compute/reassign cursor position at all for a plain mask (see
+ * PhoneField.tsx for why that's the right call).
+ *
+ * This returns a *function* mask, not a fixed array: some countries group
+ * digits differently depending on the specific prefix (a German "0170…"
+ * mobile number and a "01512…" one aren't grouped the same way), so the
+ * mask is rebuilt from AsYouType on every call, fed exactly the digits
+ * typed so far — the same real grouping AsYouType would produce, just
+ * applied by a component built to do that without breaking the cursor.
  */
-export function diffEditRegion(oldText: string, newText: string): { position: number; insertedCount: number } {
-  const minLen = Math.min(oldText.length, newText.length);
-  let prefixLen = 0;
-  while (prefixLen < minLen && oldText[prefixLen] === newText[prefixLen]) prefixLen++;
-  let suffixLen = 0;
-  while (
-    suffixLen < minLen - prefixLen &&
-    oldText[oldText.length - 1 - suffixLen] === newText[newText.length - 1 - suffixLen]
-  ) {
-    suffixLen++;
-  }
-  return { position: prefixLen, insertedCount: Math.max(0, newText.length - prefixLen - suffixLen) };
+export function buildPhoneMask(country: CountryCode): Mask {
+  return (value?: string) => {
+    const digits = digitsOnly(value ?? '').slice(0, MAX_NATIONAL_DIGITS);
+    const template = digits ? new AsYouType(country).input(digits) : getPhonePlaceholder(country);
+    return maskArrayFromTemplate(template, digits.length);
+  };
 }
 
 /**
