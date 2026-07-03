@@ -2,7 +2,9 @@ import {
   type Client,
   type ClientStatus,
   type SortKey,
+  type Tint,
 } from '@/components/clients/types';
+import { setClientDetailOverride, type ClientDetail, type ContactPerson, type Equipment } from '@/data/client-details';
 
 /**
  * Mocked client dataset.
@@ -468,4 +470,104 @@ export async function fetchClientsPage(
 
 export function getClientById(id: string): Client | undefined {
   return CLIENTS.find((client) => client.id === id);
+}
+
+// ── Client creation ─────────────────────────────────────────────────────────
+
+const AVATAR_TINTS: Tint[] = ['blue', 'orange', 'purple', 'green', 'red'];
+
+/** "Jean Dupont" → "JD", "Plomberie Rossi" → "PL". Stable, no state needed. */
+export function computeInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+/** Deterministic avatar tint from the name, so the live preview in the
+ *  creation form doesn't jump colour on every keystroke. */
+export function tintForName(name: string): Tint {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_TINTS[hash % AVATAR_TINTS.length];
+}
+
+function nextClientId(): string {
+  const maxId = CLIENTS.reduce((max, c) => Math.max(max, Number(c.id) || 0), 0);
+  return String(maxId + 1);
+}
+
+export type CreateClientInput = {
+  name: string;
+  phone: string;
+  address: string;
+  isCompany: boolean;
+  email?: string;
+  vatNumber?: string;
+  secondaryContact?: { name: string; phone: string };
+  paymentMethod?: string;
+  notes?: string;
+  equipment?: { id: string; name: string }[];
+};
+
+/**
+ * Appends a new client to the in-memory dataset and, if any complementary
+ * info was provided, a matching detail override — so the fiche opened right
+ * after creation reflects exactly what was typed instead of generic mock
+ * data. Mirrors the seed dataset's own conventions for a brand-new client
+ * (status "new", zero history) so it slots in without special-casing.
+ */
+export function createClient(input: CreateClientInput): Client {
+  const id = nextClientId();
+  const name = input.name.trim();
+  const now = new Date();
+  const dateLabel = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+  const client: Client = {
+    id,
+    name,
+    initials: computeInitials(name),
+    avatarTint: tintForName(name),
+    phone: input.phone.trim(),
+    address: input.address.trim(),
+    email: input.email?.trim() ?? '',
+    company: input.isCompany ? name : undefined,
+    status: 'new',
+    priority: 2,
+    highlightText: 'Premier contact',
+    highlightTint: 'blue',
+    highlightIcon: 'user-plus',
+    lastInterventionLabel: 'aucune',
+    lastInterventionDaysAgo: 9999,
+    interventionsCount: 0,
+    quotesPending: 0,
+    revenue: 0,
+    unpaidInvoices: 0,
+    footerIcon: 'user-plus',
+    footerText: `Ajouté le ${dateLabel}`,
+    footerTint: 'blue',
+    clientSince: String(now.getFullYear()),
+    createdAt: now.toISOString().slice(0, 10),
+  };
+
+  CLIENTS.unshift(client);
+
+  const override: Partial<ClientDetail> = {};
+  if (input.paymentMethod) override.paymentMethod = input.paymentMethod;
+  if (input.vatNumber) override.tva = input.vatNumber;
+  if (input.notes) override.importantNotes = [input.notes];
+  if (input.secondaryContact) {
+    const contacts: ContactPerson[] = [
+      { id: `${id}-primary`, name: client.name, initials: client.initials, role: 'Principal', phone: client.phone, email: client.email, tint: client.avatarTint, primary: true },
+      { id: `${id}-secondary`, name: input.secondaryContact.name, initials: computeInitials(input.secondaryContact.name), role: 'Contact secondaire', phone: input.secondaryContact.phone, tint: 'purple' },
+    ];
+    override.contacts = contacts;
+  }
+  if (input.equipment?.length) {
+    const equipment: Equipment[] = input.equipment.map((e) => ({ id: e.id, name: e.name, icon: 'tool', tint: 'blue' }));
+    override.equipment = equipment;
+  }
+  if (Object.keys(override).length > 0) setClientDetailOverride(id, override);
+
+  return client;
 }

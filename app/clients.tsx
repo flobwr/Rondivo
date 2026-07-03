@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Linking,
   Pressable,
@@ -95,9 +94,8 @@ export default function ClientsScreen() {
 
   const handleAddPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Creation flow not built yet — the button is wired and ready for it.
-    Alert.alert('Nouveau client', 'Le formulaire de création arrive bientôt.');
-  }, []);
+    router.push('/client/new');
+  }, [router]);
 
   const handleOpenClient = useCallback(
     (client: Client) => {

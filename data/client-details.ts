@@ -516,10 +516,20 @@ function buildFinances(client: Client): ClientFinances {
   return { quotes, invoices, payments };
 }
 
+// Populated at runtime for clients created in-session (see setClientDetailOverride),
+// on top of the hand-authored OVERRIDES above for the seed dataset. Same shape,
+// same merge rules — a client created via the form reads back exactly what was
+// entered instead of generic placeholder data.
+const RUNTIME_OVERRIDES: Record<string, Partial<ClientDetail>> = {};
+
+export function setClientDetailOverride(id: string, partial: Partial<ClientDetail>): void {
+  RUNTIME_OVERRIDES[id] = partial;
+}
+
 export function getClientDetail(client: Client): ClientDetail {
   const defaults = buildDefaults(client);
-  const override = OVERRIDES[client.id];
-  if (!override) return defaults;
+  const override = { ...OVERRIDES[client.id], ...RUNTIME_OVERRIDES[client.id] };
+  if (Object.keys(override).length === 0) return defaults;
   return {
     ...defaults,
     ...override,
