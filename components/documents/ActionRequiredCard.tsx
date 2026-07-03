@@ -5,14 +5,14 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
+import { DocumentsTone } from './palette';
 import { ActionItem } from './types';
 
-const TILE = 38;
+const TILE = 32;
 
 function ActionRow({ item, onPress }: { item: ActionItem; onPress?: () => void }) {
   const pressScale = useRef(new Animated.Value(1)).current;
-  const tint = item.tone === 'red' ? Palette.notification : Palette.orange;
-  const tintSoft = item.tone === 'red' ? Palette.redSoft : Palette.orangeSoft;
+  const tone = DocumentsTone[item.tone];
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -25,13 +25,13 @@ function ActionRow({ item, onPress }: { item: ActionItem; onPress?: () => void }
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View style={[styles.row, { transform: [{ scale: pressScale }] }]}>
-        <View style={[styles.iconTile, { backgroundColor: tintSoft }]}>
-          <Feather name={item.icon} size={17} color={tint} />
+        <View style={[styles.iconTile, { backgroundColor: tone.soft }]}>
+          <Feather name={item.icon} size={15} color={tone.color} />
         </View>
         <Text style={styles.rowText} numberOfLines={1} ellipsizeMode="tail">
           {item.text}
         </Text>
-        <Feather name="chevron-right" size={18} color={Palette.textTertiary} />
+        <Feather name="chevron-right" size={17} color={Palette.textTertiary} />
       </Animated.View>
     </Pressable>
   );
@@ -49,7 +49,7 @@ export function ActionRequiredCard({
       <View style={styles.card}>
         <View style={styles.emptyRow}>
           <View style={[styles.iconTile, { backgroundColor: Palette.greenSoft }]}>
-            <Feather name="check" size={17} color={Palette.green} />
+            <Feather name="check" size={15} color={Palette.green} />
           </View>
           <Text style={styles.emptyText}>Tout est à jour.</Text>
         </View>
@@ -57,14 +57,25 @@ export function ActionRequiredCard({
     );
   }
 
+  const subtitle = items.length === 1 ? '1 action aujourd’hui' : `${items.length} actions aujourd’hui`;
+
   return (
     <View style={styles.card}>
-      {items.map((item, index) => (
-        <View key={item.id}>
-          {index > 0 ? <View style={styles.separator} /> : null}
-          <ActionRow item={item} onPress={() => onItemPress?.(item)} />
-        </View>
-      ))}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>À traiter</Text>
+        <Text style={styles.headerSubtitle}>{subtitle}</Text>
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.rows}>
+        {items.map((item, index) => (
+          <View key={item.id}>
+            {index > 0 ? <View style={styles.separator} /> : null}
+            <ActionRow item={item} onPress={() => onItemPress?.(item)} />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -73,19 +84,45 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
+    paddingTop: 18,
+    paddingBottom: 6,
     paddingHorizontal: Spacing.lg,
     ...cardShadow,
+  },
+  header: {
+    paddingBottom: 14,
+  },
+  headerTitle: {
+    fontSize: FontSize.section,
+    fontWeight: '700',
+    color: Palette.textPrimary,
+    letterSpacing: -0.4,
+  },
+  headerSubtitle: {
+    fontSize: FontSize.small,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
+    marginTop: 2,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Palette.border,
+    marginHorizontal: -Spacing.lg,
+  },
+  rows: {
+    paddingTop: 2,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: 10,
     gap: Spacing.md,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

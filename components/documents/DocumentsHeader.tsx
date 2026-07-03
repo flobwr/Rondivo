@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
     paddingTop: 14,
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   titles: {
     flex: 1,

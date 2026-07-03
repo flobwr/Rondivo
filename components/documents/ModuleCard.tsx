@@ -5,9 +5,10 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
+import { DocumentsTone } from './palette';
 import { DocumentModule } from './types';
 
-const TILE = 48;
+const TILE = 40;
 
 export function ModuleCard({
   module,
@@ -39,15 +40,15 @@ export function ModuleCard({
     Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
-  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
-  const tint = module.highlight?.tone === 'red' ? Palette.notification : Palette.orange;
+  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
+  const tone = module.highlight ? DocumentsTone[module.highlight.tone] : null;
 
   return (
     <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
         <Animated.View style={[styles.card, { transform: [{ scale: pressScale }] }]}>
           <View style={styles.iconTile}>
-            <Feather name={module.icon} size={21} color={Palette.blue} />
+            <Feather name={module.icon} size={18} color={Palette.blue} />
           </View>
 
           <View style={styles.content}>
@@ -58,10 +59,10 @@ export function ModuleCard({
               {module.count} {module.unit}
             </Text>
 
-            {module.highlight ? (
+            {module.highlight && tone ? (
               <View style={styles.highlightRow}>
-                <View style={[styles.dot, { backgroundColor: tint }]} />
-                <Text style={[styles.highlightText, { color: tint }]} numberOfLines={1} ellipsizeMode="tail">
+                <View style={[styles.dot, { backgroundColor: tone.color }]} />
+                <Text style={[styles.highlightText, { color: tone.color }]} numberOfLines={1} ellipsizeMode="tail">
                   {module.highlight.text}
                 </Text>
               </View>
@@ -74,7 +75,7 @@ export function ModuleCard({
             ) : null}
           </View>
 
-          <Feather name="chevron-right" size={20} color={Palette.textTertiary} />
+          <Feather name="chevron-right" size={18} color={Palette.textTertiary} />
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -87,14 +88,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
     ...actionShadow,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: Radius.tile,
+    borderRadius: Radius.tile - 2,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -102,32 +103,32 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: Spacing.sm + 2,
     marginRight: Spacing.sm,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   count: {
     fontSize: FontSize.small,
     fontWeight: '400',
-    color: Palette.textSecondary,
+    color: Palette.textTertiary,
     letterSpacing: -0.1,
-    marginTop: 3,
+    marginTop: 2,
   },
   highlightRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 5,
+    gap: 5,
+    marginTop: 3,
   },
   dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     flexShrink: 0,
   },
   highlightText: {
@@ -137,10 +138,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   secondary: {
-    fontSize: FontSize.small,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    letterSpacing: -0.1,
-    marginTop: 3,
+    fontSize: FontSize.tiny,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.05,
+    marginTop: 2,
   },
 });

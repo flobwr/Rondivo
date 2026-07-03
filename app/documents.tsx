@@ -10,6 +10,12 @@ import { ModuleCard } from '@/components/documents/ModuleCard';
 import { ActionItem, DocumentModule } from '@/components/documents/types';
 import { Palette, Spacing } from '@/constants/design';
 
+// Denser rhythm than the shared Spacing tokens — this screen favours a
+// tighter, dashboard-like layout over the app's default section spacing.
+const HEADER_GAP = 14; // header subtitle -> "à traiter" card
+const SECTION_GAP = 18; // "à traiter" card -> module list
+const CARD_GAP = 10; // between module cards
+
 // ── Mock data — replace with real data source ─────────────────────────────────
 
 const ACTION_ITEMS: ActionItem[] = [
@@ -96,10 +102,10 @@ function DocumentsSkeleton() {
   return (
     <>
       <SkeletonBlock height={44} radius={16} style={{ width: '55%' }} />
-      <SkeletonBlock height={82} radius={24} style={{ marginTop: Spacing.section }} />
-      <View style={{ marginTop: Spacing.section, gap: Spacing.cardGap }}>
+      <SkeletonBlock height={148} radius={24} style={{ marginTop: HEADER_GAP }} />
+      <View style={{ marginTop: SECTION_GAP, gap: CARD_GAP }}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <SkeletonBlock key={i} height={90} radius={24} />
+          <SkeletonBlock key={i} height={74} radius={24} />
         ))}
       </View>
     </>
@@ -143,11 +149,11 @@ export default function DocumentsScreen() {
             <DocumentsSkeleton />
           ) : (
             <Animated.View style={{ opacity: fadeIn }}>
-              <View style={styles.section}>
+              <View style={{ marginTop: HEADER_GAP }}>
                 <ActionRequiredCard items={ACTION_ITEMS} onItemPress={handleActionPress} />
               </View>
 
-              <View style={[styles.section, styles.moduleList]}>
+              <View style={[styles.moduleList, { marginTop: SECTION_GAP }]}>
                 {MODULES.map((module, index) => (
                   <ModuleCard
                     key={module.id}
@@ -179,10 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
   },
-  section: {
-    marginTop: Spacing.section,
-  },
   moduleList: {
-    gap: Spacing.cardGap,
+    gap: CARD_GAP,
   },
 });
