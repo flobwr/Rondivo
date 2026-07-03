@@ -19,6 +19,19 @@ export default function RootLayout() {
         <Stack.Screen name="appointment/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="intervention/[id]" />
         <Stack.Screen name="documents" />
+        <Stack.Screen name="factures" />
+        <Stack.Screen name="facture/[id]" />
+        <Stack.Screen name="facture/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="devis" />
+        <Stack.Screen name="devis/[id]" />
+        <Stack.Screen name="devis/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="rapports" />
+        <Stack.Screen name="rapport/[id]" />
+        <Stack.Screen name="rapport/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="photos" />
+        <Stack.Screen name="contrats" />
+        <Stack.Screen name="contrat/[id]" />
+        <Stack.Screen name="documents-importes" />
       </Stack>
       <StatusBar style="dark" />
     </>

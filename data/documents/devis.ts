@@ -1,0 +1,118 @@
+import { DocumentsTone } from '@/components/documents/palette';
+import { Palette } from '@/constants/design';
+
+export type DevisStatus = 'brouillon' | 'envoye' | 'vu' | 'accepte' | 'refuse' | 'expire';
+
+export type Devis = {
+  id: string;
+  number: string;
+  clientId: string;
+  clientName: string;
+  amount: number;
+  issuedAt: string; // ISO date
+  validUntil: string; // ISO date
+  status: DevisStatus;
+  interventionId?: string;
+};
+
+export const DEVIS_STATUS_META: Record<DevisStatus, { label: string; color: string; soft: string }> = {
+  brouillon: { label: 'Brouillon', color: Palette.textSecondary, soft: Palette.cardMuted },
+  envoye: { label: 'Envoyé', color: Palette.blue, soft: Palette.blueSoft },
+  vu: { label: 'Vu', color: Palette.purple, soft: Palette.purpleSoft },
+  accepte: { label: 'Accepté', color: Palette.green, soft: Palette.greenSoft },
+  refuse: { label: 'Refusé', color: DocumentsTone.red.color, soft: DocumentsTone.red.soft },
+  expire: { label: 'Expiré', color: DocumentsTone.orange.color, soft: DocumentsTone.orange.soft },
+};
+
+export const DEVIS_STATUS_ORDER: DevisStatus[] = ['envoye', 'vu', 'expire', 'brouillon', 'accepte', 'refuse'];
+
+export const MOCK_DEVIS: Devis[] = [
+  {
+    id: 'de-1',
+    number: 'DE-2026-031',
+    clientId: '12',
+    clientName: 'Laura Simon',
+    amount: 5200,
+    issuedAt: '2026-06-10',
+    validUntil: '2026-07-10',
+    status: 'envoye',
+    interventionId: 'int-de-1',
+  },
+  {
+    id: 'de-2',
+    number: 'DE-2026-030',
+    clientId: '13',
+    clientName: 'Julien Petit',
+    amount: 3100,
+    issuedAt: '2026-06-15',
+    validUntil: '2026-07-15',
+    status: 'envoye',
+  },
+  {
+    id: 'de-3',
+    number: 'DE-2026-029',
+    clientId: '14',
+    clientName: 'Manon Andre',
+    amount: 2450,
+    issuedAt: '2026-06-01',
+    validUntil: '2026-07-01',
+    status: 'vu',
+  },
+  {
+    id: 'de-4',
+    number: 'DE-2026-028',
+    clientId: '1',
+    clientName: 'Jean Dupont',
+    amount: 1800,
+    issuedAt: '2026-05-20',
+    validUntil: '2026-06-19',
+    status: 'expire',
+  },
+  {
+    id: 'de-5',
+    number: 'DE-2026-027',
+    clientId: '2',
+    clientName: 'Pierre Martin',
+    amount: 6700,
+    issuedAt: '2026-05-05',
+    validUntil: '2026-06-04',
+    status: 'accepte',
+    interventionId: 'int-de-5',
+  },
+  {
+    id: 'de-6',
+    number: 'DE-2026-026',
+    clientId: '3',
+    clientName: 'Marie Bernard',
+    amount: 980,
+    issuedAt: '2026-04-28',
+    validUntil: '2026-05-28',
+    status: 'accepte',
+  },
+  {
+    id: 'de-7',
+    number: 'DE-2026-025',
+    clientId: '4',
+    clientName: 'Sophie Laurent',
+    amount: 2200,
+    issuedAt: '2026-04-15',
+    validUntil: '2026-05-15',
+    status: 'refuse',
+  },
+  {
+    id: 'de-8',
+    number: 'DE-2026-024',
+    clientId: '5',
+    clientName: 'Anthony Collet',
+    amount: 4300,
+    issuedAt: '2026-06-28',
+    validUntil: '2026-07-28',
+    status: 'brouillon',
+  },
+];
+
+export function devisCountsByStatus(): Record<DevisStatus, number> {
+  const counts = { brouillon: 0, envoye: 0, vu: 0, accepte: 0, refuse: 0, expire: 0 } as Record<DevisStatus, number>;
+  for (const d of MOCK_DEVIS) counts[d.status] += 1;
+  return counts;
+}

@@ -37,7 +37,7 @@ export function DocumentsHeader({ onSearch, onAdd }: Props) {
     <View style={styles.row}>
       <View style={styles.titles}>
         <Text style={styles.title}>Documents</Text>
-        <Text style={styles.subtitle}>Toute votre gestion documentaire</Text>
+        <Text style={styles.subtitle}>Tous vos documents</Text>
       </View>
 
       <View style={styles.actions}>

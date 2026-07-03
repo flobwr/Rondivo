@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionRequiredCard } from '@/components/documents/ActionRequiredCard';
+import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DocumentsHeader } from '@/components/documents/DocumentsHeader';
 import { ModuleCard } from '@/components/documents/ModuleCard';
+import { SecondaryModulesCard } from '@/components/documents/SecondaryModulesCard';
 import { ActionItem, DocumentModule } from '@/components/documents/types';
 import { Palette, Spacing } from '@/constants/design';
 
@@ -24,54 +27,40 @@ const ACTION_ITEMS: ActionItem[] = [
   { id: 'act-3', moduleId: 'rapports', icon: 'clipboard', text: '1 rapport à terminer', tone: 'orange' },
 ];
 
-const MODULES: DocumentModule[] = [
+const PRIMARY_MODULES: DocumentModule[] = [
   {
     id: 'factures',
     title: 'Factures',
     icon: 'file-text',
-    count: 148,
-    unit: 'documents',
-    highlight: { text: '3 impayées', tone: 'red' },
-    secondary: '12 540 € en attente',
+    stats: [
+      { text: '3 impayées', tone: 'red' },
+      { text: '12 540 € à encaisser' },
+    ],
+    route: '/factures',
   },
   {
     id: 'devis',
     title: 'Devis',
     icon: 'edit-3',
-    count: 32,
-    unit: 'documents',
-    highlight: { text: '5 en attente', tone: 'orange' },
-    secondary: '18 200 € potentiels',
+    stats: [
+      { text: '5 en attente', tone: 'orange' },
+      { text: '18 200 € potentiels' },
+    ],
+    route: '/devis',
   },
   {
     id: 'rapports',
     title: 'Rapports',
     icon: 'clipboard',
-    count: 84,
-    unit: 'rapports',
-    highlight: { text: '2 à terminer', tone: 'orange' },
+    stats: [{ text: '2 à terminer', tone: 'orange' }],
+    route: '/rapports',
   },
-  {
-    id: 'photos',
-    title: 'Photos',
-    icon: 'camera',
-    count: 426,
-    unit: 'photos',
-  },
-  {
-    id: 'contrats',
-    title: 'Contrats',
-    icon: 'briefcase',
-    count: 14,
-    unit: 'contrats',
-  },
-  {
-    id: 'imports',
-    title: 'Documents importés',
-    icon: 'folder',
-    count: 58,
-    unit: 'documents',
-  },
+];
+
+const SECONDARY_MODULES: DocumentModule[] = [
+  { id: 'photos', title: 'Photos', icon: 'camera', count: 426, unit: 'photos', route: '/photos' },
+  { id: 'contrats', title: 'Contrats', icon: 'briefcase', count: 14, unit: 'contrats', route: '/contrats' },
+  { id: 'imports', title: 'Documents importés', icon: 'folder', count: 58, unit: 'documents', route: '/documents-importes' },
 ];
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -104,10 +93,11 @@ function DocumentsSkeleton() {
       <SkeletonBlock height={44} radius={16} style={{ width: '55%' }} />
       <SkeletonBlock height={148} radius={24} style={{ marginTop: HEADER_GAP }} />
       <View style={{ marginTop: SECTION_GAP, gap: CARD_GAP }}>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
+        {[0, 1, 2].map((i) => (
           <SkeletonBlock key={i} height={74} radius={24} />
         ))}
       </View>
+      <SkeletonBlock height={160} radius={24} style={{ marginTop: SECTION_GAP }} />
     </>
   );
 }
@@ -116,9 +106,12 @@ function DocumentsSkeleton() {
 
 type Status = 'loading' | 'loaded';
 
+const ALL_MODULES = [...PRIMARY_MODULES, ...SECONDARY_MODULES];
+
 export default function DocumentsScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>('loading');
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const fadeIn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -135,14 +128,31 @@ export default function DocumentsScreen() {
   };
 
   const handleActionPress = (item: ActionItem) => {
-    const module = MODULES.find((m) => m.id === item.moduleId);
+    const module = ALL_MODULES.find((m) => m.id === item.moduleId);
     if (module) handleModulePress(module);
   };
+
+  const handleAddPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAddMenuOpen(true);
+  };
+
+  const addMenuItems: ActionSheetItem[] = [
+    { key: 'devis', icon: 'edit-3', label: 'Nouveau devis', onPress: () => router.push('/devis/new' as never) },
+    { key: 'facture', icon: 'file-text', label: 'Nouvelle facture', onPress: () => router.push('/facture/new' as never) },
+    { key: 'rapport', icon: 'clipboard', label: 'Nouveau rapport', onPress: () => router.push('/rapport/new' as never) },
+    {
+      key: 'import',
+      icon: 'upload',
+      label: 'Importer un document',
+      onPress: () => router.push('/documents-importes' as never),
+    },
+  ];
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <DocumentsHeader />
+        <DocumentsHeader onAdd={handleAddPress} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           {status === 'loading' ? (
@@ -154,7 +164,7 @@ export default function DocumentsScreen() {
               </View>
 
               <View style={[styles.moduleList, { marginTop: SECTION_GAP }]}>
-                {MODULES.map((module, index) => (
+                {PRIMARY_MODULES.map((module, index) => (
                   <ModuleCard
                     key={module.id}
                     module={module}
@@ -163,12 +173,23 @@ export default function DocumentsScreen() {
                   />
                 ))}
               </View>
+
+              <View style={{ marginTop: SECTION_GAP }}>
+                <SecondaryModulesCard modules={SECONDARY_MODULES} onModulePress={handleModulePress} />
+              </View>
             </Animated.View>
           )}
         </ScrollView>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
+
+      <ActionSheetMenu
+        visible={addMenuOpen}
+        title="Créer"
+        items={addMenuItems}
+        onClose={() => setAddMenuOpen(false)}
+      />
     </View>
   );
 }

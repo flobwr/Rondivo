@@ -41,7 +41,6 @@ export function ModuleCard({
   };
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
-  const tone = module.highlight ? DocumentsTone[module.highlight.tone] : null;
 
   return (
     <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>
@@ -55,27 +54,30 @@ export function ModuleCard({
             <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
               {module.title}
             </Text>
-            <Text style={styles.count} numberOfLines={1} ellipsizeMode="tail">
-              {module.count} {module.unit}
-            </Text>
 
-            {module.highlight && tone ? (
-              <View style={styles.highlightRow}>
-                <View style={[styles.dot, { backgroundColor: tone.color }]} />
-                <Text style={[styles.highlightText, { color: tone.color }]} numberOfLines={1} ellipsizeMode="tail">
-                  {module.highlight.text}
-                </Text>
-              </View>
-            ) : null}
+            {module.stats?.map((stat, i) => {
+              const tone = stat.tone ? DocumentsTone[stat.tone] : null;
+              return (
+                <View key={i} style={[styles.statRow, i === 0 ? styles.statRowFirst : null]}>
+                  {tone ? <View style={[styles.dot, { backgroundColor: tone.color }]} /> : null}
+                  <Text
+                    style={[styles.statText, tone ? { color: tone.color, fontWeight: '600' } : null]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {stat.text}
+                  </Text>
+                </View>
+              );
+            })}
 
-            {module.secondary ? (
-              <Text style={styles.secondary} numberOfLines={1} ellipsizeMode="tail">
-                {module.secondary}
+            {module.count !== undefined ? (
+              <Text style={styles.count} numberOfLines={1} ellipsizeMode="tail">
+                {module.count} {module.unit}
               </Text>
             ) : null}
           </View>
 
-          <Feather name="chevron-right" size={18} color={Palette.textTertiary} />
+          <Feather name="chevron-right" size={16} color={Palette.textTertiary} style={styles.chevron} />
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -112,17 +114,13 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.4,
   },
-  count: {
-    fontSize: FontSize.small,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-    marginTop: 2,
-  },
-  highlightRow: {
+  statRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    marginTop: 2,
+  },
+  statRowFirst: {
     marginTop: 3,
   },
   dot: {
@@ -131,17 +129,20 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     flexShrink: 0,
   },
-  highlightText: {
+  statText: {
     fontSize: FontSize.small,
-    fontWeight: '600',
-    letterSpacing: -0.1,
-    flexShrink: 1,
-  },
-  secondary: {
-    fontSize: FontSize.tiny,
-    fontWeight: '500',
+    fontWeight: '400',
     color: Palette.textTertiary,
-    letterSpacing: -0.05,
-    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+  count: {
+    fontSize: FontSize.small,
+    fontWeight: '400',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
+    marginTop: 3,
+  },
+  chevron: {
+    opacity: 0.7,
   },
 });
