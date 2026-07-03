@@ -12,7 +12,11 @@
 // top-level import has a real "main" field, so it resolves the same way on
 // every bundler/Metro version regardless of "exports" support, at the cost
 // of a slightly larger metadata bundle (~154KB vs. ~97KB).
-import { AsYouType, getCountries, getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
+import { AsYouType, getCountries, getCountryCallingCode, getExampleNumber, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
+// A physical file at the package root (not nested behind a subpath-only
+// "exports" entry), so it resolves the same way "." does — see the note
+// above about why "/mobile" specifically broke under Metro.
+import PHONE_NUMBER_EXAMPLES from 'libphonenumber-js/examples.mobile.json';
 
 export type { CountryCode };
 
@@ -68,23 +72,83 @@ export function getCountryOption(iso2: CountryCode): CountryOption | undefined {
   return COUNTRY_OPTIONS.find((c) => c.iso2 === iso2);
 }
 
-/** Live "as you type" national formatting for the given country, e.g. FR "0612345678" → "06 12 34 56 78". */
+/** "0470 12 34 56" → "0470123456". The only thing ever stored as "raw" state. */
+export function digitsOnly(text: string): string {
+  return text.replace(/\D/g, '');
+}
+
+// E.164's hard cap is 15 digits total; a few of those are the country code,
+// so 14 is a safe ceiling for the national significant number alone.
+const MAX_NATIONAL_DIGITS = 14;
+
+/**
+ * Live "as you type" national formatting for the given country, e.g. FR
+ * "0612345678" → "06 12 34 56 78". Always re-derived from digits only — never
+ * feed this a string that already contains the separators it previously
+ * inserted (spaces/parens/dashes): AsYouType is a fresh, stateless call each
+ * time here, so re-feeding its own output back in double-applies formatting
+ * logic and is exactly what silently broke live reformatting before.
+ */
 export function formatNational(rawText: string, country: CountryCode): string {
-  return new AsYouType(country).input(rawText);
+  return new AsYouType(country).input(digitsOnly(rawText).slice(0, MAX_NATIONAL_DIGITS));
 }
 
 /** E.164 for storage ("+33612345678") once the number is valid for that country, else null. */
 export function toE164(rawText: string, country: CountryCode): string | null {
   const formatter = new AsYouType(country);
-  formatter.input(rawText);
+  formatter.input(digitsOnly(rawText).slice(0, MAX_NATIONAL_DIGITS));
   const number = formatter.getNumber();
   return number?.isValid() ? number.number : null;
 }
 
 export function isValidPhoneFor(rawText: string, country: CountryCode): boolean {
   const formatter = new AsYouType(country);
-  formatter.input(rawText);
+  formatter.input(digitsOnly(rawText).slice(0, MAX_NATIONAL_DIGITS));
   return formatter.getNumber()?.isValid() ?? false;
+}
+
+/** A real example number for the country, formatted nationally — "0470 12 34 56" for BE, "(415) 555-0123" for US, etc. */
+export function getPhonePlaceholder(country: CountryCode): string {
+  const example = getExampleNumber(country, PHONE_NUMBER_EXAMPLES);
+  return example ? example.formatNational() : '';
+}
+
+/** The index in `text` right after its Nth digit — used to place the cursor after reformatting. */
+export function indexAfterDigitCount(text: string, count: number): number {
+  if (count <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (/\d/.test(text[i])) {
+      seen++;
+      if (seen === count) return i + 1;
+    }
+  }
+  return text.length;
+}
+
+/**
+ * Finds where `oldText` and `newText` diverge — the common prefix and common
+ * suffix around whatever was typed/deleted — by comparing the two strings
+ * directly. Deliberately independent of `onSelectionChange`: that event's
+ * timing relative to `onChangeText` isn't guaranteed across platforms (it
+ * arrived too late — or not at all before the next keystroke — under
+ * react-native-web in testing, which left the tracked cursor stuck at 0 and
+ * inserted every new digit at the *front* instead of the end). Diffing two
+ * plain strings has no such race: `oldText` is exactly what this render
+ * displayed, and `newText` is exactly what the field reports.
+ */
+export function diffEditRegion(oldText: string, newText: string): { position: number; insertedCount: number } {
+  const minLen = Math.min(oldText.length, newText.length);
+  let prefixLen = 0;
+  while (prefixLen < minLen && oldText[prefixLen] === newText[prefixLen]) prefixLen++;
+  let suffixLen = 0;
+  while (
+    suffixLen < minLen - prefixLen &&
+    oldText[oldText.length - 1 - suffixLen] === newText[newText.length - 1 - suffixLen]
+  ) {
+    suffixLen++;
+  }
+  return { position: prefixLen, insertedCount: Math.max(0, newText.length - prefixLen - suffixLen) };
 }
 
 /**
