@@ -32,7 +32,7 @@ import {
   buildDays,
   computeSlots,
   defaultStart,
-  formatDayShort,
+  formatDayFooter,
   formatDuration,
   nearestAvailableSlot,
   type AttachmentItem,
@@ -51,7 +51,15 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const DAYS = buildDays(14);
-const easeLayout = () => LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+// Kept short (180ms) and opacity-only on create/delete so every recalculation
+// (type, date, duration…) feels instant rather than "animated".
+const easeLayout = () =>
+  LayoutAnimation.configureNext({
+    duration: 180,
+    update: { type: LayoutAnimation.Types.easeInEaseOut },
+    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+  });
 
 function formatEuro(value: number): string {
   return `${value.toLocaleString('fr-FR')} €`;
@@ -103,11 +111,11 @@ export default function NewAppointmentScreen() {
 
   // The button always guides toward the next thing to do — never a dead end.
   const missingStep = !client
-    ? 'Choisir un client'
+    ? 'Choisissez un client'
     : !hasType
-    ? 'Choisir une intervention'
+    ? 'Choisissez une intervention'
     : !hasValidTime
-    ? 'Choisir un horaire'
+    ? 'Choisissez un horaire'
     : null;
 
   // If the day or duration change makes the current slot invalid, silently
@@ -391,12 +399,16 @@ export default function NewAppointmentScreen() {
                     </Text>
                   ) : null}
                   <Text style={styles.recapMeta} numberOfLines={1}>
-                    {formatDayShort(dayKey)} • {time} → {endTime}
+                    {formatDayFooter(dayKey)}
                   </Text>
                   <Text style={styles.recapMeta} numberOfLines={1}>
-                    {formatDuration(duration)}
-                    {totalTTC > 0 ? ` • ${formatEuro(totalTTC)} TTC` : ''}
+                    {time} → {endTime} • {formatDuration(duration)}
                   </Text>
+                  {totalTTC > 0 ? (
+                    <Text style={styles.recapPrice} numberOfLines={1}>
+                      {formatEuro(totalTTC)} TTC
+                    </Text>
+                  ) : null}
                 </View>
 
                 <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={missingStep ?? 'Créer le rendez-vous'}>
@@ -639,6 +651,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: Palette.textTertiary,
+    marginTop: 2,
+  },
+  recapPrice: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    letterSpacing: -0.2,
     marginTop: 2,
   },
   recapPlaceholder: {

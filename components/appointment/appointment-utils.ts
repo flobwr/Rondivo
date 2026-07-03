@@ -131,11 +131,11 @@ export function formatDayShort(key: string): string {
   return `${DAYS_SHORT[date.getDay()]} ${d} ${MONTHS[mo - 1]}`;
 }
 
-/** "Ven 3 juillet" — used by the sticky footer recap, spelled out for clarity. */
+/** "Ven. 3 juillet" — used by the sticky footer recap, spelled out for clarity. */
 export function formatDayFooter(key: string): string {
   const [y, mo, d] = key.split('-').map(Number);
   const date = new Date(y, mo - 1, d);
-  return `${DAYS_SHORT[date.getDay()]} ${d} ${MONTHS_FULL[mo - 1]}`;
+  return `${DAYS_SHORT[date.getDay()]}. ${d} ${MONTHS_FULL[mo - 1]}`;
 }
 
 export const DURATION_OPTIONS = [30, 60, 90, 120, 180, 420];
