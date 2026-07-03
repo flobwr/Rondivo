@@ -32,8 +32,8 @@ export const Palette = {
   green: '#10B981',
   greenSoft: '#E4F6EE',
 
-  red: '#EF4444',
-  redSoft: '#FDEAEA',
+  red: '#EF4444', // "erreur" accent (same value as `notification`)
+  redSoft: '#FDEAEA', // soft tile bg for the red accent — used by Documents "à traiter"
 
   // Hero gradient (blue -> turquoise)
   gradientStart: '#3B7DF0',
