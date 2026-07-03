@@ -1,7 +1,9 @@
 import { ReactNode, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
-import { Spacing } from '@/constants/design';
+// Tighter than the shared Spacing.section — this screen wants a denser,
+// more premium rhythm without changing the token other screens rely on.
+const SECTION_GAP = 16;
 
 type Props = {
   index?: number;
@@ -34,6 +36,6 @@ export function AnimatedSection({ index = 0, children }: Props) {
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: Spacing.section,
+    marginTop: SECTION_GAP,
   },
 });

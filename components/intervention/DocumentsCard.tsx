@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius } from '@/constants/design';
@@ -18,14 +19,17 @@ type Props = {
 
 export function DocumentsCard({ documents, onPressDocument }: Props) {
   return (
-    <SectionCard icon="folder" iconColor={Palette.blue} iconBackground={Palette.blueSoft} title="Documents">
+    <SectionCard>
       <View>
         {documents.map((doc, index) => {
           const s = STATUS_COLOR[doc.status];
           return (
             <View key={doc.id}>
               {index > 0 ? <View style={styles.separator} /> : null}
-              <Pressable style={styles.row} onPress={() => onPressDocument?.(doc)}>
+              <Pressable
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                onPress={() => onPressDocument?.(doc)}>
                 <View style={styles.iconTile}>
                   <Feather name={doc.icon} size={16} color={Palette.textSecondary} />
                 </View>
@@ -33,7 +37,7 @@ export function DocumentsCard({ documents, onPressDocument }: Props) {
                   <Text style={styles.label} numberOfLines={1}>
                     {doc.label}
                   </Text>
-                  <Text style={styles.detail} numberOfLines={1}>
+                  <Text style={styles.detail} numberOfLines={2}>
                     {doc.detail}
                   </Text>
                 </View>
@@ -62,6 +66,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 11,
     gap: 10,
+  },
+  rowPressed: {
+    opacity: 0.55,
   },
   iconTile: {
     width: 34,

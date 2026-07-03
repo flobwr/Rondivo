@@ -24,7 +24,7 @@ export function MaterialCard({ material, onAdd }: Props) {
   };
 
   return (
-    <SectionCard icon="package" iconColor={Palette.orange} iconBackground={Palette.orangeSoft} title="Matériel">
+    <SectionCard>
       {material.length > 0 ? (
         <View>
           {material.map((item, index) => (

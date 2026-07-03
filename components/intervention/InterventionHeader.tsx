@@ -36,7 +36,7 @@ function RoundButton({ icon, onPress }: { icon: React.ComponentProps<typeof Feat
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress} hitSlop={6}>
       <Animated.View style={[styles.roundButton, { transform: [{ scale }] }]}>
-        <Feather name={icon} size={20} color={Palette.textPrimary} />
+        <Feather name={icon} size={19} color={Palette.textPrimary} />
       </Animated.View>
     </Pressable>
   );
@@ -65,9 +65,10 @@ export function InterventionHeader({ intervention, onBack, onMore }: Props) {
           <View style={[styles.statusDot, { backgroundColor: status.color }]} />
           <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
         </View>
-        <Text style={styles.reference} numberOfLines={1}>
-          {intervention.reference}
-        </Text>
+        <View style={[styles.statusPill, { backgroundColor: priority.background }]}>
+          <Feather name="flag" size={10} color={priority.color} />
+          <Text style={[styles.statusText, { color: priority.color }]}>{priority.shortLabel}</Text>
+        </View>
       </View>
 
       <Text style={styles.title} numberOfLines={2}>
@@ -85,38 +86,32 @@ export function InterventionHeader({ intervention, onBack, onMore }: Props) {
 
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
-          <Feather name="calendar" size={13} color={Palette.textSecondary} />
+          <Feather name="calendar" size={12} color={Palette.textSecondary} />
           <Text style={styles.metaText}>{intervention.dateLabel}</Text>
         </View>
         <View style={styles.metaDivider} />
         <View style={styles.metaItem}>
-          <Feather name="clock" size={13} color={Palette.textSecondary} />
+          <Feather name="clock" size={12} color={Palette.textSecondary} />
           <Text style={styles.metaText}>
             {intervention.startTime} – {intervention.endTime}
           </Text>
         </View>
         <View style={styles.metaDivider} />
         <View style={styles.metaItem}>
-          <Feather name="hash" size={13} color={Palette.textSecondary} />
+          <Feather name="hash" size={12} color={Palette.textSecondary} />
           <Text style={styles.metaText}>{intervention.duration}</Text>
         </View>
-      </View>
-
-      <View style={styles.chipsRow}>
-        <View style={[styles.chip, { backgroundColor: priority.background }]}>
-          <Feather name="flag" size={11} color={priority.color} />
-          <Text style={[styles.chipText, { color: priority.color }]}>{priority.shortLabel}</Text>
-        </View>
-        <View style={[styles.chip, styles.chipMuted]}>
-          <Feather name="navigation" size={11} color={Palette.textSecondary} />
-          <Text style={[styles.chipText, { color: Palette.textSecondary }]}>{kmLabel} km</Text>
+        <View style={styles.metaDivider} />
+        <View style={styles.metaItem}>
+          <Feather name="navigation" size={12} color={Palette.textSecondary} />
+          <Text style={styles.metaText}>{kmLabel} km</Text>
         </View>
       </View>
     </View>
   );
 }
 
-const AVATAR = 30;
+const AVATAR = 26;
 
 const styles = StyleSheet.create({
   container: {},
@@ -126,9 +121,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#ECEEF2',
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,16 +131,16 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 18,
+    gap: 8,
+    marginTop: 10,
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 5,
   },
   statusDot: {
     width: 6,
@@ -157,24 +152,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.1,
   },
-  reference: {
-    fontSize: FontSize.tiny,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    letterSpacing: 0,
-  },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: Palette.textPrimary,
-    marginTop: 12,
-    letterSpacing: -0.6,
+    marginTop: 8,
+    letterSpacing: -0.5,
   },
   clientRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 10,
+    marginTop: 6,
   },
   avatar: {
     width: AVATAR,
@@ -186,11 +175,11 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: Palette.white,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   clientName: {
-    fontSize: FontSize.body,
+    fontSize: FontSize.label,
     fontWeight: '600',
     color: Palette.textPrimary,
     letterSpacing: -0.2,
@@ -198,9 +187,9 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.md,
+    marginTop: 6,
     flexWrap: 'wrap',
-    rowGap: 6,
+    rowGap: 5,
   },
   metaItem: {
     flexDirection: 'row',
@@ -209,35 +198,14 @@ const styles = StyleSheet.create({
   },
   metaDivider: {
     width: 1,
-    height: 12,
+    height: 11,
     backgroundColor: Palette.border,
-    marginHorizontal: 10,
+    marginHorizontal: Spacing.sm,
   },
   metaText: {
     fontSize: FontSize.small,
     fontWeight: '500',
     color: Palette.textSecondary,
-    letterSpacing: -0.1,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  chipMuted: {
-    backgroundColor: Palette.cardMuted,
-  },
-  chipText: {
-    fontSize: FontSize.tiny,
-    fontWeight: '700',
     letterSpacing: -0.1,
   },
 });

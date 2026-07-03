@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow, heroShadow } from '@/constants/shadow';
@@ -11,12 +11,10 @@ import { SectionCard } from './SectionCard';
 type MiniAction = {
   label: string;
   icon: React.ComponentProps<typeof Feather>['name'];
-  color: string;
-  background: string;
   onPress?: () => void;
 };
 
-function MiniActionButton({ label, icon, color, background, onPress }: MiniAction) {
+function MiniActionButton({ label, icon, onPress }: MiniAction) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -30,10 +28,10 @@ function MiniActionButton({ label, icon, color, background, onPress }: MiniActio
   return (
     <Pressable style={styles.miniWrapper} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View style={[styles.miniInner, { transform: [{ scale }] }]}>
-        <View style={[styles.miniTile, { backgroundColor: background }]}>
-          <Feather name={icon} size={20} color={color} />
+        <View style={styles.miniTile}>
+          <Feather name={icon} size={19} color={Palette.blue} />
         </View>
-        <Text style={styles.miniLabel} numberOfLines={1}>
+        <Text style={styles.miniLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
           {label}
         </Text>
       </Animated.View>
@@ -61,22 +59,19 @@ export function QuickActionsCard({ onCall, onSms, onNavigate, onEdit, onStart }:
   };
 
   const actions: MiniAction[] = [
-    { label: 'Appeler', icon: 'phone', color: Palette.blue, background: Palette.blueSoft, onPress: onCall },
-    { label: 'SMS', icon: 'message-circle', color: Palette.purple, background: Palette.purpleSoft, onPress: onSms },
-    { label: 'Itinéraire', icon: 'navigation', color: Palette.green, background: Palette.greenSoft, onPress: onNavigate },
-    { label: 'Modifier', icon: 'edit-2', color: Palette.orange, background: Palette.orangeSoft, onPress: onEdit },
+    { label: 'Appeler', icon: 'phone', onPress: onCall },
+    { label: 'SMS', icon: 'message-circle', onPress: onSms },
+    { label: 'Itinéraire', icon: 'navigation', onPress: onNavigate },
+    { label: 'Modifier', icon: 'edit-2', onPress: onEdit },
   ];
 
   return (
-    <SectionCard icon="zap" iconColor={Palette.blue} iconBackground={Palette.blueSoft} title="Actions rapides">
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.row}>
+    <SectionCard>
+      <View style={styles.row}>
         {actions.map((action) => (
           <MiniActionButton key={action.label} {...action} />
         ))}
-      </ScrollView>
+      </View>
 
       <Pressable onPressIn={onCtaPressIn} onPressOut={onCtaPressOut} onPress={onStart} style={styles.ctaWrapper}>
         <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
@@ -100,15 +95,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   miniWrapper: {
-    width: 68,
+    flex: 1,
   },
   miniInner: {
     alignItems: 'center',
   },
   miniTile: {
-    width: 52,
-    height: 52,
-    borderRadius: 17,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
     ...actionShadow,
@@ -117,25 +113,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Palette.textPrimary,
-    marginTop: 8,
+    marginTop: 7,
     letterSpacing: -0.1,
     textAlign: 'center',
   },
   ctaWrapper: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
   },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 9,
-    height: 54,
+    height: 52,
     borderRadius: Radius.pill,
     ...heroShadow,
   },
   ctaText: {
     color: Palette.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.2,
   },

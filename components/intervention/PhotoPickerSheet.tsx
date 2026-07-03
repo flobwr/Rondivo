@@ -52,8 +52,8 @@ export function PhotoPickerSheet({ visible, onClose, onPickCamera, onPickLibrary
             ) : null}
 
             <PressableScale onPress={onPickLibrary} to={0.98} style={styles.row} accessibilityLabel="Choisir depuis la galerie">
-              <View style={[styles.iconTile, { backgroundColor: Palette.greenSoft }]}>
-                <Feather name="image" size={19} color={Palette.green} />
+              <View style={[styles.iconTile, { backgroundColor: Palette.blueSoft }]}>
+                <Feather name="image" size={19} color={Palette.blue} />
               </View>
               <Text style={styles.rowLabel}>Choisir depuis la galerie</Text>
               <Feather name="chevron-right" size={18} color={Palette.textTertiary} />
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: FontSize.label,
     fontWeight: '700',
-    color: Palette.red,
+    color: Palette.textPrimary,
     letterSpacing: -0.1,
   },
 });

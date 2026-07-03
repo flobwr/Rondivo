@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius } from '@/constants/design';
@@ -17,39 +18,45 @@ function buildMetaLine(entry: HistoryEntry): string | null {
 }
 
 export function HistoryCard({ history }: Props) {
-  return (
-    <SectionCard icon="rotate-ccw" iconColor={Palette.textSecondary} iconBackground={Palette.cardMuted} title="Historique">
-      {history.length > 0 ? (
-        <View>
-          {history.map((entry, index) => {
-            const metaLine = buildMetaLine(entry);
-            return (
-              <View key={entry.id}>
-                {index > 0 ? <View style={styles.separator} /> : null}
-                <Pressable style={styles.row}>
-                  <View style={styles.info}>
-                    <Text style={styles.type} numberOfLines={1}>
-                      {entry.type}
-                    </Text>
-                    <Text style={styles.date}>{entry.date}</Text>
-                    {metaLine ? (
-                      <Text style={styles.meta} numberOfLines={1}>
-                        {metaLine}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <View style={styles.statusPill}>
-                    <Text style={styles.statusText}>{entry.status}</Text>
-                  </View>
-                  <Feather name="chevron-right" size={16} color={Palette.textTertiary} />
-                </Pressable>
-              </View>
-            );
-          })}
-        </View>
-      ) : (
+  if (history.length === 0) {
+    return (
+      <SectionCard>
         <Text style={styles.empty}>Aucune intervention précédente chez ce client.</Text>
-      )}
+      </SectionCard>
+    );
+  }
+
+  return (
+    <SectionCard>
+      <View>
+        {history.map((entry, index) => {
+          const metaLine = buildMetaLine(entry);
+          return (
+            <View key={entry.id}>
+              {index > 0 ? <View style={styles.separator} /> : null}
+              <Pressable
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                <View style={styles.info}>
+                  <Text style={styles.type} numberOfLines={2}>
+                    {entry.type}
+                  </Text>
+                  <Text style={styles.date}>{entry.date}</Text>
+                  {metaLine ? (
+                    <Text style={styles.meta} numberOfLines={1}>
+                      {metaLine}
+                    </Text>
+                  ) : null}
+                </View>
+                <View style={styles.statusPill}>
+                  <Text style={styles.statusText}>{entry.status}</Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={Palette.textTertiary} />
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
     </SectionCard>
   );
 }
@@ -65,6 +72,9 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     gap: 10,
   },
+  rowPressed: {
+    opacity: 0.55,
+  },
   info: {
     flex: 1,
   },
@@ -73,6 +83,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.textPrimary,
     letterSpacing: -0.1,
+    lineHeight: 18,
   },
   date: {
     fontSize: 12,

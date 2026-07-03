@@ -40,8 +40,10 @@ export function InterventionFooter({ onEdit, onStart }: Props) {
 
       <Pressable style={styles.startWrapper} onPressIn={start.onPressIn} onPressOut={start.onPressOut} onPress={onStart}>
         <Animated.View style={[styles.startButton, { transform: [{ scale: start.scale }] }]}>
-          <Feather name="play" size={16} color={Palette.white} />
-          <Text style={styles.startText}>Commencer l&rsquo;intervention</Text>
+          <Feather name="play" size={15} color={Palette.white} />
+          <Text style={styles.startText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+            Commencer l&rsquo;intervention
+          </Text>
         </Animated.View>
       </Pressable>
     </View>
@@ -60,7 +62,7 @@ const styles = StyleSheet.create({
     ...iconButtonShadow,
   },
   editWrapper: {
-    flex: 1,
+    flex: 0.9,
   },
   editButton: {
     flexDirection: 'row',
@@ -80,21 +82,22 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   startWrapper: {
-    flex: 1.6,
+    flex: 2.6,
   },
   startButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
     height: 52,
     borderRadius: Radius.pill,
+    paddingHorizontal: 4,
     backgroundColor: Palette.blue,
   },
   startText: {
-    fontSize: FontSize.label,
+    fontSize: 12,
     fontWeight: '700',
     color: Palette.white,
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
 });

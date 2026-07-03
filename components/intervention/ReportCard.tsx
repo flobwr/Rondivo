@@ -76,6 +76,7 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, 
     [reportNote, hasVoiceNote, checklist, hasSignature, reportPdfReady]
   );
   const doneCount = items.filter((item) => item.done).length;
+  const progress = items.length > 0 ? doneCount / items.length : 0;
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -86,18 +87,16 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, 
   };
 
   return (
-    <SectionCard
-      icon="clipboard"
-      iconColor={Palette.purple}
-      iconBackground={Palette.purpleSoft}
-      title="Rapport"
-      right={
-        <View style={styles.summaryPill}>
-          <Text style={styles.summaryText}>
-            {doneCount}/{items.length}
-          </Text>
+    <SectionCard icon="clipboard" iconColor={Palette.blue} iconBackground={Palette.blueSoft} title="Rapport">
+      <View style={styles.progressRow}>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
         </View>
-      }>
+        <Text style={styles.progressCaption}>
+          {doneCount} sur {items.length} complétés
+        </Text>
+      </View>
+
       <View>
         {items.map((item, index) => {
           const isLive = item.id === 'liveTime';
@@ -106,7 +105,7 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, 
               {index > 0 ? <View style={styles.separator} /> : null}
               <View style={[styles.row, isLive ? styles.rowDisabled : null]}>
                 <View style={[styles.rowIconTile, item.done ? styles.rowIconTileDone : null]}>
-                  <Feather name={item.icon} size={15} color={item.done ? Palette.green : Palette.purple} />
+                  <Feather name={item.icon} size={15} color={item.done ? Palette.green : Palette.blue} />
                 </View>
                 <Text style={styles.rowLabel} numberOfLines={1}>
                   {item.label}
@@ -130,16 +129,25 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, 
 }
 
 const styles = StyleSheet.create({
-  summaryPill: {
-    backgroundColor: Palette.purpleSoft,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  progressRow: {
+    marginBottom: 12,
   },
-  summaryText: {
-    fontSize: FontSize.tiny,
-    fontWeight: '700',
-    color: Palette.purple,
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.cardMuted,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: Palette.blue,
+  },
+  progressCaption: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    marginTop: 6,
     letterSpacing: -0.1,
   },
   separator: {
@@ -159,7 +167,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 10,
-    backgroundColor: Palette.purpleSoft,
+    backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },

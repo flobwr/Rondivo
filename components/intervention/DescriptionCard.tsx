@@ -17,8 +17,8 @@ export function DescriptionCard({ description, notes, priority }: Props) {
   return (
     <SectionCard
       icon="file-text"
-      iconColor={Palette.purple}
-      iconBackground={Palette.purpleSoft}
+      iconColor={Palette.blue}
+      iconBackground={Palette.blueSoft}
       title="Description"
       right={
         <View style={[styles.priorityPill, { backgroundColor: p.background }]}>

@@ -32,6 +32,10 @@ export type MaterialItem = {
 
 export type DocumentStatus = 'disponible' | 'aFaire' | 'aEnvoyer';
 
+// Not rendered yet — read by the future document action sheet (partager /
+// télécharger / ouvrir) so it can be added without touching DocumentsCard.
+export type DocumentAction = 'share' | 'download' | 'open';
+
 export type DocumentItem = {
   id: string;
   label: string;
@@ -39,6 +43,7 @@ export type DocumentItem = {
   status: DocumentStatus;
   statusLabel: string;
   icon: React.ComponentProps<typeof Feather>['name'];
+  availableActions?: DocumentAction[];
 };
 
 export type HistoryEntry = {

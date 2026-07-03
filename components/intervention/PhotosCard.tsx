@@ -1,24 +1,67 @@
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/constants/design';
+import { Palette } from '@/constants/design';
 import { pickFromCamera, pickFromLibrary } from './photo-picker';
 import { PhotoGalleryModal } from './PhotoGalleryModal';
 import { PhotoPickerSheet } from './PhotoPickerSheet';
 import { SectionCard } from './SectionCard';
 import { Photo } from './types';
 
-const VISIBLE_COUNT = 2;
-const TILE = 92;
+const SLOTS = 3;
 
-function AddTile({ onPress }: { onPress: () => void }) {
+function useSlotPress() {
+  const scale = useRef(new Animated.Value(1)).current;
+  const onPressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scale, { toValue: 0.94, useNativeDriver: true, friction: 6, tension: 300 }).start();
+  };
+  const onPressOut = () => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+  };
+  return { scale, onPressIn, onPressOut };
+}
+
+function PhotoSlot({ photo, onPress }: { photo: Photo; onPress: () => void }) {
+  const press = useSlotPress();
   return (
-    <Pressable style={styles.addTile} onPress={onPress} accessibilityLabel="Ajouter une photo">
-      <Feather name="plus" size={22} color={Palette.blue} />
+    <Pressable
+      style={styles.slot}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      onPress={onPress}
+      accessibilityLabel="Voir la photo">
+      <Animated.View style={[styles.slotFill, { transform: [{ scale: press.scale }] }]}>
+        <Image source={photo.source} style={styles.slotImage} contentFit="cover" />
+      </Animated.View>
     </Pressable>
+  );
+}
+
+function AddSlot({ onPress }: { onPress: () => void }) {
+  const press = useSlotPress();
+  return (
+    <Pressable
+      style={styles.slot}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
+      onPress={onPress}
+      accessibilityLabel="Ajouter une photo">
+      <Animated.View style={[styles.slotFill, styles.addSlot, { transform: [{ scale: press.scale }] }]}>
+        <Feather name="plus" size={22} color={Palette.blue} />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function EmptySlot() {
+  return (
+    <View style={styles.slot}>
+      <View style={[styles.slotFill, styles.emptySlot]} />
+    </View>
   );
 }
 
@@ -49,44 +92,28 @@ export function PhotosCard({ photos, onAddPhoto }: Props) {
     if (uri) onAddPhoto(uri);
   };
 
-  const visiblePhotos = photos.slice(0, VISIBLE_COUNT);
-  const hasMore = photos.length > VISIBLE_COUNT;
+  const hasMore = photos.length >= SLOTS;
+
+  const slots = Array.from({ length: SLOTS }, (_, index) => {
+    if (index < photos.length) {
+      return <PhotoSlot key={photos[index].id} photo={photos[index]} onPress={() => setGalleryVisible(true)} />;
+    }
+    if (index === photos.length) {
+      return <AddSlot key="add" onPress={openPicker} />;
+    }
+    return <EmptySlot key={`empty-${index}`} />;
+  });
 
   return (
-    <SectionCard
-      icon="camera"
-      iconColor={Palette.green}
-      iconBackground={Palette.greenSoft}
-      title="Photos"
-      right={
-        hasMore ? (
-          <Pressable style={styles.seeAll} onPress={() => setGalleryVisible(true)} hitSlop={6}>
-            <Text style={styles.seeAllText}>Voir tout ({photos.length})</Text>
-            <Feather name="chevron-right" size={13} color={Palette.blue} />
-          </Pressable>
-        ) : undefined
-      }>
-      {photos.length === 0 ? (
-        <Pressable style={styles.emptyFrame} onPress={openPicker} accessibilityLabel="Ajouter une photo">
-          <View style={styles.emptyIcon}>
-            <Feather name="plus" size={26} color={Palette.blue} />
-          </View>
-          <Text style={styles.emptyText}>Ajouter une photo</Text>
+    <SectionCard>
+      {hasMore ? (
+        <Pressable style={styles.seeAll} onPress={() => setGalleryVisible(true)} hitSlop={6}>
+          <Text style={styles.seeAllText}>Voir tout ({photos.length})</Text>
+          <Feather name="chevron-right" size={13} color={Palette.blue} />
         </Pressable>
-      ) : (
-        <View style={styles.row}>
-          {visiblePhotos.map((photo) => (
-            <Pressable
-              key={photo.id}
-              style={styles.thumb}
-              onPress={() => setGalleryVisible(true)}
-              accessibilityLabel="Voir la photo">
-              <Image source={photo.source} style={styles.thumbImage} contentFit="cover" />
-            </Pressable>
-          ))}
-          <AddTile onPress={openPicker} />
-        </View>
-      )}
+      ) : null}
+
+      <View style={styles.row}>{slots}</View>
 
       <PhotoPickerSheet
         visible={pickerVisible}
@@ -109,63 +136,45 @@ const styles = StyleSheet.create({
   seeAll: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-end',
     gap: 2,
+    marginBottom: 8,
   },
   seeAllText: {
-    fontSize: FontSize.tiny,
+    fontSize: 12,
     fontWeight: '600',
     color: Palette.blue,
-    letterSpacing: -0.1,
-  },
-  emptyFrame: {
-    height: 132,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: Palette.border,
-    backgroundColor: Palette.cardMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  emptyIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Palette.blueSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: FontSize.small,
-    fontWeight: '600',
-    color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
   row: {
     flexDirection: 'row',
     gap: 10,
   },
-  thumb: {
-    width: TILE,
-    height: TILE,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: Palette.cardMuted,
+  slot: {
+    flex: 1,
+    aspectRatio: 1,
   },
-  thumbImage: {
+  slotFill: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotImage: {
     width: '100%',
     height: '100%',
   },
-  addTile: {
-    width: TILE,
-    height: TILE,
-    borderRadius: 18,
+  addSlot: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Palette.blue,
+    backgroundColor: Palette.blueSoft,
+  },
+  emptySlot: {
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: Palette.border,
-    backgroundColor: Palette.cardMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
 });

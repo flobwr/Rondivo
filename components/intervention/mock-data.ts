@@ -1,23 +1,8 @@
-import { Intervention, Photo } from './types';
+import { Intervention } from './types';
 
 // ── Mock data — replace with real data source ─────────────────────────────────
-
-// Stand-ins for real captured/picked photos (none exist yet in this mock
-// dataset) — swapped for `{ uri }` sources once photos come from the device.
-const DEMO_SOURCES = [
-  require('@/assets/images/partial-react-logo.png'),
-  require('@/assets/images/react-logo.png'),
-  require('@/assets/images/splash-icon.png'),
-  require('@/assets/images/icon.png'),
-];
-
-function demoPhotos(count: number): Photo[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `ph-${i}`,
-    source: DEMO_SOURCES[i % DEMO_SOURCES.length],
-    category: (['avant', 'avant', 'apres', 'document'] as const)[i % 4],
-  }));
-}
+// No example photos here on purpose: every intervention starts with zero
+// photos, and the Photos card only ever shows real camera/gallery picks.
 
 const DEFAULT_INTERVENTION: Intervention = {
   id: 'default',
@@ -45,7 +30,7 @@ const DEFAULT_INTERVENTION: Intervention = {
     { id: 'eq-1', name: 'Chauffe-eau Atlantic 200L', detail: 'Installé le 15/03/2021 · EQP-2021-0087', icon: 'droplet' },
     { id: 'eq-2', name: 'Groupe de sécurité', detail: 'Installé le 15/03/2021 · EQP-2021-0088', icon: 'shield' },
   ],
-  photos: demoPhotos(4),
+  photos: [],
   material: [
     { id: 'mat-1', name: 'Raccord laiton 3/4"', quantity: 2, reference: 'REF-4471' },
     { id: 'mat-2', name: 'Groupe de sécurité 7 bar', quantity: 1, reference: 'REF-2290' },
@@ -57,9 +42,24 @@ const DEFAULT_INTERVENTION: Intervention = {
   hasSignature: false,
   reportPdfReady: false,
   documents: [
-    { id: 'doc-1', label: 'Devis', detail: 'DEV-2026-0128', status: 'disponible', statusLabel: 'Signé', icon: 'file-text' },
+    {
+      id: 'doc-1',
+      label: 'Devis',
+      detail: 'DEV-2026-0128',
+      status: 'disponible',
+      statusLabel: 'Signé',
+      icon: 'file-text',
+      availableActions: ['open', 'share', 'download'],
+    },
     { id: 'doc-2', label: 'Facture', detail: 'Non créée', status: 'aFaire', statusLabel: 'À facturer', icon: 'file' },
-    { id: 'doc-3', label: 'Rapport PDF', detail: 'Généré après intervention', status: 'aFaire', statusLabel: 'En attente', icon: 'file-plus' },
+    {
+      id: 'doc-3',
+      label: 'Rapport PDF',
+      detail: 'Généré après intervention',
+      status: 'aFaire',
+      statusLabel: 'En attente',
+      icon: 'file-plus',
+    },
     { id: 'doc-4', label: "Bon d'intervention", detail: 'Signé sur site', status: 'aFaire', statusLabel: 'À signer', icon: 'edit-3' },
   ],
   history: [
@@ -103,7 +103,6 @@ const INTERVENTIONS: Record<string, Intervention> = {
     travelKm: 4.2,
     description: "Fuite constatée sous l'évier de la cuisine. Remplacement du siphon et vérification des raccords.",
     priority: 'haute',
-    photos: demoPhotos(1),
   },
   'apt-4': {
     ...DEFAULT_INTERVENTION,
@@ -121,7 +120,6 @@ const INTERVENTIONS: Record<string, Intervention> = {
     travelKm: 2.3,
     description: 'Mise aux normes du tableau électrique suite au diagnostic de sécurité.',
     priority: 'haute',
-    photos: [],
   },
   '1': {
     ...DEFAULT_INTERVENTION,
@@ -137,7 +135,6 @@ const INTERVENTIONS: Record<string, Intervention> = {
     address: '8 rue Molière, 69003 Lyon',
     travelMinutes: 12,
     travelKm: 4.2,
-    photos: demoPhotos(2),
   },
   '2': {
     ...DEFAULT_INTERVENTION,
