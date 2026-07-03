@@ -38,11 +38,23 @@ export function PressableScale({
   );
 }
 
-// A labelled section — the vertical rhythm of the whole screen.
-export function Field({ label, trailing, children }: { label: string; trailing?: ReactNode; children: ReactNode }) {
+// A labelled section — the vertical rhythm of the whole screen. `compact`
+// tightens the top margin and label gap for denser forms (opt-in, so the
+// appointment screen's spacing is untouched).
+export function Field({
+  label,
+  trailing,
+  children,
+  compact,
+}: {
+  label: string;
+  trailing?: ReactNode;
+  children: ReactNode;
+  compact?: boolean;
+}) {
   return (
-    <View style={styles.field}>
-      <View style={styles.labelRow}>
+    <View style={[styles.field, compact && styles.fieldCompact]}>
+      <View style={[styles.labelRow, compact && styles.labelRowCompact]}>
         <Text style={styles.label}>{label}</Text>
         {trailing}
       </View>
@@ -160,11 +172,17 @@ const styles = StyleSheet.create({
   field: {
     marginTop: 17,
   },
+  fieldCompact: {
+    marginTop: 13,
+  },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 9,
+  },
+  labelRowCompact: {
+    marginBottom: 6,
   },
   label: {
     fontSize: FontSize.tiny,
