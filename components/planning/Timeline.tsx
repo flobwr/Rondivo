@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
@@ -41,7 +42,13 @@ type Row = {
 // One row of the timeline. Each row paints its own rail segment over its full
 // height (gap included), so the segments join into one continuous line. The
 // first and last appointment rows cap the rail exactly at their dot.
-const TimelineRow = function TimelineRow({ row }: { row: Row }) {
+const TimelineRow = function TimelineRow({
+  row,
+  onPressAppointment,
+}: {
+  row: Row;
+  onPressAppointment: (id: string) => void;
+}) {
   const { item, index, lineMode, isLastRow } = row;
 
   let lineStyle: object | null;
@@ -81,7 +88,11 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
         <View style={[styles.dot, { backgroundColor: DOT_COLOR[apt.status] }]} />
       </View>
       <View style={styles.content}>
-        <PlanningAppointmentCard appointment={apt} index={index} />
+        <PlanningAppointmentCard
+          appointment={apt}
+          index={index}
+          onPress={() => onPressAppointment(apt.id)}
+        />
       </View>
     </View>
   );
@@ -90,6 +101,7 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
 const MemoRow = memo(TimelineRow);
 
 export function Timeline({ items }: Props) {
+  const router = useRouter();
   const rows = useMemo<Row[]>(() => {
     const firstApptIdx = items.findIndex((i) => i.kind === 'appointment');
     let lastApptIdx = -1;
@@ -109,7 +121,15 @@ export function Timeline({ items }: Props) {
     });
   }, [items]);
 
-  const renderItem = useCallback(({ item }: ListRenderItemInfo<Row>) => <MemoRow row={item} />, []);
+  const onPressAppointment = useCallback(
+    (id: string) => router.push({ pathname: '/intervention/[id]', params: { id } }),
+    [router]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Row>) => <MemoRow row={item} onPressAppointment={onPressAppointment} />,
+    [onPressAppointment]
+  );
   const keyExtractor = useCallback((row: Row) => row.item.data.id, []);
 
   return (
