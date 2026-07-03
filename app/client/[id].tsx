@@ -59,10 +59,12 @@ export default function ClientDetailScreen() {
     Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
   const call = (phone = client.phone) => {
+    if (!phone) return;
     light();
     Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`);
   };
   const message = () => {
+    if (!client.phone) return;
     light();
     Linking.openURL(`sms:${client.phone.replace(/\s+/g, '')}`);
   };

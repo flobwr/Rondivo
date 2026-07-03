@@ -105,6 +105,7 @@ export default function ClientsScreen() {
   );
 
   const handleCall = useCallback((client: Client) => {
+    if (!client.phone) return;
     Linking.openURL(`tel:${client.phone.replace(/\s+/g, '')}`);
   }, []);
 

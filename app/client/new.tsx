@@ -18,7 +18,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Chip, ChipScroll, Field, PressableScale } from '@/components/appointment/AppointmentUI';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { AddressField } from '@/components/clients/new/AddressField';
-import { easeLayout, formatPhoneFr, PAYMENT_METHODS } from '@/components/clients/new/client-form-utils';
+import {
+  easeLayout,
+  formatPhoneFr,
+  lookupCompanyByVat,
+  PAYMENT_METHODS,
+} from '@/components/clients/new/client-form-utils';
 import { FormInput } from '@/components/ui/FormInput';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { computeInitials, createClient, tintForName } from '@/data/clients';
@@ -26,8 +31,8 @@ import { computeInitials, createClient, tintForName } from '@/data/clients';
 type EquipmentDraft = { id: string; name: string };
 
 // Neutral until there's a name, then pops the computed initials in with a
-// light spring — never re-triggers on every keystroke, only when the
-// initials themselves actually change.
+// light spring — only re-triggers when the initials themselves change, never
+// on every keystroke, so it never feels twitchy.
 function AvatarPreview({ name }: { name: string }) {
   const hasName = name.length > 0;
   const initials = hasName ? computeInitials(name) : '';
@@ -40,8 +45,8 @@ function AvatarPreview({ name }: { name: string }) {
   useEffect(() => {
     if (prevKey.current !== key) {
       prevKey.current = key;
-      pop.setValue(0.8);
-      Animated.spring(pop, { toValue: 1, useNativeDriver: true, friction: 7, tension: 220 }).start();
+      pop.setValue(0.88);
+      Animated.spring(pop, { toValue: 1, useNativeDriver: true, friction: 8, tension: 180 }).start();
     }
   }, [key, pop]);
 
@@ -86,22 +91,30 @@ export default function NewClientScreen() {
   const equipmentInputRef = useRef<TextInput>(null);
 
   const trimmedName = name.trim();
-  const phoneDigits = phone.replace(/\D/g, '');
   const trimmedAddress = address.trim();
 
   const hasName = trimmedName.length > 0;
-  const hasPhone = phoneDigits.length === 10;
+  const hasPhone = phone.trim().length > 0;
   const hasAddress = trimmedAddress.length > 0;
-  const completedCount = [hasName, hasPhone, hasAddress].filter(Boolean).length;
 
-  // Guides straight to the missing step — never a dead end.
-  const missingStep = !hasName
-    ? 'Saisissez un nom'
-    : !hasPhone
-    ? 'Ajoutez un téléphone'
-    : !hasAddress
-    ? 'Choisissez une adresse'
-    : null;
+  // Name is the only real gate — phone and address are recommended, never
+  // required. A client can be created in one field and completed later.
+  const canSubmit = hasName;
+  const buttonLabel = created ? 'Créé' : canSubmit ? 'Suivant' : 'Saisissez un nom';
+  const buttonIcon = created ? 'check' : canSubmit ? 'arrow-right' : 'user-plus';
+
+  // A light, one-time tick + pop exactly when the button unlocks — not on
+  // every keystroke — so "typing a name" reads as "Rondivo just followed me".
+  const btnPop = useRef(new Animated.Value(1)).current;
+  const prevCanSubmit = useRef(canSubmit);
+  useEffect(() => {
+    if (prevCanSubmit.current !== canSubmit) {
+      prevCanSubmit.current = canSubmit;
+      if (canSubmit) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      btnPop.setValue(0.93);
+      Animated.spring(btnPop, { toValue: 1, useNativeDriver: true, friction: 8, tension: 200 }).start();
+    }
+  }, [canSubmit, btnPop]);
 
   const toggleType = (company: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -112,6 +125,17 @@ export default function NewClientScreen() {
   const togglePayment = (method: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPaymentMethod((prev) => (prev === method ? null : method));
+  };
+
+  // A recognised VAT number fills in what it can — but never overwrites
+  // something the artisan already typed themselves.
+  const handleVatChange = (value: string) => {
+    setVatNumber(value);
+    const match = lookupCompanyByVat(value);
+    if (!match) return;
+    easeLayout();
+    setName((prev) => (prev.trim() ? prev : match.name));
+    setAddress((prev) => (prev.trim() ? prev : match.address));
   };
 
   const startAddEquipment = () => {
@@ -145,18 +169,16 @@ export default function NewClientScreen() {
 
   const handleCreatePress = () => {
     if (created) return;
-    if (missingStep) {
+    if (!canSubmit) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      if (!hasName) nameRef.current?.focus();
-      else if (!hasPhone) phoneRef.current?.focus();
-      else addressRef.current?.focus();
+      nameRef.current?.focus();
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const client = createClient({
       name: trimmedName,
-      phone: phone.trim(),
-      address: trimmedAddress,
+      phone: hasPhone ? phone.trim() : undefined,
+      address: hasAddress ? trimmedAddress : undefined,
       isCompany,
       email: email.trim() || undefined,
       vatNumber: isCompany ? vatNumber.trim() || undefined : undefined,
@@ -186,7 +208,7 @@ export default function NewClientScreen() {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             contentContainerStyle={styles.content}>
-            {/* Essentials — always visible, nothing else competes for attention. */}
+            {/* Essentials — only the name actually gates creation. */}
             <Field label="Nom ou entreprise" compact>
               <View style={styles.nameRow}>
                 <AvatarPreview name={trimmedName} />
@@ -197,29 +219,14 @@ export default function NewClientScreen() {
                     onChangeText={setName}
                     placeholder={isCompany ? "Nom de l'entreprise" : 'Nom du client'}
                     autoCapitalize="words"
+                    textContentType="name"
+                    autoComplete="name"
                     returnKeyType="next"
                     onSubmitEditing={() => phoneRef.current?.focus()}
                     autoFocus
                   />
                 </View>
               </View>
-            </Field>
-
-            <Field label="Téléphone" compact>
-              <FormInput
-                ref={phoneRef}
-                icon="phone"
-                value={phone}
-                onChangeText={(v) => setPhone(formatPhoneFr(v))}
-                placeholder="06 12 34 56 78"
-                keyboardType="phone-pad"
-                returnKeyType="next"
-                onSubmitEditing={() => addressRef.current?.focus()}
-              />
-            </Field>
-
-            <Field label="Adresse" compact>
-              <AddressField ref={addressRef} value={address} onChangeText={setAddress} />
             </Field>
 
             <Field label="Type de client" compact>
@@ -243,12 +250,38 @@ export default function NewClientScreen() {
               </View>
             </Field>
 
-            {/* Only exists for a company — never shown, never asked, for a particulier. */}
+            {/* Right after the name, as requested — a recognised VAT number
+                fills its own name/address in below, never asked of a particulier. */}
             {isCompany ? (
               <Field label="Numéro de TVA" compact>
-                <FormInput icon="hash" value={vatNumber} onChangeText={setVatNumber} placeholder="FR 32 123 456 789" autoCapitalize="characters" />
+                <FormInput
+                  icon="hash"
+                  value={vatNumber}
+                  onChangeText={handleVatChange}
+                  placeholder="FR 32 123 456 789"
+                  autoCapitalize="characters"
+                />
               </Field>
             ) : null}
+
+            <Field label="Téléphone" compact>
+              <FormInput
+                ref={phoneRef}
+                icon="phone"
+                value={phone}
+                onChangeText={(v) => setPhone(formatPhoneFr(v))}
+                placeholder="06 12 34 56 78"
+                keyboardType="phone-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
+                returnKeyType="next"
+                onSubmitEditing={() => addressRef.current?.focus()}
+              />
+            </Field>
+
+            <Field label="Adresse" compact>
+              <AddressField ref={addressRef} value={address} onChangeText={setAddress} />
+            </Field>
 
             {/* Complementary — closed by default, nothing here blocks creation. */}
             <PressableScale
@@ -275,6 +308,8 @@ export default function NewClientScreen() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    textContentType="emailAddress"
+                    autoComplete="email"
                   />
                 </Field>
 
@@ -287,6 +322,8 @@ export default function NewClientScreen() {
                       onChangeText={(v) => setSecondaryPhone(formatPhoneFr(v))}
                       placeholder="06 12 34 56 78"
                       keyboardType="phone-pad"
+                      textContentType="telephoneNumber"
+                      autoComplete="tel"
                     />
                   </View>
                 </Field>
@@ -305,8 +342,8 @@ export default function NewClientScreen() {
               </View>
             ) : null}
 
-            {/* Equipment — intentionally quiet: an optional add-on, never a peer of the essentials above. */}
-            <Field label="Équipements (optionnel)" compact>
+            {/* Equipment — deliberately just a link. Nothing to weigh, add it later from the fiche. */}
+            <View style={styles.equipmentSection}>
               {equipment.length > 0 ? (
                 <View style={styles.equipmentChips}>
                   {equipment.map((item) => (
@@ -345,52 +382,46 @@ export default function NewClientScreen() {
                 </View>
               ) : (
                 <PressableScale onPress={startAddEquipment} to={0.97} style={styles.equipmentAddLink} accessibilityLabel="Ajouter un équipement">
-                  <Feather name="plus" size={13} color={Palette.textSecondary} />
+                  <Feather name="plus-circle" size={15} color={Palette.textSecondary} />
                   <Text style={styles.equipmentAddLinkText}>Ajouter un équipement</Text>
                 </PressableScale>
               )}
-            </Field>
+            </View>
 
             <View style={{ height: 12 }} />
           </ScrollView>
 
-          {/* Sticky footer — a live checklist instead of a flat recap, so finishing feels close. */}
+          {/* Sticky footer — grows as fields fill in, never nags about what's optional. */}
           <View style={styles.footer}>
             <SafeAreaView edges={['bottom']}>
               <View style={styles.footerInner}>
                 <View style={styles.recap}>
-                  <View style={styles.checklistRow}>
-                    <Feather name={hasName ? 'check-circle' : 'circle'} size={13} color={hasName ? Palette.green : Palette.textTertiary} />
-                    <Text style={[styles.recapClient, !hasName && styles.recapPlaceholder]} numberOfLines={1}>
-                      {hasName ? trimmedName : 'Nom'}
+                  <Text style={[styles.recapClient, !hasName && styles.recapPlaceholder]} numberOfLines={1}>
+                    {hasName ? trimmedName : 'Choisir un nom'}
+                  </Text>
+                  {hasPhone ? (
+                    <Text style={styles.recapMeta} numberOfLines={1}>
+                      {phone}
                     </Text>
-                  </View>
-                  <View style={styles.checklistRow}>
-                    <Feather name={hasPhone ? 'check-circle' : 'circle'} size={11} color={hasPhone ? Palette.green : Palette.textTertiary} />
-                    <Text style={[styles.recapMeta, !hasPhone && styles.recapMetaPlaceholder]} numberOfLines={1}>
-                      {hasPhone ? phone : 'Téléphone'}
+                  ) : null}
+                  {hasAddress ? (
+                    <Text style={styles.recapMeta} numberOfLines={1}>
+                      {trimmedAddress}
                     </Text>
-                  </View>
-                  <View style={styles.checklistRow}>
-                    <Feather name={hasAddress ? 'check-circle' : 'circle'} size={11} color={hasAddress ? Palette.green : Palette.textTertiary} />
-                    <Text style={[styles.recapMeta, !hasAddress && styles.recapMetaPlaceholder]} numberOfLines={1}>
-                      {hasAddress ? trimmedAddress : 'Adresse'}
-                    </Text>
-                  </View>
+                  ) : null}
                 </View>
 
-                <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={missingStep ?? 'Créer le client'}>
-                  <View style={[styles.createBtn, !!missingStep && styles.createBtnDisabled, created && styles.createBtnDone]}>
-                    <Feather name={created ? 'check' : 'user-plus'} size={16} color={missingStep ? Palette.blue : Palette.white} />
-                    <Text style={[styles.createText, !!missingStep && styles.createTextMuted]} numberOfLines={1}>
-                      {created ? 'Créé' : missingStep ?? 'Créer le client'}
-                    </Text>
-                  </View>
-                </PressableScale>
+                <Animated.View style={{ transform: [{ scale: btnPop }] }}>
+                  <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={buttonLabel}>
+                    <View style={[styles.createBtn, !canSubmit && styles.createBtnDisabled, created && styles.createBtnDone]}>
+                      <Feather name={buttonIcon} size={16} color={canSubmit ? Palette.white : Palette.blue} />
+                      <Text style={[styles.createText, !canSubmit && styles.createTextMuted]} numberOfLines={1}>
+                        {buttonLabel}
+                      </Text>
+                    </View>
+                  </PressableScale>
+                </Animated.View>
               </View>
-              {missingStep ? (
-                <Text style={styles.progressHint}>{completedCount}/3 informations complétées</Text>
-              ) : null}
             </SafeAreaView>
           </View>
         </KeyboardAvoidingView>
@@ -490,10 +521,14 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
+  equipmentSection: {
+    marginTop: 13,
+  },
   equipmentChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 7,
+    marginBottom: 8,
   },
   equipmentChip: {
     flexDirection: 'row',
@@ -518,7 +553,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 8,
   },
   equipmentConfirm: {
     width: 38,
@@ -558,43 +592,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingTop: 11,
-    paddingBottom: 4,
+    paddingVertical: 11,
   },
-  recap: { flex: 1, gap: 3 },
-  checklistRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  recap: { flex: 1, gap: 2 },
   recapClient: {
     fontSize: 14,
     fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
-    flexShrink: 1,
   },
   recapMeta: {
     fontSize: 12,
     fontWeight: '600',
     color: Palette.textSecondary,
-    flexShrink: 1,
-  },
-  recapMetaPlaceholder: {
-    color: Palette.textTertiary,
-    fontWeight: '500',
   },
   recapPlaceholder: {
     color: Palette.textTertiary,
     fontWeight: '600',
-  },
-  progressHint: {
-    marginTop: 2,
-    marginBottom: 8,
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
   },
   createBtn: {
     flexDirection: 'row',
@@ -603,7 +617,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.blue,
     borderRadius: Radius.tile,
     paddingVertical: 13,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   createBtnDisabled: {
     backgroundColor: Palette.blueSoft,

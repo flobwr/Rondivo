@@ -499,8 +499,9 @@ function nextClientId(): string {
 
 export type CreateClientInput = {
   name: string;
-  phone: string;
-  address: string;
+  /** Recommended, never required — a client can be created with just a name. */
+  phone?: string;
+  address?: string;
   isCompany: boolean;
   email?: string;
   vatNumber?: string;
@@ -528,8 +529,8 @@ export function createClient(input: CreateClientInput): Client {
     name,
     initials: computeInitials(name),
     avatarTint: tintForName(name),
-    phone: input.phone.trim(),
-    address: input.address.trim(),
+    phone: input.phone?.trim() ?? '',
+    address: input.address?.trim() ?? '',
     email: input.email?.trim() ?? '',
     company: input.isCompany ? name : undefined,
     status: 'new',
