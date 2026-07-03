@@ -2,9 +2,17 @@
 // national formatting (a French "06 12 34 56 78" and a Belgian "0470 12 34 56"
 // each follow their own country's real grouping, not a hand-rolled guess) and
 // real validation, instead of reimplementing phone-number rules by hand.
-// `/mobile` is the variant tuned for mobile apps: smaller metadata bundle,
-// mobile-number patterns — the right fit for a client-contact field.
-import { AsYouType, getCountries, getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js/mobile';
+//
+// Imported from the package's top-level entry, not the lighter `/mobile`
+// subpath: that subpath is only reachable through the package's "exports"
+// map (no legacy "main" fallback exists for it), and Metro failed to resolve
+// it at runtime ("Unable to resolve module libphonenumber-js/mobile") even
+// though it resolves fine under plain Node and Expo's web bundler — the two
+// take different resolution paths, and only the native one broke. The
+// top-level import has a real "main" field, so it resolves the same way on
+// every bundler/Metro version regardless of "exports" support, at the cost
+// of a slightly larger metadata bundle (~154KB vs. ~97KB).
+import { AsYouType, getCountries, getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
 
 export type { CountryCode };
 
