@@ -14,6 +14,7 @@ import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { MOCK_RAPPORTS, RAPPORT_STATUS_META } from '@/data/documents/rapports';
+import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
 
 function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -47,6 +48,8 @@ export default function RapportDetailScreen() {
   const rapport = { ...source, status, checklist, signed };
   const meta = RAPPORT_STATUS_META[status];
   const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
+  const photoIntervention = PHOTO_INTERVENTIONS.find((p) => p.id === rapport.interventionId);
+  const photosCount = photoIntervention?.photos.length ?? rapport.photosCount;
 
   const toggleChecklistItem = (itemId: string) => {
     setChecklist((prev) => prev.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)));
@@ -128,12 +131,12 @@ export default function RapportDetailScreen() {
 
           <SectionCard icon="camera" title="Photos" style={styles.section}>
             <PressableScale
-              onPress={() => router.push('/photos')}
+              onPress={() => router.push(`/photos/${rapport.interventionId}` as never)}
               to={0.98}
               style={styles.photosRow}
               accessibilityLabel="Voir les photos">
               <IconTile icon="image" color={Palette.blue} soft={Palette.blueSoft} size={32} iconSize={14} />
-              <Text style={styles.photosText}>{rapport.photosCount} photo{rapport.photosCount > 1 ? 's' : ''}</Text>
+              <Text style={styles.photosText}>{photosCount} photo{photosCount > 1 ? 's' : ''}</Text>
               <Feather name="chevron-right" size={16} color={Palette.textTertiary} />
             </PressableScale>
           </SectionCard>

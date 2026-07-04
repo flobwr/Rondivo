@@ -5,14 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FontSize, Palette } from '@/constants/design';
 import { PressableScale } from '@/components/documents/shared/primitives';
-import { formatLongDate } from '@/data/documents/date-utils';
-import { DocPhoto, PHOTO_CATEGORY_LABEL } from '@/data/documents/photos';
+import { PHOTO_CATEGORY_LABEL, PHOTO_CATEGORY_ORDER, InterventionPhoto } from '@/data/documents/photos';
 
 type Props = {
-  photo: DocPhoto | null;
+  photo: InterventionPhoto | null;
   onClose: () => void;
-  onDelete: (photo: DocPhoto) => void;
-  onOpenIntervention: (photo: DocPhoto) => void;
+  onDelete: (photo: InterventionPhoto) => void;
+  onChangeCategory: (photo: InterventionPhoto) => void;
 };
 
 function ActionButton({
@@ -36,7 +35,14 @@ function ActionButton({
   );
 }
 
-export function PhotoViewerModal({ photo, onClose, onDelete, onOpenIntervention }: Props) {
+// The next phase in the cycle — tapping "Changer la phase" repeatedly walks
+// avant -> pendant -> après -> avant without needing a separate picker sheet.
+function nextCategory(current: InterventionPhoto['category']) {
+  const index = PHOTO_CATEGORY_ORDER.indexOf(current);
+  return PHOTO_CATEGORY_ORDER[(index + 1) % PHOTO_CATEGORY_ORDER.length];
+}
+
+export function PhotoLightbox({ photo, onClose, onDelete, onChangeCategory }: Props) {
   return (
     <Modal visible={!!photo} animationType="fade" onRequestClose={onClose} transparent={false}>
       {photo ? (
@@ -50,13 +56,16 @@ export function PhotoViewerModal({ photo, onClose, onDelete, onOpenIntervention 
               </PressableScale>
               <View style={styles.headerMeta}>
                 <Text style={styles.headerTitle}>{PHOTO_CATEGORY_LABEL[photo.category]}</Text>
-                <Text style={styles.headerSubtitle}>{formatLongDate(photo.date)}</Text>
               </View>
               <View style={styles.closeButton} />
             </View>
 
             <View style={styles.footer}>
-              <ActionButton icon="briefcase" label="Intervention" onPress={() => onOpenIntervention(photo)} />
+              <ActionButton
+                icon="repeat"
+                label={`→ ${PHOTO_CATEGORY_LABEL[nextCategory(photo.category)]}`}
+                onPress={() => onChangeCategory(photo)}
+              />
               <ActionButton
                 icon="share"
                 label="Partager"
@@ -111,12 +120,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.white,
     letterSpacing: -0.1,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 1,
   },
   footer: {
     flexDirection: 'row',

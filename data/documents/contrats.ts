@@ -1,5 +1,6 @@
 import { DocumentsTone } from '@/components/documents/palette';
 import { Palette } from '@/constants/design';
+import { daysSince } from './date-utils';
 
 export type ContratStatus = 'brouillon' | 'enAttenteSignature' | 'signe' | 'expire';
 
@@ -62,10 +63,47 @@ export const MOCK_CONTRATS: Contrat[] = [
     endDate: '2026-03-01',
     status: 'expire',
   },
+  {
+    id: 'co-5',
+    number: 'CO-2025-019',
+    title: 'Contrat d’entretien climatisation',
+    clientId: '4',
+    clientName: 'Sophie Laurent',
+    startDate: '2025-07-09',
+    endDate: '2026-07-09',
+    status: 'signe',
+  },
 ];
 
 export function contratCountsByStatus(): Record<ContratStatus, number> {
   const counts = { brouillon: 0, enAttenteSignature: 0, signe: 0, expire: 0 } as Record<ContratStatus, number>;
   for (const c of MOCK_CONTRATS) counts[c.status] += 1;
   return counts;
+}
+
+const EXPIRING_SOON_WITHIN_DAYS = 14;
+
+export function contratSummary(): { activeCount: number; expiringSoonCount: number; pendingSignatureCount: number } {
+  let activeCount = 0;
+  let expiringSoonCount = 0;
+  let pendingSignatureCount = 0;
+  for (const c of MOCK_CONTRATS) {
+    if (c.status === 'signe') {
+      activeCount += 1;
+      if (c.endDate && -daysSince(c.endDate) <= EXPIRING_SOON_WITHIN_DAYS && -daysSince(c.endDate) >= 0) {
+        expiringSoonCount += 1;
+      }
+    }
+    if (c.status === 'enAttenteSignature') pendingSignatureCount += 1;
+  }
+  return { activeCount, expiringSoonCount, pendingSignatureCount };
+}
+
+/** Signed contracts ending within `withinDays`, soonest first. */
+export function expiringContrats(withinDays = EXPIRING_SOON_WITHIN_DAYS): Contrat[] {
+  return MOCK_CONTRATS.filter((c) => {
+    if (c.status !== 'signe' || !c.endDate) return false;
+    const daysLeft = -daysSince(c.endDate);
+    return daysLeft >= 0 && daysLeft <= withinDays;
+  }).sort((a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime());
 }

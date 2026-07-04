@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -13,6 +13,7 @@ import { FactureHero } from '@/components/documents/factures/FactureHero';
 import { PaymentsCard } from '@/components/documents/factures/PaymentsCard';
 import { RecordPaymentSheet } from '@/components/documents/factures/RecordPaymentSheet';
 import { Palette, Spacing } from '@/constants/design';
+import { getClientById } from '@/data/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
 import {
   FACTURE_STATUS_META,
@@ -47,8 +48,14 @@ export default function FactureDetailScreen() {
   const paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
   const remaining = Math.max(facture.amount - paidAmount, 0);
   const meta = FACTURE_STATUS_META[status];
+  const client = getClientById(facture.clientId);
 
   const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
+
+  const handleCall = () => {
+    if (!client?.phone) return;
+    Linking.openURL(`tel:${client.phone.replace(/\s+/g, '')}`);
+  };
 
   const handleSharePdf = () => {
     Share.share({
@@ -85,7 +92,7 @@ export default function FactureDetailScreen() {
     status !== 'payee'
       ? { key: 'paid', icon: 'check-circle', label: 'Marquer payée', onPress: handleMarkPaid }
       : { key: 'payment', icon: 'plus-circle', label: 'Paiement', onPress: () => setPaymentSheetOpen(true) },
-    { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
+    { key: 'call', icon: 'phone', label: 'Appeler', onPress: handleCall },
   ];
 
   const menuItems: ActionSheetItem[] = [

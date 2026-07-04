@@ -31,4 +31,6 @@ export type ActionItem = {
   icon: FeatherIconName;
   text: string;
   tone: Tone;
+  /** Deep link straight to the document in question, when there's exactly one. */
+  route?: string;
 };

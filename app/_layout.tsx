@@ -29,9 +29,11 @@ export default function RootLayout() {
         <Stack.Screen name="rapport/[id]" />
         <Stack.Screen name="rapport/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="photos" />
+        <Stack.Screen name="photos/[id]" />
         <Stack.Screen name="contrats" />
         <Stack.Screen name="contrat/[id]" />
         <Stack.Screen name="documents-importes" />
+        <Stack.Screen name="documents-search" options={{ animation: 'fade' }} />
       </Stack>
       <StatusBar style="dark" />
     </>

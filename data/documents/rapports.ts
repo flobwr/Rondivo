@@ -136,3 +136,20 @@ export function rapportCountsByStatus(): Record<RapportStatus, number> {
   for (const r of MOCK_RAPPORTS) counts[r.status] += 1;
   return counts;
 }
+
+export function rapportSummary(): { toCompleteCount: number; pdfGeneratedCount: number } {
+  let toCompleteCount = 0;
+  let pdfGeneratedCount = 0;
+  for (const r of MOCK_RAPPORTS) {
+    if (r.status === 'aCompleter' || r.status === 'enCours') toCompleteCount += 1;
+    if (r.status === 'pdfGenere') pdfGeneratedCount += 1;
+  }
+  return { toCompleteCount, pdfGeneratedCount };
+}
+
+/** Reports still needing work, oldest first — feeds "À traiter". */
+export function rapportsToComplete(): Rapport[] {
+  return MOCK_RAPPORTS.filter((r) => r.status === 'aCompleter').sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+}

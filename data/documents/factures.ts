@@ -1,5 +1,6 @@
 import { DocumentsTone } from '@/components/documents/palette';
 import { Palette } from '@/constants/design';
+import { daysSince } from './date-utils';
 
 export type FactureStatus = 'brouillon' | 'envoyee' | 'payee' | 'enRetard' | 'annulee';
 
@@ -187,4 +188,27 @@ export function factureCountsByStatus(): Record<FactureStatus, number> {
   const counts = { brouillon: 0, envoyee: 0, payee: 0, enRetard: 0, annulee: 0 } as Record<FactureStatus, number>;
   for (const f of MOCK_FACTURES) counts[f.status] += 1;
   return counts;
+}
+
+export function factureSummary(): { toCollect: number; overdueAmount: number; overdueCount: number } {
+  let toCollect = 0;
+  let overdueAmount = 0;
+  let overdueCount = 0;
+  for (const f of MOCK_FACTURES) {
+    if (f.status === 'enRetard') {
+      overdueAmount += f.amount;
+      overdueCount += 1;
+      toCollect += f.amount;
+    } else if (f.status === 'envoyee' || f.status === 'brouillon') {
+      toCollect += f.amount;
+    }
+  }
+  return { toCollect, overdueAmount, overdueCount };
+}
+
+/** Overdue invoices, most late first — feeds the "À traiter" recommendations. */
+export function overdueFactures(): Facture[] {
+  return MOCK_FACTURES.filter((f) => f.status === 'enRetard').sort(
+    (a, b) => daysSince(b.dueAt) - daysSince(a.dueAt)
+  );
 }

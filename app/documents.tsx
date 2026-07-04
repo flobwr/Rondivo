@@ -12,6 +12,14 @@ import { ModuleCard } from '@/components/documents/ModuleCard';
 import { SecondaryModulesCard } from '@/components/documents/SecondaryModulesCard';
 import { ActionItem, DocumentModule } from '@/components/documents/types';
 import { Palette, Spacing } from '@/constants/design';
+import { formatAmount } from '@/data/documents/date-utils';
+import { factureSummary } from '@/data/documents/factures';
+import { devisSummary } from '@/data/documents/devis';
+import { rapportSummary } from '@/data/documents/rapports';
+import { contratSummary } from '@/data/documents/contrats';
+import { getActionItems } from '@/data/documents/insights';
+import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
+import { MOCK_IMPORTS } from '@/data/documents/imports';
 
 // Denser rhythm than the shared Spacing tokens — this screen favours a
 // tighter, dashboard-like layout over the app's default section spacing.
@@ -19,13 +27,14 @@ const HEADER_GAP = 14; // header subtitle -> "à traiter" card
 const SECTION_GAP = 18; // "à traiter" card -> module list
 const CARD_GAP = 10; // between module cards
 
-// ── Mock data — replace with real data source ─────────────────────────────────
+// ── Live stats — computed from the same mock data the sub-screens read ────────
 
-const ACTION_ITEMS: ActionItem[] = [
-  { id: 'act-1', moduleId: 'factures', icon: 'file-text', text: '3 factures impayées', tone: 'red' },
-  { id: 'act-2', moduleId: 'devis', icon: 'edit-3', text: '2 devis à relancer', tone: 'orange' },
-  { id: 'act-3', moduleId: 'rapports', icon: 'clipboard', text: '1 rapport à terminer', tone: 'orange' },
-];
+const ACTION_ITEMS: ActionItem[] = getActionItems();
+
+const factures = factureSummary();
+const devis = devisSummary();
+const rapports = rapportSummary();
+const contrats = contratSummary();
 
 const PRIMARY_MODULES: DocumentModule[] = [
   {
@@ -33,8 +42,15 @@ const PRIMARY_MODULES: DocumentModule[] = [
     title: 'Factures',
     icon: 'file-text',
     stats: [
-      { text: '3 impayées', tone: 'red' },
-      { text: '12 540 € à encaisser' },
+      ...(factures.overdueCount > 0
+        ? [
+            {
+              text: `${factures.overdueCount} impayée${factures.overdueCount > 1 ? 's' : ''} · ${formatAmount(factures.overdueAmount)} en retard`,
+              tone: 'red' as const,
+            },
+          ]
+        : []),
+      { text: `${formatAmount(factures.toCollect)} à encaisser` },
     ],
     route: '/factures',
   },
@@ -43,8 +59,11 @@ const PRIMARY_MODULES: DocumentModule[] = [
     title: 'Devis',
     icon: 'edit-3',
     stats: [
-      { text: '5 en attente', tone: 'orange' },
-      { text: '18 200 € potentiels' },
+      ...(devis.toRelaunchCount > 0
+        ? [{ text: `${devis.toRelaunchCount} devis à relancer`, tone: 'orange' as const }]
+        : []),
+      { text: `${formatAmount(devis.potentialAmount)} potentiels` },
+      ...(devis.acceptanceRate !== null ? [{ text: `${devis.acceptanceRate} % acceptés` }] : []),
     ],
     route: '/devis',
   },
@@ -52,15 +71,33 @@ const PRIMARY_MODULES: DocumentModule[] = [
     id: 'rapports',
     title: 'Rapports',
     icon: 'clipboard',
-    stats: [{ text: '2 à terminer', tone: 'orange' }],
+    stats: [
+      ...(rapports.toCompleteCount > 0
+        ? [{ text: `${rapports.toCompleteCount} à terminer`, tone: 'orange' as const }]
+        : []),
+      { text: `${rapports.pdfGeneratedCount} PDF générés` },
+    ],
     route: '/rapports',
+  },
+  {
+    id: 'contrats',
+    title: 'Contrats',
+    icon: 'briefcase',
+    stats: [
+      { text: `${contrats.activeCount} actif${contrats.activeCount > 1 ? 's' : ''}` },
+      ...(contrats.expiringSoonCount > 0
+        ? [{ text: `${contrats.expiringSoonCount} expire${contrats.expiringSoonCount > 1 ? 'nt' : ''} bientôt`, tone: 'orange' as const }]
+        : contrats.pendingSignatureCount > 0
+          ? [{ text: `${contrats.pendingSignatureCount} en attente de signature`, tone: 'orange' as const }]
+          : []),
+    ],
+    route: '/contrats',
   },
 ];
 
 const SECONDARY_MODULES: DocumentModule[] = [
-  { id: 'photos', title: 'Photos', icon: 'camera', count: 426, unit: 'photos', route: '/photos' },
-  { id: 'contrats', title: 'Contrats', icon: 'briefcase', count: 14, unit: 'contrats', route: '/contrats' },
-  { id: 'imports', title: 'Documents importés', icon: 'folder', count: 58, unit: 'documents', route: '/documents-importes' },
+  { id: 'photos', title: 'Photos', icon: 'camera', count: PHOTO_INTERVENTIONS.length, unit: 'interventions', route: '/photos' },
+  { id: 'imports', title: 'Documents importés', icon: 'folder', count: MOCK_IMPORTS.length, unit: 'documents', route: '/documents-importes' },
 ];
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -128,6 +165,10 @@ export default function DocumentsScreen() {
   };
 
   const handleActionPress = (item: ActionItem) => {
+    if (item.route) {
+      router.push(item.route as never);
+      return;
+    }
     const module = ALL_MODULES.find((m) => m.id === item.moduleId);
     if (module) handleModulePress(module);
   };
@@ -152,7 +193,7 @@ export default function DocumentsScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <DocumentsHeader onAdd={handleAddPress} />
+        <DocumentsHeader onSearch={() => router.push('/documents-search' as never)} onAdd={handleAddPress} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           {status === 'loading' ? (

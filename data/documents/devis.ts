@@ -1,5 +1,6 @@
 import { DocumentsTone } from '@/components/documents/palette';
 import { Palette } from '@/constants/design';
+import { daysSince } from './date-utils';
 
 export type DevisStatus = 'brouillon' | 'envoye' | 'vu' | 'accepte' | 'refuse' | 'expire';
 
@@ -109,10 +110,52 @@ export const MOCK_DEVIS: Devis[] = [
     validUntil: '2026-07-28',
     status: 'brouillon',
   },
+  {
+    id: 'de-9',
+    number: 'DE-2026-032',
+    clientId: '6',
+    clientName: 'Camille Roux',
+    amount: 2750,
+    issuedAt: '2026-06-05',
+    validUntil: '2026-07-05',
+    status: 'envoye',
+  },
 ];
 
 export function devisCountsByStatus(): Record<DevisStatus, number> {
   const counts = { brouillon: 0, envoye: 0, vu: 0, accepte: 0, refuse: 0, expire: 0 } as Record<DevisStatus, number>;
   for (const d of MOCK_DEVIS) counts[d.status] += 1;
   return counts;
+}
+
+// A quote is considered "à relancer" once it's been sitting with the client
+// (sent or viewed, no decision) for 5+ days — a real, checkable business rule
+// rather than a guess.
+const RELAUNCH_AFTER_DAYS = 5;
+
+export function devisSummary(): { potentialAmount: number; toRelaunchCount: number; acceptanceRate: number | null } {
+  let potentialAmount = 0;
+  let toRelaunchCount = 0;
+  let accepted = 0;
+  let refused = 0;
+  for (const d of MOCK_DEVIS) {
+    if (d.status === 'brouillon' || d.status === 'envoye' || d.status === 'vu') potentialAmount += d.amount;
+    if ((d.status === 'envoye' || d.status === 'vu') && daysSince(d.issuedAt) >= RELAUNCH_AFTER_DAYS) {
+      toRelaunchCount += 1;
+    }
+    if (d.status === 'accepte') accepted += 1;
+    if (d.status === 'refuse') refused += 1;
+  }
+  const decided = accepted + refused;
+  const acceptanceRate = decided > 0 ? Math.round((accepted / decided) * 100) : null;
+  return { potentialAmount, toRelaunchCount, acceptanceRate };
+}
+
+/** Quotes awaiting a decision whose validity ends within `withinDays`. */
+export function expiringDevis(withinDays = 2): Devis[] {
+  return MOCK_DEVIS.filter((d) => {
+    if (d.status !== 'envoye' && d.status !== 'vu') return false;
+    const daysLeft = -daysSince(d.validUntil);
+    return daysLeft >= 0 && daysLeft <= withinDays;
+  }).sort((a, b) => new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime());
 }

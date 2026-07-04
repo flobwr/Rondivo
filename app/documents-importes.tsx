@@ -6,32 +6,82 @@ import { Alert, FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
+import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
+import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
 import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { IMPORT_TYPE_META, ImportFileType, ImportedFile, MOCK_IMPORTS, formatFileSize } from '@/data/documents/imports';
+import { PhotoIntervention } from '@/data/documents/photos';
 
-function ImportRow({ file, onPress }: { file: ImportedFile; onPress: () => void }) {
+function ImportRow({
+  file,
+  onPress,
+  onAssociateClient,
+  onAssociateIntervention,
+}: {
+  file: ImportedFile;
+  onPress: () => void;
+  onAssociateClient: () => void;
+  onAssociateIntervention: () => void;
+}) {
   const meta = IMPORT_TYPE_META[file.type];
+  const metaParts = [formatShortDate(file.date), formatFileSize(file.sizeKb)];
+  if (file.clientName) metaParts.push(file.clientName);
+  if (file.interventionLabel) metaParts.push(file.interventionLabel);
+
+  const needsAssociation = !file.clientId || !file.interventionId;
+
   return (
-    <PressableScale onPress={onPress} to={0.98} style={styles.row} accessibilityLabel={file.name}>
-      <IconTile icon={meta.icon} color={Palette.blue} soft={Palette.blueSoft} size={40} iconSize={18} />
-      <View style={styles.rowInfo}>
-        <Text style={styles.rowName} numberOfLines={1} ellipsizeMode="tail">
-          {file.name}
-        </Text>
-        <Text style={styles.rowMeta} numberOfLines={1}>
-          {formatShortDate(file.date)} · {formatFileSize(file.sizeKb)}
-          {file.clientName ? ` · ${file.clientName}` : ''}
-        </Text>
-      </View>
-      <Feather name="chevron-right" size={16} color={Palette.textTertiary} style={{ opacity: 0.7 }} />
-    </PressableScale>
+    <View style={styles.row}>
+      <PressableScale onPress={onPress} to={0.98} style={styles.rowPress} accessibilityLabel={file.name}>
+        {file.type === 'image' ? (
+          <Image source={{ uri: `https://picsum.photos/seed/${file.id}/200/200` }} style={styles.thumb} contentFit="cover" />
+        ) : (
+          <IconTile icon={meta.icon} color={meta.color} soft={meta.soft} size={40} iconSize={18} />
+        )}
+        <View style={styles.rowInfo}>
+          <Text style={styles.rowName} numberOfLines={1} ellipsizeMode="tail">
+            {file.name}
+          </Text>
+          <Text style={styles.rowMeta} numberOfLines={1}>
+            {metaParts.join(' · ')}
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={16} color={Palette.textTertiary} style={{ opacity: 0.7 }} />
+      </PressableScale>
+
+      {needsAssociation ? (
+        <View style={styles.associateRow}>
+          {!file.clientId ? (
+            <PressableScale
+              onPress={onAssociateClient}
+              to={0.94}
+              style={styles.associateChip}
+              accessibilityLabel="Associer à un client">
+              <Feather name="user-plus" size={12} color={Palette.blue} />
+              <Text style={styles.associateText}>Client</Text>
+            </PressableScale>
+          ) : null}
+          {!file.interventionId ? (
+            <PressableScale
+              onPress={onAssociateIntervention}
+              to={0.94}
+              style={styles.associateChip}
+              accessibilityLabel="Associer à une intervention">
+              <Feather name="briefcase" size={12} color={Palette.blue} />
+              <Text style={styles.associateText}>Intervention</Text>
+            </PressableScale>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -44,7 +94,7 @@ function PreviewModal({ file, onClose }: { file: ImportedFile | null; onClose: (
       <View style={styles.previewBackdrop}>
         <Pressable onPress={onClose} style={StyleSheet.absoluteFill} accessibilityLabel="Fermer" />
         <View style={styles.previewCard}>
-          <IconTile icon={meta.icon} color={Palette.blue} soft={Palette.blueSoft} size={56} iconSize={24} />
+          <IconTile icon={meta.icon} color={meta.color} soft={meta.soft} size={56} iconSize={24} />
           <Text style={styles.previewName} numberOfLines={2}>
             {file.name}
           </Text>
@@ -82,26 +132,43 @@ export default function DocumentsImportesScreen() {
   const [search, setSearch] = useState('');
   const [type, setType] = useState<ImportFileType | null>(null);
   const [preview, setPreview] = useState<ImportedFile | null>(null);
+  const [files, setFiles] = useState<ImportedFile[]>(MOCK_IMPORTS);
+  const [clientPickerFileId, setClientPickerFileId] = useState<string | null>(null);
+  const [interventionPickerFileId, setInterventionPickerFileId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    let list = MOCK_IMPORTS;
+    let list = files;
     if (type) list = list.filter((f) => f.type === type);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((f) => f.name.toLowerCase().includes(q) || f.clientName?.toLowerCase().includes(q));
     }
     return [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [type, search]);
+  }, [files, type, search]);
 
   const chipDefs: ChipDef[] = [
-    { key: 'all', label: 'Tous', count: MOCK_IMPORTS.length, color: Palette.blue },
-    { key: 'pdf', label: 'PDF', count: MOCK_IMPORTS.filter((f) => f.type === 'pdf').length, color: Palette.blue },
-    { key: 'image', label: 'Images', count: MOCK_IMPORTS.filter((f) => f.type === 'image').length, color: Palette.blue },
-    { key: 'doc', label: 'Documents', count: MOCK_IMPORTS.filter((f) => f.type === 'doc').length, color: Palette.blue },
+    { key: 'all', label: 'Tous', count: files.length, color: Palette.blue },
+    { key: 'pdf', label: 'PDF', count: files.filter((f) => f.type === 'pdf').length, color: Palette.red },
+    { key: 'image', label: 'Images', count: files.filter((f) => f.type === 'image').length, color: Palette.blue },
+    { key: 'doc', label: 'Documents', count: files.filter((f) => f.type === 'doc').length, color: Palette.purple },
   ];
 
   const handleImport = () => {
     Alert.alert('Importer un document', 'Cette action sera bientôt disponible.');
+  };
+
+  const handleSelectClient = (client: Client) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === clientPickerFileId ? { ...f, clientId: client.id, clientName: client.name } : f))
+    );
+  };
+
+  const handleSelectIntervention = (intervention: PhotoIntervention) => {
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.id === interventionPickerFileId ? { ...f, interventionId: intervention.id, interventionLabel: intervention.label } : f
+      )
+    );
   };
 
   return (
@@ -120,7 +187,14 @@ export default function DocumentsImportesScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(f) => f.id}
-          renderItem={({ item }) => <ImportRow file={item} onPress={() => setPreview(item)} />}
+          renderItem={({ item }) => (
+            <ImportRow
+              file={item}
+              onPress={() => setPreview(item)}
+              onAssociateClient={() => setClientPickerFileId(item.id)}
+              onAssociateIntervention={() => setInterventionPickerFileId(item.id)}
+            />
+          )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -138,6 +212,18 @@ export default function DocumentsImportesScreen() {
       <BottomNav activeIndex={3} />
 
       <PreviewModal file={preview} onClose={() => setPreview(null)} />
+
+      <ClientPickerSheet
+        visible={!!clientPickerFileId}
+        onClose={() => setClientPickerFileId(null)}
+        onSelect={handleSelectClient}
+      />
+
+      <InterventionPickerSheet
+        visible={!!interventionPickerFileId}
+        onClose={() => setInterventionPickerFileId(null)}
+        onSelect={handleSelectIntervention}
+      />
     </View>
   );
 }
@@ -168,14 +254,22 @@ const styles = StyleSheet.create({
     height: 10,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
     paddingVertical: 12,
     paddingHorizontal: 14,
     ...cardShadow,
+  },
+  rowPress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  thumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Palette.cardMuted,
   },
   rowInfo: {
     flex: 1,
@@ -192,6 +286,29 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
     marginTop: 2,
+  },
+  associateRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Palette.border,
+  },
+  associateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Palette.blueSoft,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  associateText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: Palette.blue,
+    letterSpacing: -0.1,
   },
   previewBackdrop: {
     flex: 1,

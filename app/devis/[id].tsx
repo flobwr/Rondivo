@@ -21,6 +21,7 @@ export default function DevisDetailScreen() {
 
   const [status, setStatus] = useState(source?.status);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [relaunched, setRelaunched] = useState(false);
 
   if (!source || !status) {
     return (
@@ -58,6 +59,11 @@ export default function DevisDetailScreen() {
     ]);
   };
 
+  const handleRelaunch = () => {
+    Alert.alert('Relance envoyée', `Une relance a été envoyée à ${devis.clientName}.`);
+    setRelaunched(true);
+  };
+
   const canSign = status === 'envoye' || status === 'vu';
   const canConvert = status === 'accepte';
 
@@ -76,7 +82,7 @@ export default function DevisDetailScreen() {
         : { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
   ];
   if (canSign) {
-    quickActions.push({ key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') });
+    quickActions.push({ key: 'relaunch', icon: 'send', label: 'Relancer', onPress: handleRelaunch });
   }
 
   const menuItems: ActionSheetItem[] = [
@@ -92,6 +98,9 @@ export default function DevisDetailScreen() {
       : []),
     ...(status === 'accepte' ? [{ id: 'h-3', icon: 'check' as const, label: 'Accepté par le client', date: formatLongDate(devis.validUntil) }] : []),
     ...(status === 'refuse' ? [{ id: 'h-4', icon: 'x' as const, label: 'Refusé par le client', date: formatLongDate(devis.validUntil) }] : []),
+    ...(relaunched
+      ? [{ id: 'h-relance', icon: 'send' as const, label: 'Relance envoyée au client', date: formatLongDate(new Date().toISOString()) }]
+      : []),
   ];
 
   return (
