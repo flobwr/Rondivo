@@ -13,7 +13,7 @@ import {
   photoCategoryCounts,
 } from '@/data/documents/photos';
 
-const THUMB = 52;
+const THUMB = 46;
 const MAX_THUMBS = 4;
 
 export function PhotoInterventionCard({
@@ -29,15 +29,14 @@ export function PhotoInterventionCard({
 
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.card} accessibilityLabel={intervention.label}>
+      <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+        {intervention.label}
+      </Text>
+
       <View style={styles.topRow}>
-        <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-            {intervention.label}
-          </Text>
-          <Text style={styles.meta} numberOfLines={1}>
-            {intervention.clientName} · {formatShortDate(intervention.date)}
-          </Text>
-        </View>
+        <Text style={styles.meta} numberOfLines={1}>
+          {intervention.clientName} · {formatShortDate(intervention.date)}
+        </Text>
 
         <View style={styles.thumbRow}>
           {thumbs.map((photo, index) => (
@@ -77,39 +76,38 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.lg - 2,
+    padding: Spacing.lg - 4,
     ...cardShadow,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.sm,
-  },
-  info: {
-    flex: 1,
+    marginTop: 4,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15.5,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
   meta: {
+    flex: 1,
     fontSize: FontSize.small,
     fontWeight: '400',
     color: Palette.textTertiary,
     letterSpacing: -0.1,
-    marginTop: 3,
   },
   thumbRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 14,
+    paddingLeft: 12,
   },
   thumbWrap: {
     width: THUMB,
     height: THUMB,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: Palette.card,
@@ -133,15 +131,15 @@ const styles = StyleSheet.create({
   pillRow: {
     flexDirection: 'row',
     gap: 6,
-    marginTop: 12,
+    marginTop: 10,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4.5,
   },
   pillDot: {
     width: 5,

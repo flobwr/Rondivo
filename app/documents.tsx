@@ -25,7 +25,7 @@ import { MOCK_IMPORTS } from '@/data/documents/imports';
 // tighter, dashboard-like layout over the app's default section spacing.
 const HEADER_GAP = 14; // header subtitle -> "à traiter" card
 const SECTION_GAP = 18; // "à traiter" card -> module list
-const CARD_GAP = 10; // between module cards
+const CARD_GAP = 8; // between module cards
 
 // ── Live stats — computed from the same mock data the sub-screens read ────────
 

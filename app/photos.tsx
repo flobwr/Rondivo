@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
+import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { PhotoInterventionCard } from '@/components/documents/photos/PhotoInterventionCard';
 import { Palette, Spacing } from '@/constants/design';
@@ -41,8 +42,10 @@ export default function PhotosScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(p) => p.id}
-          renderItem={({ item }) => (
-            <PhotoInterventionCard intervention={item} onPress={() => router.push(`/photos/${item.id}` as never)} />
+          renderItem={({ item, index }) => (
+            <FadeInItem index={index}>
+              <PhotoInterventionCard intervention={item} onPress={() => router.push(`/photos/${item.id}` as never)} />
+            </FadeInItem>
           )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
@@ -83,6 +86,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
 });

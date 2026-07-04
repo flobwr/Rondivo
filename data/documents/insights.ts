@@ -81,7 +81,7 @@ export function getActionItems(): ActionItem[] {
       moduleId: 'contrats',
       icon: 'briefcase',
       tone: daysLeft <= 3 ? 'red' : 'orange',
-      text: `Contrat "${c.title}" expire ${when}`,
+      text: `"${c.title}" expire ${when}`,
       route: `/contrat/${c.id}`,
     });
   }

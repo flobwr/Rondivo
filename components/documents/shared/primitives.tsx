@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { memo, useRef, type ReactNode } from 'react';
+import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -58,8 +58,8 @@ export const IconTile = memo(function IconTile({
   icon,
   color,
   soft,
-  size = 38,
-  iconSize = 17,
+  size = 33,
+  iconSize = 15,
   radius,
 }: {
   icon: FeatherIconName;
@@ -148,6 +148,27 @@ export function KeyValueRow({ label, value, valueColor }: { label: string; value
 
 export function CardSeparator() {
   return <View style={styles.separator} />;
+}
+
+// Subtle staggered fade/rise used when a list first appears or a filter
+// changes the visible rows — kept short (≈200ms) so it reads as premium
+// polish rather than a loading delay.
+export function FadeInItem({ index = 0, children }: { index?: number; children: ReactNode }) {
+  const enter = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    enter.setValue(0);
+    Animated.timing(enter, {
+      toValue: 1,
+      duration: 200,
+      delay: Math.min(index, 6) * 26,
+      useNativeDriver: true,
+    }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
+  return <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>{children}</Animated.View>;
 }
 
 const styles = StyleSheet.create({

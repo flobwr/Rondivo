@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -10,6 +10,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
+import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FactureCard } from '@/components/documents/factures/FactureCard';
 import { FACTURE_STATUS_META, FACTURE_STATUS_ORDER, Facture, FactureStatus, MOCK_FACTURES } from '@/data/documents/factures';
@@ -29,6 +30,12 @@ export default function FacturesScreen() {
   const [status, setStatus] = useState<FactureStatus | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const listOpacity = useRef(new Animated.Value(1)).current;
+
+  const pulseList = () => {
+    listOpacity.setValue(0.4);
+    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+  };
 
   const counts = useMemo(() => {
     const c = { brouillon: 0, envoyee: 0, payee: 0, enRetard: 0, annulee: 0 } as Record<FactureStatus, number>;
@@ -88,45 +95,63 @@ export default function FacturesScreen() {
         </View>
 
         <View style={styles.chipsWrap}>
-          <FilterChips defs={chipDefs} activeKey={status} onSelect={(k) => setStatus(k as FactureStatus | null)} />
+          <FilterChips
+            defs={chipDefs}
+            activeKey={status}
+            onSelect={(k) => {
+              pulseList();
+              setStatus(k as FactureStatus | null);
+            }}
+          />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(f) => f.id}
-          renderItem={({ item }) => <FactureCard facture={item} onPress={() => handleOpen(item)} />}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <View style={styles.toolbar}>
-              <Text style={styles.count}>
-                {filtered.length} facture{filtered.length > 1 ? 's' : ''}
-              </Text>
-              <Pressable
-                onPress={() => setSortMenuOpen(true)}
-                hitSlop={6}
-                style={styles.sortButton}
-                accessibilityRole="button"
-                accessibilityLabel="Trier">
-                <Feather name="sliders" size={14} color={Palette.textSecondary} />
-                <Text style={styles.sortLabel}>{SORT_LABEL[sortKey]}</Text>
-              </Pressable>
-            </View>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="file-text"
-              title="Aucune facture"
-              subtitle="Aucune facture ne correspond à votre recherche."
-            />
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: listOpacity }}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(f) => f.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <FactureCard facture={item} onPress={() => handleOpen(item)} />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <View style={styles.toolbar}>
+                <Text style={styles.count}>
+                  {filtered.length} facture{filtered.length > 1 ? 's' : ''}
+                </Text>
+                <Pressable
+                  onPress={() => setSortMenuOpen(true)}
+                  hitSlop={6}
+                  style={styles.sortButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Trier">
+                  <Feather name="sliders" size={14} color={Palette.textSecondary} />
+                  <Text style={styles.sortLabel}>{SORT_LABEL[sortKey]}</Text>
+                </Pressable>
+              </View>
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon="file-text"
+                title="Aucune facture"
+                subtitle="Aucune facture ne correspond à votre recherche."
+              />
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
 
-      <ActionSheetMenu visible={sortMenuOpen} title="Trier par" items={sortItems} onClose={() => setSortMenuOpen(false)} />
+      <ActionSheetMenu
+        visible={sortMenuOpen}
+        title="Trier par"
+        items={sortItems.map((item) => ({ ...item, onPress: () => { pulseList(); item.onPress(); } }))}
+        onClose={() => setSortMenuOpen(false)}
+      />
     </View>
   );
 }
@@ -170,6 +195,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
 });

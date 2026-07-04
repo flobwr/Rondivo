@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Alert, FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -11,7 +11,7 @@ import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
-import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
+import { FadeInItem, IconTile, PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -32,9 +32,7 @@ function ImportRow({
   onAssociateIntervention: () => void;
 }) {
   const meta = IMPORT_TYPE_META[file.type];
-  const metaParts = [formatShortDate(file.date), formatFileSize(file.sizeKb)];
-  if (file.clientName) metaParts.push(file.clientName);
-  if (file.interventionLabel) metaParts.push(file.interventionLabel);
+  const associationParts = [file.clientName, file.interventionLabel].filter(Boolean) as string[];
 
   const needsAssociation = !file.clientId || !file.interventionId;
 
@@ -44,15 +42,22 @@ function ImportRow({
         {file.type === 'image' ? (
           <Image source={{ uri: `https://picsum.photos/seed/${file.id}/200/200` }} style={styles.thumb} contentFit="cover" />
         ) : (
-          <IconTile icon={meta.icon} color={meta.color} soft={meta.soft} size={40} iconSize={18} />
+          <IconTile icon={meta.icon} color={meta.color} soft={meta.soft} size={36} iconSize={16} />
         )}
         <View style={styles.rowInfo}>
-          <Text style={styles.rowName} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={styles.rowName} numberOfLines={2} ellipsizeMode="tail">
             {file.name}
           </Text>
           <Text style={styles.rowMeta} numberOfLines={1}>
-            {metaParts.join(' · ')}
+            <Text style={[styles.rowMetaType, { color: meta.color }]}>{meta.label}</Text>
+            {'  ·  '}
+            {formatFileSize(file.sizeKb)} · {formatShortDate(file.date)}
           </Text>
+          {associationParts.length > 0 ? (
+            <Text style={styles.rowAssociation} numberOfLines={1}>
+              {associationParts.join(' · ')}
+            </Text>
+          ) : null}
         </View>
         <Feather name="chevron-right" size={16} color={Palette.textTertiary} style={{ opacity: 0.7 }} />
       </PressableScale>
@@ -135,6 +140,12 @@ export default function DocumentsImportesScreen() {
   const [files, setFiles] = useState<ImportedFile[]>(MOCK_IMPORTS);
   const [clientPickerFileId, setClientPickerFileId] = useState<string | null>(null);
   const [interventionPickerFileId, setInterventionPickerFileId] = useState<string | null>(null);
+  const listOpacity = useRef(new Animated.Value(1)).current;
+
+  const pulseList = () => {
+    listOpacity.setValue(0.4);
+    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+  };
 
   const filtered = useMemo(() => {
     let list = files;
@@ -181,32 +192,43 @@ export default function DocumentsImportesScreen() {
         </View>
 
         <View style={styles.chipsWrap}>
-          <FilterChips defs={chipDefs} activeKey={type} onSelect={(k) => setType(k as ImportFileType | null)} />
+          <FilterChips
+            defs={chipDefs}
+            activeKey={type}
+            onSelect={(k) => {
+              pulseList();
+              setType(k as ImportFileType | null);
+            }}
+          />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(f) => f.id}
-          renderItem={({ item }) => (
-            <ImportRow
-              file={item}
-              onPress={() => setPreview(item)}
-              onAssociateClient={() => setClientPickerFileId(item.id)}
-              onAssociateIntervention={() => setInterventionPickerFileId(item.id)}
-            />
-          )}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} document{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState icon="folder" title="Aucun document" subtitle="Aucun document ne correspond à votre recherche." />
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: listOpacity }}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(f) => f.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <ImportRow
+                  file={item}
+                  onPress={() => setPreview(item)}
+                  onAssociateClient={() => setClientPickerFileId(item.id)}
+                  onAssociateIntervention={() => setInterventionPickerFileId(item.id)}
+                />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} document{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState icon="folder" title="Aucun document" subtitle="Aucun document ne correspond à votre recherche." />
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
@@ -251,41 +273,52 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
   row: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     ...cardShadow,
   },
   rowPress: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 11,
   },
   thumb: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
     backgroundColor: Palette.cardMuted,
   },
   rowInfo: {
     flex: 1,
   },
   rowName: {
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '600',
     color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
   rowMeta: {
-    fontSize: 12.5,
+    fontSize: 12,
+    fontWeight: '400',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
+    marginTop: 3,
+  },
+  rowMetaType: {
+    fontWeight: '700',
+  },
+  rowAssociation: {
+    fontSize: 11.5,
     fontWeight: '400',
     color: Palette.textTertiary,
     letterSpacing: -0.1,
     marginTop: 2,
+    opacity: 0.85,
   },
   associateRow: {
     flexDirection: 'row',

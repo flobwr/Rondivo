@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
+import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { RapportCard } from '@/components/documents/rapports/RapportCard';
 import { RAPPORT_STATUS_META, RAPPORT_STATUS_ORDER, Rapport, RapportStatus, MOCK_RAPPORTS } from '@/data/documents/rapports';
@@ -16,6 +17,12 @@ export default function RapportsScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<RapportStatus | null>(null);
+  const listOpacity = useRef(new Animated.Value(1)).current;
+
+  const pulseList = () => {
+    listOpacity.setValue(0.4);
+    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+  };
 
   const counts = useMemo(() => {
     const c = { aCompleter: 0, enCours: 0, termine: 0, pdfGenere: 0 } as Record<RapportStatus, number>;
@@ -57,25 +64,38 @@ export default function RapportsScreen() {
         </View>
 
         <View style={styles.chipsWrap}>
-          <FilterChips defs={chipDefs} activeKey={status} onSelect={(k) => setStatus(k as RapportStatus | null)} />
+          <FilterChips
+            defs={chipDefs}
+            activeKey={status}
+            onSelect={(k) => {
+              pulseList();
+              setStatus(k as RapportStatus | null);
+            }}
+          />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(r) => r.id}
-          renderItem={({ item }) => <RapportCard rapport={item} onPress={() => handleOpen(item)} />}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} rapport{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState icon="clipboard" title="Aucun rapport" subtitle="Aucun rapport ne correspond à votre recherche." />
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: listOpacity }}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(r) => r.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <RapportCard rapport={item} onPress={() => handleOpen(item)} />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} rapport{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState icon="clipboard" title="Aucun rapport" subtitle="Aucun rapport ne correspond à votre recherche." />
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
@@ -106,6 +126,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
 });

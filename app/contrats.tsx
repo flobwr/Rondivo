@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
+import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { ContratCard } from '@/components/documents/contrats/ContratCard';
 import { CONTRAT_STATUS_META, CONTRAT_STATUS_ORDER, Contrat, ContratStatus, MOCK_CONTRATS } from '@/data/documents/contrats';
@@ -16,6 +17,12 @@ export default function ContratsScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ContratStatus | null>(null);
+  const listOpacity = useRef(new Animated.Value(1)).current;
+
+  const pulseList = () => {
+    listOpacity.setValue(0.4);
+    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+  };
 
   const counts = useMemo(() => {
     const c = { brouillon: 0, enAttenteSignature: 0, signe: 0, expire: 0 } as Record<ContratStatus, number>;
@@ -55,25 +62,38 @@ export default function ContratsScreen() {
         </View>
 
         <View style={styles.chipsWrap}>
-          <FilterChips defs={chipDefs} activeKey={status} onSelect={(k) => setStatus(k as ContratStatus | null)} />
+          <FilterChips
+            defs={chipDefs}
+            activeKey={status}
+            onSelect={(k) => {
+              pulseList();
+              setStatus(k as ContratStatus | null);
+            }}
+          />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(c) => c.id}
-          renderItem={({ item }) => <ContratCard contrat={item} onPress={() => handleOpen(item)} />}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} contrat{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState icon="briefcase" title="Aucun contrat" subtitle="Aucun contrat ne correspond à votre recherche." />
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: listOpacity }}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(c) => c.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <ContratCard contrat={item} onPress={() => handleOpen(item)} />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} contrat{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState icon="briefcase" title="Aucun contrat" subtitle="Aucun contrat ne correspond à votre recherche." />
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
@@ -104,6 +124,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
 });

@@ -21,14 +21,14 @@ export function FactureCard({ facture, onPress }: { facture: Facture; onPress: (
         <Text style={styles.client} numberOfLines={1} ellipsizeMode="tail">
           {facture.clientName}
         </Text>
-        <Text style={styles.amount}>{formatAmount(facture.amount)}</Text>
+        <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />
       </View>
 
       <View style={styles.bottomRow}>
         <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
           {metaLine}
         </Text>
-        <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />
+        <Text style={styles.amount}>{formatAmount(facture.amount)}</Text>
       </View>
 
       {overdueDays > 0 ? (
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
     ...cardShadow,
   },
   topRow: {
@@ -56,23 +56,23 @@ const styles = StyleSheet.create({
   },
   client: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15.5,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
   amount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.2,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Palette.textSecondary,
+    letterSpacing: -0.1,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.sm,
-    marginTop: 6,
+    marginTop: 5,
   },
   meta: {
     flex: 1,
@@ -86,6 +86,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.red,
     letterSpacing: -0.1,
-    marginTop: 6,
+    marginTop: 5,
   },
 });

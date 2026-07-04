@@ -28,6 +28,7 @@ function Chip({ def, active, onPress }: { def: ChipDef; active: boolean; onPress
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      hitSlop={6}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       accessibilityLabel={`${def.label}, ${def.count}`}>
@@ -74,17 +75,17 @@ export function FilterChips({
 
 const styles = StyleSheet.create({
   row: {
-    gap: 8,
+    gap: 6,
     paddingHorizontal: Spacing.screen,
     paddingVertical: 2,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
+    paddingHorizontal: 11,
+    paddingVertical: 6.5,
     borderWidth: StyleSheet.hairlineWidth,
   },
   chipInactive: {
@@ -92,17 +93,17 @@ const styles = StyleSheet.create({
     borderColor: Palette.border,
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     letterSpacing: -0.1,
   },
   count: {
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '700',
     letterSpacing: -0.1,
   },

@@ -18,7 +18,7 @@ const MAX_RECENT = 5;
 function ResultRow({ result, onPress }: { result: SearchResult; onPress: () => void }) {
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.resultRow} accessibilityLabel={result.title}>
-      <IconTile icon={SEARCH_TYPE_ICON[result.type]} color={Palette.blue} soft={Palette.blueSoft} size={38} iconSize={16} />
+      <IconTile icon={SEARCH_TYPE_ICON[result.type]} color={Palette.blue} soft={Palette.blueSoft} size={34} iconSize={15} />
       <View style={styles.resultInfo}>
         <Text style={styles.resultTitle} numberOfLines={1} ellipsizeMode="tail">
           {result.title}

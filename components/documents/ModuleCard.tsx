@@ -8,7 +8,7 @@ import { actionShadow } from '@/constants/shadow';
 import { DocumentsTone } from './palette';
 import { DocumentModule } from './types';
 
-const TILE = 40;
+const TILE = 34;
 
 export function ModuleCard({
   module,
@@ -47,7 +47,7 @@ export function ModuleCard({
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
         <Animated.View style={[styles.card, { transform: [{ scale: pressScale }] }]}>
           <View style={styles.iconTile}>
-            <Feather name={module.icon} size={18} color={Palette.blue} />
+            <Feather name={module.icon} size={16} color={Palette.blue} />
           </View>
 
           <View style={styles.content}>
@@ -90,14 +90,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
     ...actionShadow,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: Radius.tile - 2,
+    borderRadius: Radius.tile - 4,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.sm,
   },
   title: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.4,

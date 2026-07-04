@@ -7,7 +7,7 @@ import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { DocumentModule } from './types';
 
-const TILE = 32;
+const TILE = 28;
 
 function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: () => void }) {
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -24,14 +24,16 @@ function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View style={[styles.row, { transform: [{ scale: pressScale }] }]}>
         <View style={styles.iconTile}>
-          <Feather name={module.icon} size={15} color={Palette.blue} />
+          <Feather name={module.icon} size={14} color={Palette.blue} />
         </View>
-        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-          {module.title}
-        </Text>
-        <Text style={styles.count} numberOfLines={1}>
-          {module.count} {module.unit}
-        </Text>
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {module.title}
+          </Text>
+          <Text style={styles.count} numberOfLines={1}>
+            {module.count} {module.unit}
+          </Text>
+        </View>
         <Feather name="chevron-right" size={15} color={Palette.textTertiary} style={styles.chevron} />
       </Animated.View>
     </Pressable>
@@ -82,30 +84,33 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 11,
+    paddingVertical: 10,
     gap: Spacing.sm + 2,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: 10,
+    borderRadius: 9,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  title: {
+  content: {
     flex: 1,
-    fontSize: FontSize.body,
+  },
+  title: {
+    fontSize: FontSize.label,
     fontWeight: '600',
     color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
   count: {
-    fontSize: FontSize.small,
+    fontSize: 12,
     fontWeight: '400',
     color: Palette.textTertiary,
     letterSpacing: -0.1,
+    marginTop: 1,
   },
   chevron: {
     opacity: 0.7,

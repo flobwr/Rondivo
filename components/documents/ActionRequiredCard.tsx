@@ -8,7 +8,7 @@ import { cardShadow } from '@/constants/shadow';
 import { DocumentsTone } from './palette';
 import { ActionItem } from './types';
 
-const TILE = 32;
+const TILE = 28;
 
 function ActionRow({ item, onPress }: { item: ActionItem; onPress?: () => void }) {
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -26,9 +26,9 @@ function ActionRow({ item, onPress }: { item: ActionItem; onPress?: () => void }
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View style={[styles.row, { transform: [{ scale: pressScale }] }]}>
         <View style={[styles.iconTile, { backgroundColor: tone.soft }]}>
-          <Feather name={item.icon} size={15} color={tone.color} />
+          <Feather name={item.icon} size={14} color={tone.color} />
         </View>
-        <Text style={styles.rowText} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={styles.rowText} numberOfLines={3} ellipsizeMode="tail">
           {item.text}
         </Text>
         <Feather name="chevron-right" size={17} color={Palette.textTertiary} />
@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingTop: 18,
-    paddingBottom: 6,
+    paddingTop: 16,
+    paddingBottom: 5,
     paddingHorizontal: Spacing.lg,
     ...cardShadow,
   },
@@ -116,13 +116,13 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 9,
     gap: Spacing.md,
   },
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: 10,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

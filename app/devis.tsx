@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -10,6 +10,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
+import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { DevisCard } from '@/components/documents/devis/DevisCard';
 import { DEVIS_STATUS_META, DEVIS_STATUS_ORDER, Devis, DevisStatus, MOCK_DEVIS } from '@/data/documents/devis';
@@ -29,6 +30,12 @@ export default function DevisListScreen() {
   const [status, setStatus] = useState<DevisStatus | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const listOpacity = useRef(new Animated.Value(1)).current;
+
+  const pulseList = () => {
+    listOpacity.setValue(0.4);
+    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+  };
 
   const counts = useMemo(() => {
     const c = { brouillon: 0, envoye: 0, vu: 0, accepte: 0, refuse: 0, expire: 0 } as Record<DevisStatus, number>;
@@ -89,41 +96,59 @@ export default function DevisListScreen() {
         </View>
 
         <View style={styles.chipsWrap}>
-          <FilterChips defs={chipDefs} activeKey={status} onSelect={(k) => setStatus(k as DevisStatus | null)} />
+          <FilterChips
+            defs={chipDefs}
+            activeKey={status}
+            onSelect={(k) => {
+              pulseList();
+              setStatus(k as DevisStatus | null);
+            }}
+          />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(d) => d.id}
-          renderItem={({ item }) => <DevisCard devis={item} onPress={() => handleOpen(item)} />}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <View style={styles.toolbar}>
-              <Text style={styles.count}>
-                {filtered.length} devis
-              </Text>
-              <Pressable
-                onPress={() => setSortMenuOpen(true)}
-                hitSlop={6}
-                style={styles.sortButton}
-                accessibilityRole="button"
-                accessibilityLabel="Trier">
-                <Feather name="sliders" size={14} color={Palette.textSecondary} />
-                <Text style={styles.sortLabel}>{SORT_LABEL[sortKey]}</Text>
-              </Pressable>
-            </View>
-          }
-          ListEmptyComponent={
-            <EmptyState icon="edit-3" title="Aucun devis" subtitle="Aucun devis ne correspond à votre recherche." />
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: listOpacity }}>
+          <FlatList
+            data={filtered}
+            keyExtractor={(d) => d.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <DevisCard devis={item} onPress={() => handleOpen(item)} />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <View style={styles.toolbar}>
+                <Text style={styles.count}>
+                  {filtered.length} devis
+                </Text>
+                <Pressable
+                  onPress={() => setSortMenuOpen(true)}
+                  hitSlop={6}
+                  style={styles.sortButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Trier">
+                  <Feather name="sliders" size={14} color={Palette.textSecondary} />
+                  <Text style={styles.sortLabel}>{SORT_LABEL[sortKey]}</Text>
+                </Pressable>
+              </View>
+            }
+            ListEmptyComponent={
+              <EmptyState icon="edit-3" title="Aucun devis" subtitle="Aucun devis ne correspond à votre recherche." />
+            }
+          />
+        </Animated.View>
       </SafeAreaView>
 
       <BottomNav activeIndex={3} />
 
-      <ActionSheetMenu visible={sortMenuOpen} title="Trier par" items={sortItems} onClose={() => setSortMenuOpen(false)} />
+      <ActionSheetMenu
+        visible={sortMenuOpen}
+        title="Trier par"
+        items={sortItems.map((item) => ({ ...item, onPress: () => { pulseList(); item.onPress(); } }))}
+        onClose={() => setSortMenuOpen(false)}
+      />
     </View>
   );
 }
@@ -167,6 +192,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   separator: {
-    height: 10,
+    height: 8,
   },
 });
