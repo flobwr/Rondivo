@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Animated as RNAnimated, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Reanimated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Reanimated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
@@ -24,6 +24,14 @@ const QUICK_ADD: { label: string; icon: FeatherIconName }[] = [
 // Only used to translate a vertical drag distance into "how many rows did
 // this move" — doesn't need to match the real rendered height pixel-perfect.
 const ROW_HEIGHT = 100;
+
+// Kept deliberately understated — a native-iOS/Notion-style lift, not a
+// showy pop: a few px of lift, a hair of extra scale, quick to engage and
+// quick to settle back down.
+const LIFT_PX = -6;
+const ACTIVE_SCALE = 1.02;
+const ENGAGE_DURATION = 100;
+const SETTLE_DURATION = 180;
 
 let draftLineSeq = 0;
 
@@ -66,6 +74,8 @@ function LineRow({
 }) {
   const amount = computeLineAmount(line);
   const translateY = useSharedValue(0);
+  const lift = useSharedValue(0);
+  const scale = useSharedValue(1);
   const isActive = useSharedValue(false);
 
   // The handle is both the only hit target and the only element this
@@ -75,6 +85,8 @@ function LineRow({
   const panGesture = Gesture.Pan()
     .onStart(() => {
       isActive.value = true;
+      lift.value = withTiming(LIFT_PX, { duration: ENGAGE_DURATION });
+      scale.value = withTiming(ACTIVE_SCALE, { duration: ENGAGE_DURATION });
     })
     .onUpdate((event) => {
       translateY.value = event.translationY;
@@ -85,17 +97,16 @@ function LineRow({
     })
     .onFinalize(() => {
       isActive.value = false;
-      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      lift.value = withTiming(0, { duration: SETTLE_DURATION });
+      scale.value = withTiming(1, { duration: SETTLE_DURATION });
+      translateY.value = withTiming(0, { duration: SETTLE_DURATION });
     });
 
   const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: withTiming(isActive.value ? 1.02 : 1, { duration: 120 }) },
-    ],
+    transform: [{ translateY: translateY.value + lift.value }, { scale: scale.value }],
     zIndex: isActive.value ? 10 : 0,
-    elevation: isActive.value ? 6 : 1,
-    shadowOpacity: isActive.value ? 0.18 : 0.06,
+    elevation: isActive.value ? 5 : 3,
+    shadowOpacity: isActive.value ? 0.14 : 0.07,
   }));
 
   return (
