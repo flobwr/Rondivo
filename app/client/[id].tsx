@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ScreenFadeInDuration } from '@/constants/animation';
 import { ActivityCard } from '@/components/clients/detail/ActivityCard';
 import { AlertsBanner } from '@/components/clients/detail/AlertsBanner';
 import { ContactsCard } from '@/components/clients/detail/ContactsCard';
@@ -41,7 +42,7 @@ export default function ClientDetailScreen() {
   // Gentle fade + rise on mount — matches the app's calm, premium motion.
   const enter = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(enter, { toValue: 1, duration: 320, useNativeDriver: true }).start();
+    Animated.timing(enter, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
   }, [enter]);
 
   if (!client || !detail) {

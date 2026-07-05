@@ -18,6 +18,7 @@ const BUTTON = 48;
 
 export function SearchBar({ value, onChangeText, placeholder, onFilterPress, filtersActive }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
+  const focus = useRef(new Animated.Value(0)).current;
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -27,10 +28,24 @@ export function SearchBar({ value, onChangeText, placeholder, onFilterPress, fil
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
+  const handleFocus = () => {
+    Animated.spring(focus, { toValue: 1, useNativeDriver: false, friction: 9, tension: 140 }).start();
+  };
+  const handleBlur = () => {
+    Animated.spring(focus, { toValue: 0, useNativeDriver: false, friction: 9, tension: 140 }).start();
+  };
+
+  const borderColor = focus.interpolate({ inputRange: [0, 1], outputRange: ['transparent', Palette.blue] });
+
   return (
     <View style={styles.row}>
-      <View style={styles.searchBox}>
-        <Feather name="search" size={18} color={Palette.textTertiary} />
+      <Animated.View style={[styles.searchBox, { borderColor }]}>
+        <View style={styles.iconStack}>
+          <Feather name="search" size={18} color={Palette.textTertiary} />
+          <Animated.View style={[styles.iconOverlay, { opacity: focus }]}>
+            <Feather name="search" size={18} color={Palette.blue} />
+          </Animated.View>
+        </View>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -39,8 +54,10 @@ export function SearchBar({ value, onChangeText, placeholder, onFilterPress, fil
           style={styles.input}
           returnKeyType="search"
           clearButtonMode="while-editing"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
         />
-      </View>
+      </Animated.View>
 
       {onFilterPress ? (
         <Pressable
@@ -72,10 +89,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.card,
     borderRadius: Radius.tile,
+    borderWidth: 1.5,
     paddingHorizontal: Spacing.lg,
     height: BUTTON,
     gap: 10,
     ...cardShadow,
+  },
+  iconStack: {
+    width: 18,
+    height: 18,
+  },
+  iconOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   input: {
     flex: 1,

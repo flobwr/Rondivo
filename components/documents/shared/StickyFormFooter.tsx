@@ -10,13 +10,26 @@ import { PressableScale } from './primitives';
 // the last field is never hidden behind it.
 export const FOOTER_SPACE = 92;
 
-export function StickyFormFooter({ label, onPress }: { label: string; onPress: () => void }) {
+export function StickyFormFooter({
+  label,
+  onPress,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <PressableScale onPress={onPress} to={0.97} style={styles.button} accessibilityLabel={label}>
-        <Text style={styles.buttonText}>{label}</Text>
+      <PressableScale
+        onPress={disabled ? undefined : onPress}
+        disabled={disabled}
+        to={0.97}
+        style={[styles.button, disabled && styles.buttonDisabled]}
+        accessibilityLabel={label}>
+        <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
       </PressableScale>
     </View>
   );
@@ -40,10 +53,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
+  buttonDisabled: {
+    backgroundColor: Palette.border,
+  },
   buttonText: {
     fontSize: FontSize.label,
     fontWeight: '700',
     color: Palette.white,
     letterSpacing: -0.1,
+  },
+  buttonTextDisabled: {
+    color: Palette.textTertiary,
   },
 });

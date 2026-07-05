@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { iconButtonShadow } from '@/constants/shadow';
 import { PRIORITY_CONFIG } from './priority';
 import { Intervention, InterventionStatus } from './types';
 
@@ -124,9 +125,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#ECEEF2',
+    backgroundColor: Palette.iconButtonBg,
     alignItems: 'center',
     justifyContent: 'center',
+    ...iconButtonShadow,
   },
   statusRow: {
     flexDirection: 'row',
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   metaDivider: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     height: 11,
     backgroundColor: Palette.border,
     marginHorizontal: Spacing.sm,

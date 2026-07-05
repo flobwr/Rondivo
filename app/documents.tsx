@@ -11,7 +11,9 @@ import { DocumentsHeader } from '@/components/documents/DocumentsHeader';
 import { ModuleCard } from '@/components/documents/ModuleCard';
 import { SecondaryModulesCard } from '@/components/documents/SecondaryModulesCard';
 import { ActionItem, DocumentModule } from '@/components/documents/types';
+import { ScreenFadeInDuration } from '@/constants/animation';
 import { Palette, Spacing } from '@/constants/design';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { formatAmount } from '@/data/documents/date-utils';
 import { factureSummary } from '@/data/documents/factures';
 import { devisSummary } from '@/data/documents/devis';
@@ -102,28 +104,6 @@ const SECONDARY_MODULES: DocumentModule[] = [
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
-function SkeletonBlock({ height, radius = 12, style }: { height: number; radius?: number; style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 950, useNativeDriver: false }),
-        Animated.timing(shimmer, { toValue: 0, duration: 950, useNativeDriver: false }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
-
-  const backgroundColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#E8ECF2', '#CED4DE'],
-  });
-
-  return <Animated.View style={[{ height, borderRadius: radius, backgroundColor }, style]} />;
-}
-
 function DocumentsSkeleton() {
   return (
     <>
@@ -154,7 +134,7 @@ export default function DocumentsScreen() {
   useEffect(() => {
     const t = setTimeout(() => {
       setStatus('loaded');
-      Animated.timing(fadeIn, { toValue: 1, duration: 260, useNativeDriver: true }).start();
+      Animated.timing(fadeIn, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
     }, 750);
     return () => clearTimeout(t);
   }, [fadeIn]);

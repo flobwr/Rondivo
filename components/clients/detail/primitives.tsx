@@ -1,11 +1,11 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { memo, useRef, type ReactNode } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { memo, type ReactNode } from 'react';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
+import { PressableScale } from '@/components/ui/PressableScale';
 
 /**
  * Shared building blocks for the client detail screen. Keeping these here means
@@ -20,46 +20,7 @@ export const DETAIL_CARD_PADDING = 16;
 // Vertical gap between stacked cards / sections on this screen.
 export const DETAIL_GAP = 12;
 
-// A press wrapper that reuses the app-wide spring + haptic feel.
-export function PressableScale({
-  children,
-  onPress,
-  style,
-  disabled,
-  to = 0.97,
-  accessibilityLabel,
-  haptic = true,
-}: {
-  children: ReactNode;
-  onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
-  disabled?: boolean;
-  to?: number;
-  accessibilityLabel?: string;
-  haptic?: boolean;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: to, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      disabled={disabled || !onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={accessibilityLabel}>
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
-    </Pressable>
-  );
-}
+export { PressableScale } from '@/components/ui/PressableScale';
 
 // Small rounded icon tile used in every card header + row.
 export const TintIcon = memo(function TintIcon({

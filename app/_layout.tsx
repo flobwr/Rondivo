@@ -35,6 +35,44 @@ export default function RootLayout() {
         <Stack.Screen name="contrat/[id]" />
         <Stack.Screen name="documents-importes" />
         <Stack.Screen name="documents-search" options={{ animation: 'fade' }} />
+        <Stack.Screen name="plus" />
+        <Stack.Screen name="plus/compte" />
+        <Stack.Screen name="plus/entreprise" />
+        <Stack.Screen name="plus/employes" />
+        <Stack.Screen name="plus/employe/[id]" />
+        <Stack.Screen name="plus/employe/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/equipe" />
+        <Stack.Screen name="plus/vehicules" />
+        <Stack.Screen name="plus/vehicule/[id]" />
+        <Stack.Screen name="plus/vehicule/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/materiel" />
+        <Stack.Screen name="plus/materiel/[id]" />
+        <Stack.Screen name="plus/materiel/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/tva" />
+        <Stack.Screen name="plus/numerotation" />
+        <Stack.Screen name="plus/paiements" />
+        <Stack.Screen name="plus/signature" />
+        <Stack.Screen name="plus/apparence" />
+        <Stack.Screen name="plus/langue" />
+        <Stack.Screen name="plus/notifications" />
+        <Stack.Screen name="plus/relances" />
+        <Stack.Screen name="plus/sauvegarde" />
+        <Stack.Screen name="plus/fournisseurs" />
+        <Stack.Screen name="plus/fournisseur/[id]" />
+        <Stack.Screen name="plus/fournisseur/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/prestations" />
+        <Stack.Screen name="plus/prestation/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/produits" />
+        <Stack.Screen name="plus/produit/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="plus/modeles-devis" />
+        <Stack.Screen name="plus/modeles-factures" />
+        <Stack.Screen name="plus/modeles-contrats" />
+        <Stack.Screen name="plus/aide" />
+        <Stack.Screen name="plus/tutoriels" />
+        <Stack.Screen name="plus/feedback/[type]" />
+        <Stack.Screen name="plus/cgu" />
+        <Stack.Screen name="plus/confidentialite" />
+        <Stack.Screen name="plus/[slug]" />
       </Stack>
       <StatusBar style="dark" />
     </GestureHandlerRootView>

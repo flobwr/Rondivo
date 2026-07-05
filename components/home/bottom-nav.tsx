@@ -18,7 +18,7 @@ const TABS: Tab[] = [
   { label: 'Planning', icon: 'calendar', route: '/planning' },
   { label: 'Clients', icon: 'users', route: '/clients' },
   { label: 'Documents', icon: 'file-text', route: '/documents' },
-  { label: 'Plus', icon: 'menu' },
+  { label: 'Plus', icon: 'menu', route: '/plus' },
 ];
 
 export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
@@ -39,7 +39,7 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {TABS.map((tab, index) => {
         const active = index === activeIndex;
-        const color = active ? '#1A50E2' : Palette.textTertiary;
+        const color = active ? Palette.blue : Palette.textTertiary;
         return (
           <Pressable
             key={tab.label}

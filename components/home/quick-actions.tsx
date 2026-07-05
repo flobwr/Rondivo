@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { Palette, Radius } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Palette.cardMuted,
-    borderRadius: 18,
+    borderRadius: Radius.tile,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E4E8EF',
     paddingVertical: 12,

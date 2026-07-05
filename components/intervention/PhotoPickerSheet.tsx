@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Modal, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PressableScale } from '@/components/appointment/AppointmentUI';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 
 type Props = {

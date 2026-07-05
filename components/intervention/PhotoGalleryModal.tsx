@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PressableScale } from '@/components/appointment/AppointmentUI';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { iconButtonShadow } from '@/constants/shadow';
 import { Photo, PhotoCategory } from './types';
 
 const CATEGORY_LABEL: Record<PhotoCategory, string> = {
@@ -107,9 +108,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#ECEEF2',
+    backgroundColor: Palette.iconButtonBg,
     alignItems: 'center',
     justifyContent: 'center',
+    ...iconButtonShadow,
   },
   grid: {
     flexDirection: 'row',

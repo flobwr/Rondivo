@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   divider: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     alignSelf: 'stretch',
     backgroundColor: Palette.border,
     marginHorizontal: 12,

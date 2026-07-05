@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { CalendarDay, DayItem } from '@/components/planning/types';
+import { ScreenFadeInDuration } from '@/constants/animation';
 import { Palette } from '@/constants/design';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ export default function PlanningScreen() {
 
   useEffect(() => {
     const t = setTimeout(() => setStatus('loaded'), 850);
-    Animated.timing(fadeIn, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+    Animated.timing(fadeIn, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
     return () => clearTimeout(t);
   }, [fadeIn]);
 
@@ -153,7 +154,7 @@ export default function PlanningScreen() {
             ) : currentItems.length > 0 ? (
               <Timeline key={selectedDay} items={currentItems} />
             ) : (
-              <EmptyState key={`empty-${selectedDay}`} />
+              <EmptyState key={`empty-${selectedDay}`} onPlan={() => router.push('/appointment/new')} />
             )}
           </View>
         </Animated.View>

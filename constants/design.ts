@@ -34,13 +34,20 @@ export const Palette = {
 
   red: '#EF4444', // "erreur" accent (same value as `notification`)
   redSoft: '#FDEAEA', // soft tile bg for the red accent — used by Documents "à traiter"
+  // A less saturated red than `red` — for routine destructive actions
+  // (logout, delete) that shouldn't compete visually with real error states.
+  danger: '#D97570',
 
   // Hero gradient (blue -> turquoise)
   gradientStart: '#3B7DF0',
   gradientEnd: '#3FC9B0',
 
   // Misc
+  iconButtonBg: '#ECEEF2', // round icon-button fill (headers, modals)
   border: '#EEF0F3',
+  // ~18% lighter than `border` — used only for the Plus module's own hairline
+  // row dividers, which want to guide the eye without ever drawing it.
+  separator: 'rgba(238, 240, 243, 0.8)',
   shadow: '#0F1729',
   notification: '#EF4444',
   pillBlueBg: '#EAF1FE',

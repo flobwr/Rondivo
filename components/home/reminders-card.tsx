@@ -1,7 +1,8 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
@@ -22,7 +23,11 @@ export function RemindersCard() {
   }
 
   return (
-    <Pressable style={styles.card} onPress={() => router.push('/rappels')}>
+    <PressableScale
+      onPress={() => router.push('/rappels')}
+      to={0.98}
+      style={styles.card}
+      accessibilityLabel="Rappels">
       <View style={styles.iconTile}>
         <Ionicons name="notifications" size={19} color={Palette.purple} />
       </View>
@@ -40,7 +45,7 @@ export function RemindersCard() {
           {NEXT_REMINDER}
         </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

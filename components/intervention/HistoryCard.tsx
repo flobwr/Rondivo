@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius } from '@/constants/design';
 import { SectionCard } from './SectionCard';
 import { HistoryEntry } from './types';
@@ -34,9 +34,7 @@ export function HistoryCard({ history }: Props) {
           return (
             <View key={entry.id}>
               {index > 0 ? <View style={styles.separator} /> : null}
-              <Pressable
-                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+              <PressableScale onPress={() => {}} to={0.98} style={styles.row}>
                 <View style={styles.info}>
                   <Text style={styles.type} numberOfLines={2}>
                     {entry.type}
@@ -52,7 +50,7 @@ export function HistoryCard({ history }: Props) {
                   <Text style={styles.statusText}>{entry.status}</Text>
                 </View>
                 <Feather name="chevron-right" size={16} color={Palette.textTertiary} />
-              </Pressable>
+              </PressableScale>
             </View>
           );
         })}
@@ -71,9 +69,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 11,
     gap: 10,
-  },
-  rowPressed: {
-    opacity: 0.55,
   },
   info: {
     flex: 1,

@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
 type Props = {
@@ -13,11 +13,6 @@ type Props = {
   right?: ReactNode;
   children: ReactNode;
 };
-
-// Local, tighter rhythm than the shared design tokens — scoped to this
-// screen only, so Home/Planning/Clients keep their own card language.
-const CARD_PADDING = 16;
-const CARD_RADIUS = 20;
 
 export function SectionCard({ icon, iconColor, iconBackground, title, right, children }: Props) {
   return (
@@ -45,8 +40,8 @@ export function SectionCard({ icon, iconColor, iconBackground, title, right, chi
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
-    borderRadius: CARD_RADIUS,
-    padding: CARD_PADDING,
+    borderRadius: Radius.card,
+    padding: Spacing.lg,
     ...cardShadow,
   },
   header: {

@@ -1,30 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-
-function Shimmer({ style }: { style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 850, useNativeDriver: false }),
-        Animated.timing(shimmer, { toValue: 0, duration: 850, useNativeDriver: false }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
-
-  const backgroundColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#EAEEF4', '#DCE2EB'],
-  });
-
-  return <Animated.View style={[{ backgroundColor }, style]} />;
-}
+import { Shimmer } from '@/components/ui/Shimmer';
 
 /** A single skeleton row that mirrors the minimalist {@link ClientCard}. */
 export function ClientCardSkeleton() {

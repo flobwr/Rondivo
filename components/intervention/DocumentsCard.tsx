@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius } from '@/constants/design';
 import { SectionCard } from './SectionCard';
 import { DocumentItem, DocumentStatus } from './types';
@@ -26,10 +26,7 @@ export function DocumentsCard({ documents, onPressDocument }: Props) {
           return (
             <View key={doc.id}>
               {index > 0 ? <View style={styles.separator} /> : null}
-              <Pressable
-                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-                onPress={() => onPressDocument?.(doc)}>
+              <PressableScale onPress={() => onPressDocument?.(doc)} to={0.98} style={styles.row}>
                 <View style={styles.iconTile}>
                   <Feather name={doc.icon} size={16} color={Palette.textSecondary} />
                 </View>
@@ -47,7 +44,7 @@ export function DocumentsCard({ documents, onPressDocument }: Props) {
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={16} color={Palette.textTertiary} />
-              </Pressable>
+              </PressableScale>
             </View>
           );
         })}
@@ -66,9 +63,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 11,
     gap: 10,
-  },
-  rowPressed: {
-    opacity: 0.55,
   },
   iconTile: {
     width: 34,

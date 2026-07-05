@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef, type ReactNode } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
+import { StaggerRowCap, StaggerRowDelay } from '@/constants/animation';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { FeatherIconName } from '../types';
@@ -14,45 +14,7 @@ import { FeatherIconName } from '../types';
  * sub-modules, matching the pattern already used by clients/detail/primitives.
  */
 
-export function PressableScale({
-  children,
-  onPress,
-  style,
-  disabled,
-  to = 0.97,
-  accessibilityLabel,
-  haptic = true,
-}: {
-  children: ReactNode;
-  onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
-  disabled?: boolean;
-  to?: number;
-  accessibilityLabel?: string;
-  haptic?: boolean;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: to, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      disabled={disabled || !onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={accessibilityLabel}>
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
-    </Pressable>
-  );
-}
+export { PressableScale } from '@/components/ui/PressableScale';
 
 export const IconTile = memo(function IconTile({
   icon,
@@ -161,7 +123,7 @@ export function FadeInItem({ index = 0, children }: { index?: number; children: 
     Animated.timing(enter, {
       toValue: 1,
       duration: 200,
-      delay: Math.min(index, 6) * 26,
+      delay: Math.min(index, StaggerRowCap) * StaggerRowDelay,
       useNativeDriver: true,
     }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 9,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     alignSelf: 'flex-start',
   },
@@ -192,9 +154,9 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
   },
   pillText: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '600',
-    letterSpacing: -0.1,
+    letterSpacing: -0.05,
   },
   card: {
     backgroundColor: Palette.card,

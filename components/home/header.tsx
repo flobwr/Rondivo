@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     width: BUTTON,
     height: BUTTON,
     borderRadius: BUTTON / 2,
-    backgroundColor: '#ECEEF2',
+    backgroundColor: Palette.iconButtonBg,
     alignItems: 'center',
     justifyContent: 'center',
     ...iconButtonShadow,

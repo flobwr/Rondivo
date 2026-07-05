@@ -9,11 +9,13 @@ type Props = {
   title: string;
   onBack: () => void;
   onMenu?: () => void;
+  /** Trailing "+" button instead of the "…" menu — for list screens that create a new item. */
+  onAdd?: () => void;
 };
 
 const BUTTON = 40;
 
-export function DetailHeader({ title, onBack, onMenu }: Props) {
+export function DetailHeader({ title, onBack, onMenu, onAdd }: Props) {
   return (
     <View style={styles.row}>
       <PressableScale onPress={onBack} to={0.9} style={styles.iconButton} accessibilityLabel="Retour">
@@ -24,7 +26,11 @@ export function DetailHeader({ title, onBack, onMenu }: Props) {
         {title}
       </Text>
 
-      {onMenu ? (
+      {onAdd ? (
+        <PressableScale onPress={onAdd} to={0.9} style={styles.iconButton} accessibilityLabel="Ajouter">
+          <Feather name="plus" size={20} color={Palette.textPrimary} />
+        </PressableScale>
+      ) : onMenu ? (
         <PressableScale onPress={onMenu} to={0.9} style={styles.iconButton} accessibilityLabel="Plus d’options">
           <Feather name="more-horizontal" size={20} color={Palette.textPrimary} />
         </PressableScale>

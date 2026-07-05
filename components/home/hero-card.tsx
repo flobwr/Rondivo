@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { heroShadow } from '@/constants/shadow';
+import { floatingButtonShadow, heroShadow } from '@/constants/shadow';
 
 type HeroCardProps = {
   isEmpty?: boolean;
@@ -230,11 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.14,
-    shadowRadius: 8,
-    elevation: 4,
+    ...floatingButtonShadow,
   },
   emptyAction: {
     flexDirection: 'row',

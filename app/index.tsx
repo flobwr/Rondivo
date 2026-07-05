@@ -8,7 +8,9 @@ import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
+import { ScreenFadeInDuration } from '@/constants/animation';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 
 // ── Mock data — replace with real data source ─────────────────────────────────
 
@@ -34,28 +36,6 @@ const REMAINING_APPOINTMENTS: Appointment[] = [
 ];
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
-
-function SkeletonBlock({ height, radius = 12, style }: { height: number; radius?: number; style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 950, useNativeDriver: false }),
-        Animated.timing(shimmer, { toValue: 0, duration: 950, useNativeDriver: false }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
-
-  const bgColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#E8ECF2', '#CED4DE'],
-  });
-
-  return <Animated.View style={[{ height, borderRadius: radius, backgroundColor: bgColor }, style]} />;
-}
 
 function HomeSkeleton() {
   return (
@@ -108,7 +88,7 @@ export default function HomeScreen() {
       setIsLoading(false);
       Animated.timing(fadeIn, {
         toValue: 1,
-        duration: 260,
+        duration: ScreenFadeInDuration,
         useNativeDriver: true,
       }).start();
     }, 1200);

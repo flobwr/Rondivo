@@ -1,42 +1,12 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useRef, type ReactNode } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type ReactNode } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
 import { FontSize, Palette, Radius } from '@/constants/design';
+import { PressableScale } from '@/components/ui/PressableScale';
 
-export function PressableScale({
-  children,
-  onPress,
-  style,
-  to = 0.96,
-  haptic = true,
-  disabled,
-  accessibilityLabel,
-}: {
-  children: ReactNode;
-  onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
-  to?: number;
-  haptic?: boolean;
-  disabled?: boolean;
-  accessibilityLabel?: string;
-}) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const onPressIn = () => {
-    if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: to, useNativeDriver: true, friction: 6, tension: 320 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-  return (
-    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} disabled={disabled || !onPress} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={accessibilityLabel}>
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
-    </Pressable>
-  );
-}
+export { PressableScale } from '@/components/ui/PressableScale';
 
 // A labelled section — the vertical rhythm of the whole screen. `compact`
 // tightens the top margin and label gap for denser forms (opt-in, so the

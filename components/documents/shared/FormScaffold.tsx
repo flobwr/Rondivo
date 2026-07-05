@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { Children, ReactNode } from 'react';
+import { Children, ReactNode, useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -53,6 +53,8 @@ export function FormField({
    * selected client's company/phone, or the linked intervention's client + date. */
   subtitle?: string;
 }) {
+  const [focused, setFocused] = useState(false);
+
   const content = onChangeText ? (
     <TextInput
       value={value}
@@ -62,6 +64,8 @@ export function FormField({
       style={[styles.input, multiline ? styles.inputMultiline : null]}
       keyboardType={keyboardType}
       multiline={multiline}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
     />
   ) : (
     <Text style={value ? styles.valueText : styles.placeholderText} numberOfLines={1}>
@@ -71,7 +75,7 @@ export function FormField({
 
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, focused && styles.labelFocused]}>{label}</Text>
       {onPress ? (
         <PressableScale onPress={onPress} to={0.98} accessibilityLabel={label} style={styles.selectorRow}>
           <View style={styles.selectorContent}>{content}</View>
@@ -142,6 +146,9 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
     marginBottom: 4,
+  },
+  labelFocused: {
+    color: Palette.blue,
   },
   input: {
     fontSize: FontSize.body,

@@ -1,8 +1,9 @@
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
+import { actionShadow } from '@/constants/shadow';
 
 export type ChipDef = {
   key: string;
@@ -12,16 +13,28 @@ export type ChipDef = {
 };
 
 function Chip({ def, active, onPress }: { def: ChipDef; active: boolean; onPress: () => void }) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const press = useRef(new Animated.Value(1)).current;
+  const selected = useRef(new Animated.Value(active ? 1 : 0)).current;
   const isAll = def.key === 'all';
+
+  useEffect(() => {
+    Animated.spring(selected, { toValue: active ? 1 : 0, useNativeDriver: false, friction: 10, tension: 120 }).start();
+  }, [active, selected]);
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.93, useNativeDriver: true, friction: 6, tension: 320 }).start();
+    Animated.spring(press, { toValue: 0.93, useNativeDriver: true, friction: 6, tension: 320 }).start();
   };
   const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
+    Animated.spring(press, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
+
+  const backgroundColor = selected.interpolate({ inputRange: [0, 1], outputRange: [Palette.card, def.color] });
+  const borderColor = selected.interpolate({ inputRange: [0, 1], outputRange: [Palette.border, def.color] });
+  const labelColor = selected.interpolate({ inputRange: [0, 1], outputRange: [Palette.textPrimary, Palette.white] });
+  const countColor = selected.interpolate({ inputRange: [0, 1], outputRange: [Palette.textTertiary, Palette.white] });
+  const countOpacity = selected.interpolate({ inputRange: [0, 1], outputRange: [1, 0.85] });
+  const dotColor = selected.interpolate({ inputRange: [0, 1], outputRange: [def.color, Palette.white] });
 
   return (
     <Pressable
@@ -35,14 +48,12 @@ function Chip({ def, active, onPress }: { def: ChipDef; active: boolean; onPress
       <Animated.View
         style={[
           styles.chip,
-          { transform: [{ scale }] },
-          active ? { backgroundColor: def.color, borderColor: def.color } : styles.chipInactive,
+          { transform: [{ scale: press }], backgroundColor, borderColor },
+          active ? actionShadow : null,
         ]}>
-        {!isAll ? (
-          <View style={[styles.dot, { backgroundColor: active ? Palette.white : def.color }]} />
-        ) : null}
-        <Text style={[styles.label, { color: active ? Palette.white : Palette.textPrimary }]}>{def.label}</Text>
-        <Text style={[styles.count, { color: active ? Palette.white : Palette.textTertiary }]}>{def.count}</Text>
+        {!isAll ? <Animated.View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
+        <Animated.Text style={[styles.label, { color: labelColor }]}>{def.label}</Animated.Text>
+        <Animated.Text style={[styles.count, { color: countColor, opacity: countOpacity }]}>{def.count}</Animated.Text>
       </Animated.View>
     </Pressable>
   );
@@ -75,22 +86,18 @@ export function FilterChips({
 
 const styles = StyleSheet.create({
   row: {
-    gap: 6,
+    gap: 7,
     paddingHorizontal: Spacing.screen,
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 6.5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  chipInactive: {
-    backgroundColor: Palette.card,
-    borderColor: Palette.border,
   },
   dot: {
     width: 6,
