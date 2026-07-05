@@ -1,6 +1,8 @@
 import { Feather } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, LayoutAnimation, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated as RNAnimated, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Reanimated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
@@ -45,14 +47,6 @@ export function computeTotals(lines: DraftLine[], vatRate: number): { subtotal: 
   return { subtotal, vat, total: subtotal + vat };
 }
 
-type DragProps = {
-  draggingIndex: number;
-  dragY: number;
-  onDragStart: (index: number) => void;
-  onDragMove: (dy: number) => void;
-  onDragEnd: (index: number, dy: number) => void;
-};
-
 function LineRow({
   line,
   index,
@@ -60,7 +54,7 @@ function LineRow({
   onRemove,
   onDuplicate,
   removable,
-  drag,
+  onReorder,
 }: {
   line: DraftLine;
   index: number;
@@ -68,32 +62,50 @@ function LineRow({
   onRemove: () => void;
   onDuplicate: () => void;
   removable: boolean;
-  drag: DragProps;
+  onReorder: (fromIndex: number, offsetRows: number) => void;
 }) {
   const amount = computeLineAmount(line);
-  const isDragging = drag.draggingIndex === index;
+  const translateY = useSharedValue(0);
+  const isActive = useSharedValue(false);
 
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => drag.onDragStart(index),
-      onPanResponderMove: (_, gesture) => drag.onDragMove(gesture.dy),
-      onPanResponderRelease: (_, gesture) => drag.onDragEnd(index, gesture.dy),
-      onPanResponderTerminate: (_, gesture) => drag.onDragEnd(index, gesture.dy),
+  // The handle is both the only hit target and the only element this
+  // gesture is attached to — what's drawn (a 32×32 rounded tile) is exactly
+  // what responds to touch, on both platforms, with no hitSlop-based
+  // expansion that could make the tappable area drift from the visible one.
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      isActive.value = true;
     })
-  ).current;
+    .onUpdate((event) => {
+      translateY.value = event.translationY;
+    })
+    .onEnd((event) => {
+      const offsetRows = Math.round(event.translationY / ROW_HEIGHT);
+      runOnJS(onReorder)(index, offsetRows);
+    })
+    .onFinalize(() => {
+      isActive.value = false;
+      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+    });
+
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: translateY.value },
+      { scale: withTiming(isActive.value ? 1.02 : 1, { duration: 120 }) },
+    ],
+    zIndex: isActive.value ? 10 : 0,
+    elevation: isActive.value ? 6 : 1,
+    shadowOpacity: isActive.value ? 0.18 : 0.06,
+  }));
 
   return (
-    <View
-      style={[
-        styles.lineCard,
-        isDragging ? [styles.lineCardDragging, { transform: [{ translateY: drag.dragY }] }] : null,
-      ]}>
+    <Reanimated.View style={[styles.lineCard, cardAnimatedStyle]} layout={LinearTransition.duration(220)}>
       <View style={styles.lineTopRow}>
-        <View {...pan.panHandlers} hitSlop={10} style={styles.dragHandle} accessibilityLabel="Réordonner la ligne">
-          <Feather name="menu" size={15} color={Palette.textTertiary} />
-        </View>
+        <GestureDetector gesture={panGesture}>
+          <Reanimated.View style={styles.dragHandle} accessibilityLabel="Réordonner la ligne">
+            <Feather name="menu" size={16} color={Palette.textTertiary} />
+          </Reanimated.View>
+        </GestureDetector>
         <TextInput
           value={line.label}
           onChangeText={(label) => onChange({ label })}
@@ -138,7 +150,7 @@ function LineRow({
           {formatAmount(amount)}
         </Text>
       </View>
-    </View>
+    </Reanimated.View>
   );
 }
 
@@ -154,15 +166,14 @@ export function LineItemsEditor({
   onVatRateChange: (rate: number) => void;
 }) {
   const { subtotal, vat, total } = computeTotals(lines, vatRate);
-  const pulse = useRef(new Animated.Value(1)).current;
+  const pulse = useRef(new RNAnimated.Value(1)).current;
   const previousTotal = useRef(total);
-  const [dragState, setDragState] = useState<{ index: number; y: number } | null>(null);
 
   useEffect(() => {
     if (previousTotal.current !== total) {
       previousTotal.current = total;
       pulse.setValue(1.05);
-      Animated.spring(pulse, { toValue: 1, useNativeDriver: true, friction: 5, tension: 200 }).start();
+      RNAnimated.spring(pulse, { toValue: 1, useNativeDriver: true, friction: 5, tension: 200 }).start();
     }
   }, [total, pulse]);
 
@@ -170,37 +181,24 @@ export function LineItemsEditor({
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   };
 
-  const removeLine = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    onChange(lines.filter((l) => l.id !== id));
-  };
+  const removeLine = (id: string) => onChange(lines.filter((l) => l.id !== id));
 
   const duplicateLine = (id: string) => {
     const index = lines.findIndex((l) => l.id === id);
     if (index === -1) return;
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const copy = { ...lines[index], id: createDraftLine().id };
     onChange([...lines.slice(0, index + 1), copy, ...lines.slice(index + 1)]);
   };
 
-  const addQuickLine = (label: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    onChange([...lines, createDraftLine(label)]);
-  };
+  const addQuickLine = (label: string) => onChange([...lines, createDraftLine(label)]);
 
-  const handleDragStart = (index: number) => setDragState({ index, y: 0 });
-  const handleDragMove = (dy: number) => setDragState((prev) => (prev ? { ...prev, y: dy } : prev));
-  const handleDragEnd = (fromIndex: number, dy: number) => {
-    const offset = Math.round(dy / ROW_HEIGHT);
-    const toIndex = Math.min(Math.max(fromIndex + offset, 0), lines.length - 1);
-    setDragState(null);
-    if (toIndex !== fromIndex) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      const next = [...lines];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
-      onChange(next);
-    }
+  const handleReorder = (fromIndex: number, offsetRows: number) => {
+    const toIndex = Math.min(Math.max(fromIndex + offsetRows, 0), lines.length - 1);
+    if (toIndex === fromIndex) return;
+    const next = [...lines];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    onChange(next);
   };
 
   return (
@@ -215,13 +213,7 @@ export function LineItemsEditor({
             onRemove={() => removeLine(line.id)}
             onDuplicate={() => duplicateLine(line.id)}
             removable={lines.length > 1}
-            drag={{
-              draggingIndex: dragState?.index ?? -1,
-              dragY: dragState?.y ?? 0,
-              onDragStart: handleDragStart,
-              onDragMove: handleDragMove,
-              onDragEnd: handleDragEnd,
-            }}
+            onReorder={handleReorder}
           />
         ))}
       </View>
@@ -271,9 +263,9 @@ export function LineItemsEditor({
         <View style={styles.summaryDivider} />
         <View style={styles.summaryRow}>
           <Text style={styles.summaryTotalLabel}>Total</Text>
-          <Animated.Text style={[styles.summaryTotalValue, { transform: [{ scale: pulse }] }]}>
+          <RNAnimated.Text style={[styles.summaryTotalValue, { transform: [{ scale: pulse }] }]}>
             {formatAmount(total)}
-          </Animated.Text>
+          </RNAnimated.Text>
         </View>
       </View>
     </View>
@@ -287,19 +279,18 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     ...cardShadow,
   },
-  lineCardDragging: {
-    ...cardShadow,
-    shadowOpacity: 0.18,
-    elevation: 6,
-    zIndex: 10,
-  },
   lineTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
   dragHandle: {
-    padding: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.cardMuted,
   },
   labelInput: {
     flex: 1,
