@@ -17,7 +17,7 @@ const TABS: Tab[] = [
   { label: 'Accueil', icon: 'home', route: '/' },
   { label: 'Planning', icon: 'calendar', route: '/planning' },
   { label: 'Clients', icon: 'users' },
-  { label: 'Documents', icon: 'file-text' },
+  { label: 'Documents', icon: 'file-text', route: '/documents' },
   { label: 'Plus', icon: 'menu' },
 ];
 
