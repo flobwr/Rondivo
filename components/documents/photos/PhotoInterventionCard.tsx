@@ -30,12 +30,12 @@ export function PhotoInterventionCard({
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.card} accessibilityLabel={intervention.label}>
       <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-        {intervention.label}
+        {intervention.clientName}
       </Text>
 
       <View style={styles.topRow}>
         <Text style={styles.meta} numberOfLines={1}>
-          {intervention.clientName} · {formatShortDate(intervention.date)}
+          {intervention.label} · {formatShortDate(intervention.date)}
         </Text>
 
         <View style={styles.thumbRow}>
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    padding: Spacing.lg - 4,
+    padding: Spacing.lg - 6,
     ...cardShadow,
   },
   topRow: {
@@ -87,8 +87,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   title: {
-    fontSize: 15.5,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },

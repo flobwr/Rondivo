@@ -124,6 +124,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   separator: {
-    height: 8,
+    height: 6,
   },
 });

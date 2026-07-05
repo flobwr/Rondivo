@@ -1,16 +1,21 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
+import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
+import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { FontSize, Palette, Spacing } from '@/constants/design';
+import { getClientById } from '@/data/clients';
 import { formatLongDate } from '@/data/documents/date-utils';
+import { buildSendMessage } from '@/data/documents/messaging';
+import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { CONTRAT_STATUS_META, MOCK_CONTRATS } from '@/data/documents/contrats';
 
 export default function ContratDetailScreen() {
@@ -20,6 +25,7 @@ export default function ContratDetailScreen() {
 
   const [status, setStatus] = useState(source?.status);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
 
   if (!source || !status) {
     return (
@@ -34,6 +40,7 @@ export default function ContratDetailScreen() {
 
   const contrat = { ...source, status };
   const meta = CONTRAT_STATUS_META[status];
+  const client = getClientById(contrat.clientId);
   const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
   const handleSign = () => {
@@ -50,23 +57,30 @@ export default function ContratDetailScreen() {
     ]);
   };
 
+  const handleSharePdf = async () => {
+    const uri = await generateDocumentPdf('contrat', contrat, contrat.clientName);
+    await shareDocumentPdf(uri, `Contrat ${contrat.number} — ${contrat.title} — ${contrat.clientName}`);
+  };
+
+  const nextAction =
+    status === 'brouillon' || status === 'enAttenteSignature'
+      ? { label: 'Envoyer le contrat', icon: 'send' as const, onPress: () => setComposerOpen(true) }
+      : null;
+
   const quickActions: QuickAction[] = [
     status !== 'signe'
       ? { key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign }
       : { key: 'signed', icon: 'check-circle', label: 'Signé', onPress: () => {} },
-    {
-      key: 'pdf',
-      icon: 'file-text',
-      label: 'PDF',
-      onPress: () => Share.share({ message: `Contrat ${contrat.number} — ${contrat.title} — ${contrat.clientName}` }),
-    },
-    { key: 'send', icon: 'send', label: 'Envoyer', onPress: () => soon('Envoyer le contrat') },
+    { key: 'pdf', icon: 'file-text', label: 'PDF', onPress: handleSharePdf },
+    { key: 'send', icon: 'send', label: 'Envoyer', onPress: () => setComposerOpen(true) },
   ];
 
   const menuItems: ActionSheetItem[] = [
     { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => soon('Modifier le contrat') },
     { key: 'delete', icon: 'trash-2', label: 'Supprimer', onPress: handleDelete, destructive: true },
   ];
+
+  const composedMessage = buildSendMessage('contrat', contrat, contrat.clientName);
 
   return (
     <View style={styles.root}>
@@ -86,6 +100,12 @@ export default function ContratDetailScreen() {
               ...(contrat.endDate ? [{ label: 'Fin', value: formatLongDate(contrat.endDate) }] : []),
             ]}
           />
+
+          {nextAction ? (
+            <View style={styles.bannerWrap}>
+              <NextActionBanner label={nextAction.label} icon={nextAction.icon} onPress={nextAction.onPress} />
+            </View>
+          ) : null}
 
           <View style={styles.actionsWrap}>
             <QuickActionsRow actions={quickActions} />
@@ -107,6 +127,20 @@ export default function ContratDetailScreen() {
       <BottomNav activeIndex={3} />
 
       <ActionSheetMenu visible={menuOpen} title={contrat.number} items={menuItems} onClose={() => setMenuOpen(false)} />
+
+      <MessageComposerModal
+        visible={composerOpen}
+        title="Envoyer le contrat"
+        recipientName={contrat.clientName}
+        recipientEmail={client?.email}
+        subject={composedMessage.subject}
+        body={composedMessage.body}
+        note="Le PDF du contrat est disponible via le bouton PDF — le mail ne peut pas le joindre automatiquement."
+        onClose={() => setComposerOpen(false)}
+        onSent={() => {
+          if (status === 'brouillon') setStatus('enAttenteSignature');
+        }}
+      />
     </View>
   );
 }
@@ -117,6 +151,9 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
+  },
+  bannerWrap: {
+    marginTop: Spacing.md,
   },
   actionsWrap: {
     marginTop: Spacing.lg,

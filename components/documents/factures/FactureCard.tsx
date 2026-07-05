@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 11,
+    paddingVertical: 9,
     paddingHorizontal: 14,
     ...cardShadow,
   },
@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
   },
   client: {
     flex: 1,
-    fontSize: 15.5,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },

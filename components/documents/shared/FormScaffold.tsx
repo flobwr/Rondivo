@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { Children, ReactNode } from 'react';
 import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
@@ -64,8 +65,9 @@ export function FormField({
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
       {onPress ? (
-        <PressableScale onPress={onPress} to={0.98} accessibilityLabel={label}>
-          {content}
+        <PressableScale onPress={onPress} to={0.98} accessibilityLabel={label} style={styles.selectorRow}>
+          <View style={styles.selectorContent}>{content}</View>
+          <Feather name="chevron-right" size={17} color={Palette.textTertiary} />
         </PressableScale>
       ) : (
         content
@@ -103,6 +105,14 @@ const styles = StyleSheet.create({
   },
   field: {
     paddingVertical: 12,
+  },
+  selectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  selectorContent: {
+    flex: 1,
   },
   fieldSeparator: {
     height: StyleSheet.hairlineWidth,

@@ -2,12 +2,22 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
+import { DocumentsTone } from '@/components/documents/palette';
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
-import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
+import { daysSince, formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { DEVIS_STATUS_META, Devis } from '@/data/documents/devis';
+
+function expiryLine(devis: Devis): { text: string; tone: 'red' | 'orange' } | null {
+  if (devis.status !== 'envoye' && devis.status !== 'vu') return null;
+  const daysLeft = -daysSince(devis.validUntil);
+  if (daysLeft < 0 || daysLeft > 3) return null;
+  const text = daysLeft === 0 ? 'Expire aujourd’hui' : daysLeft === 1 ? 'Expire demain' : `Expire dans ${daysLeft} jours`;
+  return { text, tone: daysLeft <= 1 ? 'red' : 'orange' };
+}
 
 export function DevisCard({ devis, onPress }: { devis: Devis; onPress: () => void }) {
   const meta = DEVIS_STATUS_META[devis.status];
+  const expiry = expiryLine(devis);
 
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.card} accessibilityLabel={`Devis de ${devis.clientName}`}>
@@ -24,6 +34,10 @@ export function DevisCard({ devis, onPress }: { devis: Devis; onPress: () => voi
         </Text>
         <Text style={styles.amount}>{formatAmount(devis.amount)}</Text>
       </View>
+
+      {expiry ? (
+        <Text style={[styles.alert, { color: DocumentsTone[expiry.tone].color }]}>{expiry.text}</Text>
+      ) : null}
     </PressableScale>
   );
 }
@@ -32,7 +46,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 11,
+    paddingVertical: 9,
     paddingHorizontal: 14,
     ...cardShadow,
   },
@@ -44,8 +58,8 @@ const styles = StyleSheet.create({
   },
   client: {
     flex: 1,
-    fontSize: 15.5,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.3,
   },
@@ -68,5 +82,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Palette.textTertiary,
     letterSpacing: -0.1,
+  },
+  alert: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: -0.1,
+    marginTop: 5,
   },
 });

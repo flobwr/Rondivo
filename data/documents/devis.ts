@@ -1,6 +1,7 @@
 import { DocumentsTone } from '@/components/documents/palette';
 import { Palette } from '@/constants/design';
 import { daysSince } from './date-utils';
+import { DocumentLine } from './lines';
 
 export type DevisStatus = 'brouillon' | 'envoye' | 'vu' | 'accepte' | 'refuse' | 'expire';
 
@@ -14,6 +15,8 @@ export type Devis = {
   validUntil: string; // ISO date
   status: DevisStatus;
   interventionId?: string;
+  lines?: DocumentLine[];
+  notes?: string;
 };
 
 export const DEVIS_STATUS_META: Record<DevisStatus, { label: string; color: string; soft: string }> = {
@@ -38,6 +41,11 @@ export const MOCK_DEVIS: Devis[] = [
     validUntil: '2026-07-10',
     status: 'envoye',
     interventionId: 'int-de-1',
+    lines: [
+      { id: 'de-1-l1', label: 'Main d’œuvre — rénovation salle de bain', amount: 3400 },
+      { id: 'de-1-l2', label: 'Fournitures et matériel', amount: 1800 },
+    ],
+    notes: 'Devis valable 30 jours, acompte de 30 % à la signature.',
   },
   {
     id: 'de-2',
@@ -48,6 +56,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-06-15',
     validUntil: '2026-07-15',
     status: 'envoye',
+    lines: [
+      { id: 'de-2-l1', label: 'Main d’œuvre', amount: 2000 },
+      { id: 'de-2-l2', label: 'Fournitures', amount: 1100 },
+    ],
   },
   {
     id: 'de-3',
@@ -58,6 +70,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-06-01',
     validUntil: '2026-07-01',
     status: 'vu',
+    lines: [
+      { id: 'de-3-l1', label: 'Main d’œuvre', amount: 1650 },
+      { id: 'de-3-l2', label: 'Fournitures', amount: 800 },
+    ],
   },
   {
     id: 'de-4',
@@ -68,6 +84,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-05-20',
     validUntil: '2026-06-19',
     status: 'expire',
+    lines: [
+      { id: 'de-4-l1', label: 'Main d’œuvre', amount: 1200 },
+      { id: 'de-4-l2', label: 'Fournitures', amount: 600 },
+    ],
   },
   {
     id: 'de-5',
@@ -79,6 +99,11 @@ export const MOCK_DEVIS: Devis[] = [
     validUntil: '2026-06-04',
     status: 'accepte',
     interventionId: 'int-de-5',
+    lines: [
+      { id: 'de-5-l1', label: 'Main d’œuvre — installation climatisation', amount: 4200 },
+      { id: 'de-5-l2', label: 'Fournitures et matériel', amount: 2500 },
+    ],
+    notes: 'Accepté par le client, intervention à planifier.',
   },
   {
     id: 'de-6',
@@ -89,6 +114,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-04-28',
     validUntil: '2026-05-28',
     status: 'accepte',
+    lines: [
+      { id: 'de-6-l1', label: 'Main d’œuvre', amount: 680 },
+      { id: 'de-6-l2', label: 'Fournitures', amount: 300 },
+    ],
   },
   {
     id: 'de-7',
@@ -99,6 +128,11 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-04-15',
     validUntil: '2026-05-15',
     status: 'refuse',
+    lines: [
+      { id: 'de-7-l1', label: 'Main d’œuvre', amount: 1500 },
+      { id: 'de-7-l2', label: 'Fournitures', amount: 700 },
+    ],
+    notes: 'Client parti sur une autre offre.',
   },
   {
     id: 'de-8',
@@ -109,6 +143,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-06-28',
     validUntil: '2026-07-28',
     status: 'brouillon',
+    lines: [
+      { id: 'de-8-l1', label: 'Main d’œuvre', amount: 2900 },
+      { id: 'de-8-l2', label: 'Fournitures', amount: 1400 },
+    ],
   },
   {
     id: 'de-9',
@@ -119,6 +157,10 @@ export const MOCK_DEVIS: Devis[] = [
     issuedAt: '2026-06-05',
     validUntil: '2026-07-05',
     status: 'envoye',
+    lines: [
+      { id: 'de-9-l1', label: 'Main d’œuvre', amount: 1750 },
+      { id: 'de-9-l2', label: 'Fournitures', amount: 1000 },
+    ],
   },
 ];
 

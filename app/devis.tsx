@@ -192,6 +192,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   separator: {
-    height: 8,
+    height: 6,
   },
 });

@@ -1,18 +1,20 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { ChecklistCard } from '@/components/documents/rapports/ChecklistCard';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, KeyValueRow, PressableScale, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { formatLongDate } from '@/data/documents/date-utils';
+import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { MOCK_RAPPORTS, RAPPORT_STATUS_META } from '@/data/documents/rapports';
 import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
 
@@ -47,7 +49,6 @@ export default function RapportDetailScreen() {
 
   const rapport = { ...source, status, checklist, signed };
   const meta = RAPPORT_STATUS_META[status];
-  const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
   const photoIntervention = PHOTO_INTERVENTIONS.find((p) => p.id === rapport.interventionId);
   const photosCount = photoIntervention?.photos.length ?? rapport.photosCount;
 
@@ -60,9 +61,15 @@ export default function RapportDetailScreen() {
     setSigned(true);
   };
 
-  const handleGeneratePdf = () => {
+  const handleGeneratePdf = async () => {
     setStatus('pdfGenere');
-    Share.share({ message: `Rapport ${rapport.number} — ${rapport.interventionLabel} — ${rapport.clientName}` });
+    const uri = await generateDocumentPdf('rapport', rapport, rapport.clientName);
+    await shareDocumentPdf(uri, `Rapport ${rapport.number} — ${rapport.interventionLabel} — ${rapport.clientName}`);
+  };
+
+  const handleSharePdf = async () => {
+    const uri = await generateDocumentPdf('rapport', rapport, rapport.clientName);
+    await shareDocumentPdf(uri, `Rapport ${rapport.number} — ${rapport.interventionLabel} — ${rapport.clientName}`);
   };
 
   const handleMarkDone = () => setStatus('termine');
@@ -74,12 +81,15 @@ export default function RapportDetailScreen() {
     ]);
   };
 
+  const nextAction =
+    status === 'termine' ? { label: 'Générer le PDF', icon: 'file-text' as const, onPress: handleGeneratePdf } : null;
+
   const quickActions: QuickAction[] = [
     ...(status === 'aCompleter' || status === 'enCours'
       ? ([{ key: 'done', icon: 'check-circle', label: 'Terminer', onPress: handleMarkDone }] as QuickAction[])
       : []),
     { key: 'pdf', icon: 'file-text', label: 'Générer PDF', onPress: handleGeneratePdf },
-    { key: 'share', icon: 'share', label: 'Partager', onPress: () => soon('Partager le rapport') },
+    { key: 'share', icon: 'share', label: 'Partager', onPress: handleSharePdf },
     { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
   ];
 
@@ -96,15 +106,17 @@ export default function RapportDetailScreen() {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <View style={styles.heroTop}>
-              <Text style={styles.heroTitle} numberOfLines={2}>
-                {rapport.interventionLabel}
-              </Text>
+              <PressableScale onPress={() => router.push(`/client/${rapport.clientId}`)} to={0.98} accessibilityLabel="Ouvrir le client" style={styles.heroClientWrap}>
+                <Text style={styles.heroClient} numberOfLines={1}>
+                  {rapport.clientName}
+                </Text>
+              </PressableScale>
               <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />
             </View>
 
-            <PressableScale onPress={() => router.push(`/client/${rapport.clientId}`)} to={0.98} accessibilityLabel="Ouvrir le client">
-              <Text style={styles.heroClient}>{rapport.clientName}</Text>
-            </PressableScale>
+            <Text style={styles.heroTitle} numberOfLines={2}>
+              {rapport.interventionLabel}
+            </Text>
 
             <View style={styles.heroMetaRow}>
               <Text style={styles.heroMeta}>{formatLongDate(rapport.date)}</Text>
@@ -112,6 +124,12 @@ export default function RapportDetailScreen() {
               <Text style={styles.heroMeta}>{formatDuration(rapport.timeSpentMinutes)}</Text>
             </View>
           </View>
+
+          {nextAction ? (
+            <View style={styles.bannerWrap}>
+              <NextActionBanner label={nextAction.label} icon={nextAction.icon} onPress={nextAction.onPress} />
+            </View>
+          ) : null}
 
           <View style={styles.actionsWrap}>
             <QuickActionsRow actions={quickActions} />
@@ -188,14 +206,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: Spacing.sm,
   },
-  heroTitle: {
+  heroClientWrap: {
     flex: 1,
+  },
+  heroClient: {
     fontSize: 19,
     fontWeight: '800',
     color: Palette.textPrimary,
     letterSpacing: -0.4,
   },
-  heroClient: {
+  heroTitle: {
     fontSize: FontSize.body,
     fontWeight: '600',
     color: Palette.blue,
@@ -207,6 +227,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 10,
+  },
+  bannerWrap: {
+    marginTop: Spacing.md,
   },
   heroMeta: {
     fontSize: FontSize.small,

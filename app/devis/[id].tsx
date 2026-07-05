@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -8,11 +8,18 @@ import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/sh
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
 import { HistoryCard } from '@/components/documents/shared/HistoryCard';
-import { KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
+import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
+import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
+import { CardSeparator, KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { Palette, Spacing } from '@/constants/design';
+import { getClientById } from '@/data/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
+import { buildRelaunchMessage, buildSendMessage } from '@/data/documents/messaging';
+import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { DEVIS_STATUS_META, MOCK_DEVIS } from '@/data/documents/devis';
+
+type Composer = 'send' | 'relance' | null;
 
 export default function DevisDetailScreen() {
   const router = useRouter();
@@ -22,6 +29,8 @@ export default function DevisDetailScreen() {
   const [status, setStatus] = useState(source?.status);
   const [menuOpen, setMenuOpen] = useState(false);
   const [relaunched, setRelaunched] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [composer, setComposer] = useState<Composer>(null);
 
   if (!source || !status) {
     return (
@@ -36,6 +45,7 @@ export default function DevisDetailScreen() {
 
   const devis = { ...source, status };
   const meta = DEVIS_STATUS_META[status];
+  const client = getClientById(devis.clientId);
   const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
   const handleSign = () => {
@@ -59,22 +69,26 @@ export default function DevisDetailScreen() {
     ]);
   };
 
-  const handleRelaunch = () => {
-    Alert.alert('Relance envoyée', `Une relance a été envoyée à ${devis.clientName}.`);
-    setRelaunched(true);
+  const handleSharePdf = async () => {
+    const uri = await generateDocumentPdf('devis', devis, devis.clientName);
+    await shareDocumentPdf(uri, `Devis ${devis.number} — ${devis.clientName} — ${formatAmount(devis.amount)}`);
   };
 
   const canSign = status === 'envoye' || status === 'vu';
   const canConvert = status === 'accepte';
 
+  const nextAction =
+    status === 'brouillon'
+      ? { label: 'Envoyer le devis', icon: 'send' as const, onPress: () => setComposer('send') }
+      : canSign
+        ? { label: 'Relancer le client', icon: 'send' as const, onPress: () => setComposer('relance') }
+        : canConvert
+          ? { label: 'Créer une facture', icon: 'file-text' as const, onPress: handleConvert }
+          : null;
+
   const quickActions: QuickAction[] = [
-    { key: 'send', icon: 'send', label: 'Envoyer', onPress: () => soon('Envoyer le devis') },
-    {
-      key: 'share',
-      icon: 'share',
-      label: 'Partager',
-      onPress: () => Share.share({ message: `Devis ${devis.number} — ${devis.clientName} — ${formatAmount(devis.amount)}` }),
-    },
+    ...(status !== 'brouillon' ? [{ key: 'send', icon: 'send', label: 'Envoyer', onPress: () => setComposer('send') } as QuickAction] : []),
+    { key: 'share', icon: 'share', label: 'Partager', onPress: handleSharePdf },
     canSign
       ? { key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign }
       : canConvert
@@ -82,7 +96,7 @@ export default function DevisDetailScreen() {
         : { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
   ];
   if (canSign) {
-    quickActions.push({ key: 'relaunch', icon: 'send', label: 'Relancer', onPress: handleRelaunch });
+    quickActions.push({ key: 'relaunch', icon: 'send', label: 'Relancer', onPress: () => setComposer('relance') });
   }
 
   const menuItems: ActionSheetItem[] = [
@@ -93,7 +107,7 @@ export default function DevisDetailScreen() {
 
   const history = [
     { id: 'h-1', icon: 'file-plus' as const, label: 'Devis créé', date: formatLongDate(devis.issuedAt) },
-    ...(status !== 'brouillon'
+    ...(status !== 'brouillon' || sent
       ? [{ id: 'h-2', icon: 'send' as const, label: 'Envoyé au client', date: formatLongDate(devis.issuedAt) }]
       : []),
     ...(status === 'accepte' ? [{ id: 'h-3', icon: 'check' as const, label: 'Accepté par le client', date: formatLongDate(devis.validUntil) }] : []),
@@ -102,6 +116,13 @@ export default function DevisDetailScreen() {
       ? [{ id: 'h-relance', icon: 'send' as const, label: 'Relance envoyée au client', date: formatLongDate(new Date().toISOString()) }]
       : []),
   ];
+
+  const composedMessage =
+    composer === 'send'
+      ? buildSendMessage('devis', devis, devis.clientName)
+      : composer === 'relance'
+        ? buildRelaunchMessage('devis', devis, devis.clientName)
+        : { subject: '', body: '' };
 
   return (
     <View style={styles.root}>
@@ -122,6 +143,12 @@ export default function DevisDetailScreen() {
             ]}
           />
 
+          {nextAction ? (
+            <View style={styles.bannerWrap}>
+              <NextActionBanner label={nextAction.label} icon={nextAction.icon} onPress={nextAction.onPress} />
+            </View>
+          ) : null}
+
           <View style={styles.actionsWrap}>
             <QuickActionsRow actions={quickActions} />
           </View>
@@ -139,6 +166,22 @@ export default function DevisDetailScreen() {
             ) : null}
           </SectionCard>
 
+          {devis.lines && devis.lines.length > 0 ? (
+            <SectionCard icon="list" title="Lignes" style={styles.section}>
+              {devis.lines.map((line) => (
+                <KeyValueRow key={line.id} label={line.label} value={formatAmount(line.amount)} />
+              ))}
+              <CardSeparator />
+              <KeyValueRow label="Total" value={formatAmount(devis.amount)} valueColor={Palette.blue} />
+            </SectionCard>
+          ) : null}
+
+          {devis.notes ? (
+            <SectionCard icon="file-text" title="Notes" style={styles.section}>
+              <Text style={styles.notes}>{devis.notes}</Text>
+            </SectionCard>
+          ) : null}
+
           <View style={styles.section}>
             <HistoryCard entries={history} />
           </View>
@@ -148,6 +191,25 @@ export default function DevisDetailScreen() {
       <BottomNav activeIndex={3} />
 
       <ActionSheetMenu visible={menuOpen} title={devis.number} items={menuItems} onClose={() => setMenuOpen(false)} />
+
+      <MessageComposerModal
+        visible={composer !== null}
+        title={composer === 'send' ? 'Envoyer le devis' : 'Relancer le client'}
+        recipientName={devis.clientName}
+        recipientEmail={client?.email}
+        subject={composedMessage.subject}
+        body={composedMessage.body}
+        note={composer === 'send' ? 'Le PDF du devis est disponible via "Partager" — le mail ne peut pas le joindre automatiquement.' : undefined}
+        onClose={() => setComposer(null)}
+        onSent={() => {
+          if (composer === 'send') {
+            setSent(true);
+            if (status === 'brouillon') setStatus('envoye');
+          } else if (composer === 'relance') {
+            setRelaunched(true);
+          }
+        }}
+      />
     </View>
   );
 }
@@ -159,12 +221,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
   },
+  bannerWrap: {
+    marginTop: Spacing.md,
+  },
   actionsWrap: {
     marginTop: Spacing.lg,
     marginBottom: Spacing.section,
   },
   section: {
     marginTop: Spacing.md,
+  },
+  notes: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: Palette.textPrimary,
+    letterSpacing: -0.1,
+    lineHeight: 19,
   },
   notFound: {
     textAlign: 'center',

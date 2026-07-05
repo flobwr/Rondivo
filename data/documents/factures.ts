@@ -1,6 +1,7 @@
 import { DocumentsTone } from '@/components/documents/palette';
 import { Palette } from '@/constants/design';
 import { daysSince } from './date-utils';
+import { DocumentLine } from './lines';
 
 export type FactureStatus = 'brouillon' | 'envoyee' | 'payee' | 'enRetard' | 'annulee';
 
@@ -36,6 +37,8 @@ export type Facture = {
   method?: PaymentMethod;
   interventionId?: string;
   payments: Payment[];
+  lines?: DocumentLine[];
+  notes?: string;
 };
 
 export const FACTURE_STATUS_META: Record<FactureStatus, { label: string; color: string; soft: string }> = {
@@ -60,6 +63,11 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'enRetard',
     interventionId: 'int-1',
     payments: [],
+    lines: [
+      { id: 'fa-1-l1', label: 'Main d’œuvre — remplacement chaudière', amount: 3200 },
+      { id: 'fa-1-l2', label: 'Fournitures et pièces', amount: 1620 },
+    ],
+    notes: 'Remplacement complet de la chaudière suite à panne. Garantie pièces 2 ans.',
   },
   {
     id: 'fa-2',
@@ -72,6 +80,11 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'enRetard',
     interventionId: 'int-2',
     payments: [],
+    lines: [
+      { id: 'fa-2-l1', label: 'Main d’œuvre — réparation fuite', amount: 2000 },
+      { id: 'fa-2-l2', label: 'Fournitures et pièces', amount: 1200 },
+    ],
+    notes: 'Intervention en urgence le week-end.',
   },
   {
     id: 'fa-3',
@@ -84,6 +97,10 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'enRetard',
     interventionId: 'int-3',
     payments: [],
+    lines: [
+      { id: 'fa-3-l1', label: 'Main d’œuvre — installation', amount: 2800 },
+      { id: 'fa-3-l2', label: 'Fournitures et pièces', amount: 1720 },
+    ],
   },
   {
     id: 'fa-4',
@@ -96,6 +113,10 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'envoyee',
     interventionId: 'int-4',
     payments: [],
+    lines: [
+      { id: 'fa-4-l1', label: 'Main d’œuvre', amount: 780 },
+      { id: 'fa-4-l2', label: 'Fournitures', amount: 400 },
+    ],
   },
   {
     id: 'fa-5',
@@ -107,6 +128,10 @@ export const MOCK_FACTURES: Facture[] = [
     dueAt: '2026-07-20',
     status: 'envoyee',
     payments: [],
+    lines: [
+      { id: 'fa-5-l1', label: 'Main d’œuvre', amount: 1650 },
+      { id: 'fa-5-l2', label: 'Fournitures', amount: 1000 },
+    ],
   },
   {
     id: 'fa-6',
@@ -120,6 +145,11 @@ export const MOCK_FACTURES: Facture[] = [
     method: 'virement',
     interventionId: 'int-6',
     payments: [{ id: 'pay-1', date: '2026-06-05', amount: 6400, method: 'virement' }],
+    lines: [
+      { id: 'fa-6-l1', label: 'Main d’œuvre — remplacement chauffe-eau', amount: 4200 },
+      { id: 'fa-6-l2', label: 'Fournitures et pièces', amount: 2200 },
+    ],
+    notes: 'Chauffe-eau 200L installé, ancien appareil évacué.',
   },
   {
     id: 'fa-7',
@@ -132,6 +162,10 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'payee',
     method: 'carte',
     payments: [{ id: 'pay-2', date: '2026-05-15', amount: 980, method: 'carte' }],
+    lines: [
+      { id: 'fa-7-l1', label: 'Main d’œuvre', amount: 780 },
+      { id: 'fa-7-l2', label: 'Fournitures', amount: 200 },
+    ],
   },
   {
     id: 'fa-8',
@@ -147,6 +181,11 @@ export const MOCK_FACTURES: Facture[] = [
       { id: 'pay-3', date: '2026-05-10', amount: 4000, method: 'virement' },
       { id: 'pay-4', date: '2026-05-28', amount: 4900, method: 'virement' },
     ],
+    lines: [
+      { id: 'fa-8-l1', label: 'Main d’œuvre — entretien annuel', amount: 5400 },
+      { id: 'fa-8-l2', label: 'Fournitures et pièces', amount: 3500 },
+    ],
+    notes: 'Contrat d’entretien annuel — 2 passages inclus.',
   },
   {
     id: 'fa-9',
@@ -159,6 +198,10 @@ export const MOCK_FACTURES: Facture[] = [
     status: 'payee',
     method: 'cheque',
     payments: [{ id: 'pay-5', date: '2026-05-02', amount: 1520, method: 'cheque' }],
+    lines: [
+      { id: 'fa-9-l1', label: 'Main d’œuvre', amount: 1020 },
+      { id: 'fa-9-l2', label: 'Fournitures', amount: 500 },
+    ],
   },
   {
     id: 'fa-10',
@@ -170,6 +213,10 @@ export const MOCK_FACTURES: Facture[] = [
     dueAt: '2026-07-25',
     status: 'brouillon',
     payments: [],
+    lines: [
+      { id: 'fa-10-l1', label: 'Main d’œuvre', amount: 440 },
+      { id: 'fa-10-l2', label: 'Fournitures', amount: 200 },
+    ],
   },
   {
     id: 'fa-11',
@@ -181,6 +228,11 @@ export const MOCK_FACTURES: Facture[] = [
     dueAt: '2026-05-02',
     status: 'annulee',
     payments: [],
+    lines: [
+      { id: 'fa-11-l1', label: 'Main d’œuvre', amount: 1400 },
+      { id: 'fa-11-l2', label: 'Fournitures', amount: 700 },
+    ],
+    notes: 'Facture annulée — devis remplacé par une nouvelle intervention.',
   },
 ];
 

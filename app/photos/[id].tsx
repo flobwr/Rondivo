@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Image } from 'expo-image';
-import { FlatList, Share, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
@@ -10,11 +10,12 @@ import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/sh
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
+import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { PhotoLightbox } from '@/components/documents/photos/PhotoLightbox';
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
 import { pickFromCamera, pickFromLibrary } from '@/components/documents/photos/photo-picker';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
 import { formatLongDate } from '@/data/documents/date-utils';
 import {
@@ -116,7 +117,7 @@ export default function PhotoInterventionScreen() {
       router.push(`/rapport/${linkedRapport.id}` as never);
       return;
     }
-    Share.share({ message: `Rapport — ${intervention.label} — ${intervention.clientName} — ${photos.length} photos` });
+    router.push(`/rapport/new?interventionId=${intervention.id}` as never);
   };
 
   const handleAddPress = () => {
@@ -138,15 +139,13 @@ export default function PhotoInterventionScreen() {
           <Text style={styles.clientDate}>{formatLongDate(intervention.date)}</Text>
         </PressableScale>
 
-        <PressableScale
-          onPress={handleGenerateReport}
-          to={0.98}
-          style={styles.reportButton}
-          accessibilityLabel="Générer le rapport PDF">
-          <Text style={styles.reportButtonText}>
-            {linkedRapport ? 'Ouvrir le rapport' : 'Générer le rapport PDF'}
-          </Text>
-        </PressableScale>
+        <View style={styles.reportButtonWrap}>
+          <NextActionBanner
+            label={linkedRapport ? 'Ouvrir le rapport' : 'Créer un rapport'}
+            icon={linkedRapport ? 'arrow-right' : 'clipboard'}
+            onPress={handleGenerateReport}
+          />
+        </View>
 
         <View style={styles.chipsWrap}>
           <FilterChips defs={chipDefs} activeKey={category} onSelect={(k) => setCategory(k as PhotoCategory | null)} />
@@ -233,19 +232,9 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
-  reportButton: {
+  reportButtonWrap: {
     marginHorizontal: Spacing.screen,
     marginBottom: Spacing.md,
-    backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.tile,
-    paddingVertical: 13,
-    alignItems: 'center',
-  },
-  reportButtonText: {
-    fontSize: FontSize.small,
-    fontWeight: '700',
-    color: Palette.blue,
-    letterSpacing: -0.1,
   },
   chipsWrap: {
     marginBottom: Spacing.sm,

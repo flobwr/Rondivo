@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,7 +7,10 @@ import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
+import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
 import { Palette, Radius, Spacing } from '@/constants/design';
+import { getClientById } from '@/data/clients';
+import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
 
 const VALIDITY_PRESETS = [
   { label: '15 jours', days: 15 },
@@ -17,11 +20,29 @@ const VALIDITY_PRESETS = [
 
 export default function NewDevisScreen() {
   const router = useRouter();
+  const { interventionId } = useLocalSearchParams<{ interventionId?: string }>();
   const [client, setClient] = useState<Client | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
+  const [intervention, setIntervention] = useState<PhotoIntervention | null>(null);
+  const [interventionPickerOpen, setInterventionPickerOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [validityDays, setValidityDays] = useState(30);
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (!interventionId) return;
+    const preselected = PHOTO_INTERVENTIONS.find((i) => i.id === interventionId);
+    if (preselected) {
+      setIntervention(preselected);
+      setClient(getClientById(preselected.clientId) ?? null);
+    }
+  }, [interventionId]);
+
+  const handleSelectIntervention = (selected: PhotoIntervention) => {
+    setIntervention(selected);
+    setClient(getClientById(selected.clientId) ?? null);
+    setInterventionPickerOpen(false);
+  };
 
   const handleCreate = () => {
     if (!client) {
@@ -80,7 +101,12 @@ export default function NewDevisScreen() {
           </View>
 
           <FormSection title="Détails">
-            <FormField label="Intervention liée" placeholder="Aucune" onPress={() => {}} />
+            <FormField
+              label="Intervention liée"
+              value={intervention?.label}
+              placeholder="Aucune"
+              onPress={() => setInterventionPickerOpen(true)}
+            />
             <FormField
               label="Notes"
               value={notes}
@@ -102,6 +128,12 @@ export default function NewDevisScreen() {
           setClientPickerOpen(false);
         }}
         selectedId={client?.id}
+      />
+
+      <InterventionPickerSheet
+        visible={interventionPickerOpen}
+        onClose={() => setInterventionPickerOpen(false)}
+        onSelect={handleSelectIntervention}
       />
     </View>
   );

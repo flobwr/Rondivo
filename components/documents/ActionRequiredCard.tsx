@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 9,
+    paddingVertical: 8,
     gap: Spacing.md,
   },
   iconTile: {
