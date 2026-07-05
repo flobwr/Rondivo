@@ -20,6 +20,7 @@ export function CreationConfirmationSheet({
   subtitle,
   primaryAction,
   secondaryActions,
+  dismissLabel = 'Retour aux documents',
   onDismiss,
 }: {
   visible: boolean;
@@ -27,6 +28,7 @@ export function CreationConfirmationSheet({
   subtitle: string;
   primaryAction: ConfirmationAction;
   secondaryActions: ConfirmationAction[];
+  dismissLabel?: string;
   onDismiss: () => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -73,8 +75,8 @@ export function CreationConfirmationSheet({
             ))}
           </View>
 
-          <Pressable onPress={onDismiss} hitSlop={8} style={styles.dismiss} accessibilityLabel="Terminé">
-            <Text style={styles.dismissText}>Terminé</Text>
+          <Pressable onPress={onDismiss} hitSlop={8} style={styles.dismiss} accessibilityLabel={dismissLabel}>
+            <Text style={styles.dismissText}>{dismissLabel}</Text>
           </Pressable>
         </Animated.View>
       </View>

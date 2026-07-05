@@ -6,12 +6,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
-import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
+import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
+import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { Palette, Spacing } from '@/constants/design';
 import { getClientById } from '@/data/clients';
+import { formatShortDate } from '@/data/documents/date-utils';
 import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
 import { MOCK_RAPPORTS } from '@/data/documents/rapports';
+
+function clientSubtitle(c: Client | null): string | undefined {
+  if (!c) return undefined;
+  return c.company || c.phone || c.address || undefined;
+}
+
+function interventionSubtitle(i: PhotoIntervention | null): string | undefined {
+  if (!i) return undefined;
+  return `${i.clientName} · ${formatShortDate(i.date)}`;
+}
 
 export default function NewRapportScreen() {
   const router = useRouter();
@@ -78,6 +90,7 @@ export default function NewRapportScreen() {
               value={intervention?.label}
               placeholder="Choisir une intervention"
               onPress={() => setInterventionPickerOpen(true)}
+              subtitle={interventionSubtitle(intervention)}
             />
           </FormSection>
 
@@ -87,6 +100,7 @@ export default function NewRapportScreen() {
               value={client?.name}
               placeholder="Choisir un client"
               onPress={() => setClientPickerOpen(true)}
+              subtitle={clientSubtitle(client)}
             />
           </FormSection>
 
@@ -99,10 +113,10 @@ export default function NewRapportScreen() {
               multiline
             />
           </FormSection>
-
-          <FormSubmitButton label={isEditing ? 'Enregistrer les modifications' : 'Créer le rapport'} onPress={handleCreate} />
         </ScrollView>
       </SafeAreaView>
+
+      <StickyFormFooter label={isEditing ? 'Enregistrer les modifications' : 'Créer le rapport'} onPress={handleCreate} />
 
       <ClientPickerSheet
         visible={clientPickerOpen}
@@ -128,6 +142,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
+    paddingBottom: Spacing.section + FOOTER_SPACE,
   },
 });

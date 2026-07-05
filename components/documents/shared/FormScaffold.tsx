@@ -40,6 +40,7 @@ export function FormField({
   keyboardType,
   onChangeText,
   multiline,
+  subtitle,
 }: {
   label: string;
   value?: string;
@@ -48,6 +49,9 @@ export function FormField({
   keyboardType?: KeyboardTypeOptions;
   onChangeText?: (text: string) => void;
   multiline?: boolean;
+  /** A short, secondary line shown under the value once it's set — e.g. the
+   * selected client's company/phone, or the linked intervention's client + date. */
+  subtitle?: string;
 }) {
   const content = onChangeText ? (
     <TextInput
@@ -76,6 +80,11 @@ export function FormField({
       ) : (
         content
       )}
+      {subtitle ? (
+        <Text style={styles.fieldSubtitle} numberOfLines={1}>
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -156,6 +165,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Palette.textTertiary,
     letterSpacing: -0.2,
+  },
+  fieldSubtitle: {
+    fontSize: 12.5,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.1,
+    marginTop: 4,
   },
   submitButton: {
     backgroundColor: Palette.blue,

@@ -7,7 +7,8 @@ import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { type Client } from '@/components/clients/types';
 import { CreationConfirmationSheet } from '@/components/documents/shared/CreationConfirmationSheet';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
-import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
+import { DocumentSummaryCard } from '@/components/documents/shared/DocumentSummaryCard';
+import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
 import {
   computeLineAmount,
@@ -17,9 +18,11 @@ import {
   LineItemsEditor,
 } from '@/components/documents/shared/LineItemsEditor';
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
+import { IconTile } from '@/components/documents/shared/primitives';
+import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { getClientById } from '@/data/clients';
-import { formatAmount } from '@/data/documents/date-utils';
+import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { Devis, MOCK_DEVIS } from '@/data/documents/devis';
 import { DocumentLine } from '@/data/documents/lines';
 import { buildSendMessage } from '@/data/documents/messaging';
@@ -42,6 +45,20 @@ function nearestValidityPreset(issuedAt: string, validUntil: string): number {
   return VALIDITY_PRESETS.reduce((prev, curr) =>
     Math.abs(curr.days - diffDays) < Math.abs(prev.days - diffDays) ? curr : prev
   ).days;
+}
+
+function clientSubtitle(c: Client | null): string | undefined {
+  if (!c) return undefined;
+  return c.company || c.phone || c.address || undefined;
+}
+
+function interventionSubtitle(i: PhotoIntervention | null): string | undefined {
+  if (!i) return undefined;
+  return `${i.clientName} · ${formatShortDate(i.date)}`;
+}
+
+function isBlankDraft(lines: DraftLine[]): boolean {
+  return lines.length === 1 && !lines[0].label.trim() && !lines[0].unitPrice.trim();
 }
 
 export default function NewDevisScreen() {
@@ -89,6 +106,7 @@ export default function NewDevisScreen() {
       if (preselected) {
         setIntervention(preselected);
         setClient(getClientById(preselected.clientId) ?? null);
+        setLines((prev) => (isBlankDraft(prev) ? [createDraftLine(preselected.label)] : prev));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,10 +115,12 @@ export default function NewDevisScreen() {
   const handleSelectIntervention = (selected: PhotoIntervention) => {
     setIntervention(selected);
     setClient(getClientById(selected.clientId) ?? null);
+    setLines((prev) => (isBlankDraft(prev) ? [createDraftLine(selected.label)] : prev));
     setInterventionPickerOpen(false);
   };
 
-  const { total } = computeTotals(lines, vatRate);
+  const { subtotal, vat, total } = computeTotals(lines, vatRate);
+  const lineCount = lines.filter((l) => l.label.trim().length > 0).length || lines.length;
 
   const buildDevis = (): Devis => {
     const finalLines: DocumentLine[] = lines
@@ -157,6 +177,7 @@ export default function NewDevisScreen() {
               value={client?.name}
               placeholder="Choisir un client"
               onPress={() => setClientPickerOpen(true)}
+              subtitle={clientSubtitle(client)}
             />
           </FormSection>
 
@@ -166,11 +187,13 @@ export default function NewDevisScreen() {
               value={intervention?.label}
               placeholder="Aucune"
               onPress={() => setInterventionPickerOpen(true)}
+              subtitle={interventionSubtitle(intervention)}
             />
           </FormSection>
 
           <View style={styles.linesSection}>
             <View style={styles.linesHeader}>
+              <IconTile icon="list" color={Palette.blue} soft={Palette.blueSoft} size={22} iconSize={12} radius={7} />
               <Text style={styles.linesTitle}>Lignes</Text>
             </View>
             <LineItemsEditor lines={lines} onChange={setLines} vatRate={vatRate} onVatRateChange={setVatRate} />
@@ -207,9 +230,22 @@ export default function NewDevisScreen() {
             />
           </FormSection>
 
-          <FormSubmitButton label={isEditing ? 'Enregistrer les modifications' : 'Créer le devis'} onPress={handleCreate} />
+          <View style={styles.summarySection}>
+            <DocumentSummaryCard
+              clientName={client?.name}
+              lineCount={lineCount}
+              subtotal={subtotal}
+              vat={vat}
+              vatRate={vatRate}
+              total={total}
+              dateLabel="Validité"
+              dateValue={`${validityDays} jours`}
+            />
+          </View>
         </ScrollView>
       </SafeAreaView>
+
+      <StickyFormFooter label={isEditing ? 'Enregistrer les modifications' : 'Créer le devis'} onPress={handleCreate} />
 
       <ClientPickerSheet
         visible={clientPickerOpen}
@@ -243,13 +279,8 @@ export default function NewDevisScreen() {
               },
             }}
             secondaryActions={[
-              { key: 'share', icon: 'share', label: 'Partager', onPress: handleSharePdf },
-              {
-                key: 'edit',
-                icon: 'edit-2',
-                label: 'Modifier',
-                onPress: () => setConfirmationVisible(false),
-              },
+              { key: 'pdf', icon: 'eye', label: 'Voir le PDF', onPress: handleSharePdf },
+              { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => setConfirmationVisible(false) },
             ]}
             onDismiss={() => {
               setConfirmationVisible(false);
@@ -264,7 +295,7 @@ export default function NewDevisScreen() {
             recipientEmail={createdClient?.email}
             subject={composedMessage.subject}
             body={composedMessage.body}
-            note="Le PDF du devis est disponible via « Partager » — le mail ne peut pas le joindre automatiquement."
+            note="Le PDF du devis est disponible via « Voir le PDF » — le mail ne peut pas le joindre automatiquement."
             onClose={() => {
               setComposerOpen(false);
               router.back();
@@ -285,7 +316,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
+    paddingBottom: Spacing.section + FOOTER_SPACE,
   },
   linesSection: {
     marginTop: Spacing.section,
@@ -341,5 +372,8 @@ const styles = StyleSheet.create({
   },
   validityPillTextActive: {
     color: Palette.blue,
+  },
+  summarySection: {
+    marginTop: Spacing.section,
   },
 });

@@ -1,21 +1,33 @@
 import { Feather } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, LayoutAnimation, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { formatAmount } from '@/data/documents/date-utils';
+import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 
 export type DraftLine = { id: string; label: string; quantity: string; unitPrice: string };
 
 export const VAT_PRESETS = [0, 5.5, 10, 20];
 
+const QUICK_ADD: { label: string; icon: FeatherIconName }[] = [
+  { label: 'Main d’œuvre', icon: 'tool' },
+  { label: 'Fournitures', icon: 'package' },
+  { label: 'Déplacement', icon: 'truck' },
+  { label: 'Autre', icon: 'plus-circle' },
+];
+
+// Only used to translate a vertical drag distance into "how many rows did
+// this move" — doesn't need to match the real rendered height pixel-perfect.
+const ROW_HEIGHT = 100;
+
 let draftLineSeq = 0;
 
-export function createDraftLine(): DraftLine {
+export function createDraftLine(label = ''): DraftLine {
   draftLineSeq += 1;
-  return { id: `line-${Date.now()}-${draftLineSeq}`, label: '', quantity: '1', unitPrice: '' };
+  return { id: `line-${Date.now()}-${draftLineSeq}`, label, quantity: '1', unitPrice: '' };
 }
 
 function parseNumber(value: string): number {
@@ -33,22 +45,55 @@ export function computeTotals(lines: DraftLine[], vatRate: number): { subtotal: 
   return { subtotal, vat, total: subtotal + vat };
 }
 
+type DragProps = {
+  draggingIndex: number;
+  dragY: number;
+  onDragStart: (index: number) => void;
+  onDragMove: (dy: number) => void;
+  onDragEnd: (index: number, dy: number) => void;
+};
+
 function LineRow({
   line,
+  index,
   onChange,
   onRemove,
+  onDuplicate,
   removable,
+  drag,
 }: {
   line: DraftLine;
+  index: number;
   onChange: (patch: Partial<DraftLine>) => void;
   onRemove: () => void;
+  onDuplicate: () => void;
   removable: boolean;
+  drag: DragProps;
 }) {
   const amount = computeLineAmount(line);
+  const isDragging = drag.draggingIndex === index;
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => drag.onDragStart(index),
+      onPanResponderMove: (_, gesture) => drag.onDragMove(gesture.dy),
+      onPanResponderRelease: (_, gesture) => drag.onDragEnd(index, gesture.dy),
+      onPanResponderTerminate: (_, gesture) => drag.onDragEnd(index, gesture.dy),
+    })
+  ).current;
 
   return (
-    <View style={styles.lineCard}>
+    <View
+      style={[
+        styles.lineCard,
+        isDragging ? [styles.lineCardDragging, { transform: [{ translateY: drag.dragY }] }] : null,
+      ]}>
       <View style={styles.lineTopRow}>
+        <View {...pan.panHandlers} hitSlop={10} style={styles.dragHandle} accessibilityLabel="Réordonner la ligne">
+          <Feather name="menu" size={15} color={Palette.textTertiary} />
+        </View>
         <TextInput
           value={line.label}
           onChangeText={(label) => onChange({ label })}
@@ -56,6 +101,9 @@ function LineRow({
           placeholderTextColor={Palette.textTertiary}
           style={styles.labelInput}
         />
+        <Pressable onPress={onDuplicate} hitSlop={8} accessibilityLabel="Dupliquer la ligne">
+          <Feather name="copy" size={15} color={Palette.textTertiary} />
+        </Pressable>
         {removable ? (
           <Pressable onPress={onRemove} hitSlop={8} accessibilityLabel="Supprimer la ligne">
             <Feather name="trash-2" size={16} color={Palette.textTertiary} />
@@ -108,11 +156,12 @@ export function LineItemsEditor({
   const { subtotal, vat, total } = computeTotals(lines, vatRate);
   const pulse = useRef(new Animated.Value(1)).current;
   const previousTotal = useRef(total);
+  const [dragState, setDragState] = useState<{ index: number; y: number } | null>(null);
 
   useEffect(() => {
     if (previousTotal.current !== total) {
       previousTotal.current = total;
-      pulse.setValue(1.04);
+      pulse.setValue(1.05);
       Animated.spring(pulse, { toValue: 1, useNativeDriver: true, friction: 5, tension: 200 }).start();
     }
   }, [total, pulse]);
@@ -121,28 +170,75 @@ export function LineItemsEditor({
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   };
 
-  const removeLine = (id: string) => onChange(lines.filter((l) => l.id !== id));
+  const removeLine = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    onChange(lines.filter((l) => l.id !== id));
+  };
 
-  const addLine = () => onChange([...lines, createDraftLine()]);
+  const duplicateLine = (id: string) => {
+    const index = lines.findIndex((l) => l.id === id);
+    if (index === -1) return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const copy = { ...lines[index], id: createDraftLine().id };
+    onChange([...lines.slice(0, index + 1), copy, ...lines.slice(index + 1)]);
+  };
+
+  const addQuickLine = (label: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    onChange([...lines, createDraftLine(label)]);
+  };
+
+  const handleDragStart = (index: number) => setDragState({ index, y: 0 });
+  const handleDragMove = (dy: number) => setDragState((prev) => (prev ? { ...prev, y: dy } : prev));
+  const handleDragEnd = (fromIndex: number, dy: number) => {
+    const offset = Math.round(dy / ROW_HEIGHT);
+    const toIndex = Math.min(Math.max(fromIndex + offset, 0), lines.length - 1);
+    setDragState(null);
+    if (toIndex !== fromIndex) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      const next = [...lines];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      onChange(next);
+    }
+  };
 
   return (
     <View>
       <View style={{ gap: Spacing.sm }}>
-        {lines.map((line) => (
+        {lines.map((line, index) => (
           <LineRow
             key={line.id}
             line={line}
+            index={index}
             onChange={(patch) => updateLine(line.id, patch)}
             onRemove={() => removeLine(line.id)}
+            onDuplicate={() => duplicateLine(line.id)}
             removable={lines.length > 1}
+            drag={{
+              draggingIndex: dragState?.index ?? -1,
+              dragY: dragState?.y ?? 0,
+              onDragStart: handleDragStart,
+              onDragMove: handleDragMove,
+              onDragEnd: handleDragEnd,
+            }}
           />
         ))}
       </View>
 
-      <PressableScale onPress={addLine} to={0.98} style={styles.addRow} accessibilityLabel="Ajouter une ligne">
-        <Feather name="plus" size={16} color={Palette.blue} />
-        <Text style={styles.addRowText}>Ajouter une ligne</Text>
-      </PressableScale>
+      <View style={styles.quickAddRow}>
+        {QUICK_ADD.map((item) => (
+          <PressableScale
+            key={item.label}
+            onPress={() => addQuickLine(item.label)}
+            to={0.96}
+            style={styles.quickAddPill}
+            accessibilityLabel={`Ajouter une ligne ${item.label}`}>
+            <Feather name={item.icon} size={13} color={Palette.blue} />
+            <Text style={styles.quickAddText}>{item.label}</Text>
+          </PressableScale>
+        ))}
+      </View>
 
       <View style={styles.vatRow}>
         <Text style={styles.vatLabel}>TVA</Text>
@@ -191,10 +287,19 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     ...cardShadow,
   },
+  lineCardDragging: {
+    ...cardShadow,
+    shadowOpacity: 0.18,
+    elevation: 6,
+    zIndex: 10,
+  },
   lineTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+  },
+  dragHandle: {
+    padding: 2,
   },
   labelInput: {
     flex: 1,
@@ -214,7 +319,7 @@ const styles = StyleSheet.create({
     borderTopColor: Palette.border,
   },
   qtyField: {
-    width: 44,
+    width: 38,
     backgroundColor: Palette.cardMuted,
     borderRadius: 10,
     paddingVertical: 8,
@@ -244,23 +349,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.1,
-    minWidth: 64,
+    minWidth: 56,
     textAlign: 'right',
   },
-  addRow: {
+  quickAddRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexWrap: 'wrap',
     gap: 8,
     marginTop: Spacing.sm,
-    paddingVertical: 13,
-    borderRadius: Radius.tile,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.blue,
-    borderStyle: 'dashed',
   },
-  addRowText: {
-    fontSize: FontSize.small,
+  quickAddPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.blueSoft,
+  },
+  quickAddText: {
+    fontSize: 12.5,
     fontWeight: '700',
     color: Palette.blue,
     letterSpacing: -0.1,
