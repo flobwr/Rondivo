@@ -81,20 +81,23 @@ export default function RapportDetailScreen() {
     ]);
   };
 
+  // Exactly one recommended action per status — QuickActionsRow only adds
+  // the reminder shortcut, never a rewording of the primary action.
   const nextAction =
-    status === 'termine' ? { label: 'Générer le PDF', icon: 'file-text' as const, onPress: handleGeneratePdf } : null;
+    status === 'aCompleter' || status === 'enCours'
+      ? { label: 'Terminer le rapport', icon: 'check-circle' as const, onPress: handleMarkDone }
+      : status === 'termine'
+        ? { label: 'Générer le PDF', icon: 'file-text' as const, onPress: handleGeneratePdf }
+        : status === 'pdfGenere'
+          ? { label: 'Partager', icon: 'share' as const, onPress: handleSharePdf }
+          : null;
 
   const quickActions: QuickAction[] = [
-    ...(status === 'aCompleter' || status === 'enCours'
-      ? ([{ key: 'done', icon: 'check-circle', label: 'Terminer', onPress: handleMarkDone }] as QuickAction[])
-      : []),
-    { key: 'pdf', icon: 'file-text', label: 'Générer PDF', onPress: handleGeneratePdf },
-    { key: 'share', icon: 'share', label: 'Partager', onPress: handleSharePdf },
     { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
   ];
 
   const menuItems: ActionSheetItem[] = [
-    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push('/rapport/new') },
+    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push(`/rapport/new?editId=${rapport.id}` as never) },
     { key: 'delete', icon: 'trash-2', label: 'Supprimer', onPress: handleDelete, destructive: true },
   ];
 

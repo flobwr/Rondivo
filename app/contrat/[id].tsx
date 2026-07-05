@@ -62,17 +62,20 @@ export default function ContratDetailScreen() {
     await shareDocumentPdf(uri, `Contrat ${contrat.number} — ${contrat.title} — ${contrat.clientName}`);
   };
 
+  // Exactly one recommended action per status — QuickActionsRow only adds
+  // genuinely distinct secondary actions, never a rewording of this one.
   const nextAction =
     status === 'brouillon' || status === 'enAttenteSignature'
       ? { label: 'Envoyer le contrat', icon: 'send' as const, onPress: () => setComposerOpen(true) }
-      : null;
+      : status === 'signe'
+        ? { label: 'Partager PDF', icon: 'share' as const, onPress: handleSharePdf }
+        : null;
 
   const quickActions: QuickAction[] = [
-    status !== 'signe'
-      ? { key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign }
-      : { key: 'signed', icon: 'check-circle', label: 'Signé', onPress: () => {} },
-    { key: 'pdf', icon: 'file-text', label: 'PDF', onPress: handleSharePdf },
-    { key: 'send', icon: 'send', label: 'Envoyer', onPress: () => setComposerOpen(true) },
+    ...(status === 'brouillon' || status === 'enAttenteSignature'
+      ? [{ key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign } as QuickAction]
+      : []),
+    ...(status === 'expire' ? [{ key: 'pdf', icon: 'file-text', label: 'PDF', onPress: handleSharePdf } as QuickAction] : []),
   ];
 
   const menuItems: ActionSheetItem[] = [

@@ -15,7 +15,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { PhotoLightbox } from '@/components/documents/photos/PhotoLightbox';
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
 import { pickFromCamera, pickFromLibrary } from '@/components/documents/photos/photo-picker';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
 import { formatLongDate } from '@/data/documents/date-utils';
 import {
@@ -167,7 +167,8 @@ export default function PhotoInterventionScreen() {
               style={[styles.tile, { width: tileSize, height: tileSize }]}
               accessibilityLabel="Agrandir la photo">
               <Image source={{ uri: item.uri }} style={styles.tileImage} contentFit="cover" />
-              <View style={[styles.tileChip, { backgroundColor: PHOTO_CATEGORY_META[item.category].color }]}>
+              <View style={styles.tileChip}>
+                <View style={[styles.tileChipDot, { backgroundColor: PHOTO_CATEGORY_META[item.category].color }]} />
                 <Text style={styles.tileChipText}>{PHOTO_CATEGORY_LABEL[item.category]}</Text>
               </View>
             </PressableScale>
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   tile: {
-    borderRadius: 16,
+    borderRadius: Radius.tile,
     overflow: 'hidden',
     backgroundColor: Palette.cardMuted,
   },
@@ -255,12 +256,20 @@ const styles = StyleSheet.create({
   },
   tileChip: {
     position: 'absolute',
-    bottom: 6,
+    top: 6,
     left: 6,
-    right: 6,
-    borderRadius: 6,
-    paddingVertical: 3,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    borderRadius: Radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    backgroundColor: 'rgba(15, 23, 41, 0.55)',
+  },
+  tileChipDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   tileChipText: {
     fontSize: 10,

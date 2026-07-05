@@ -46,7 +46,6 @@ export default function DevisDetailScreen() {
   const devis = { ...source, status };
   const meta = DEVIS_STATUS_META[status];
   const client = getClientById(devis.clientId);
-  const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
   const handleSign = () => {
     Alert.alert('Marquer comme accepté', `Confirmer la signature de ${devis.clientName} ?`, [
@@ -58,7 +57,7 @@ export default function DevisDetailScreen() {
   const handleConvert = () => {
     Alert.alert('Convertir en facture', `Créer une facture de ${formatAmount(devis.amount)} pour ${devis.clientName} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Convertir', onPress: () => router.push('/facture/new') },
+      { text: 'Convertir', onPress: () => router.push(`/facture/new?fromDevisId=${devis.id}` as never) },
     ]);
   };
 
@@ -77,6 +76,8 @@ export default function DevisDetailScreen() {
   const canSign = status === 'envoye' || status === 'vu';
   const canConvert = status === 'accepte';
 
+  // Exactly one recommended action per status — QuickActionsRow only ever
+  // adds genuinely distinct secondary actions (never a rewording of this one).
   const nextAction =
     status === 'brouillon'
       ? { label: 'Envoyer le devis', icon: 'send' as const, onPress: () => setComposer('send') }
@@ -84,24 +85,23 @@ export default function DevisDetailScreen() {
         ? { label: 'Relancer le client', icon: 'send' as const, onPress: () => setComposer('relance') }
         : canConvert
           ? { label: 'Créer une facture', icon: 'file-text' as const, onPress: handleConvert }
-          : null;
+          : status === 'expire'
+            ? {
+                label: 'Dupliquer le devis',
+                icon: 'copy' as const,
+                onPress: () => router.push(`/devis/new?duplicateFromId=${devis.id}` as never),
+              }
+            : null;
 
   const quickActions: QuickAction[] = [
-    ...(status !== 'brouillon' ? [{ key: 'send', icon: 'send', label: 'Envoyer', onPress: () => setComposer('send') } as QuickAction] : []),
     { key: 'share', icon: 'share', label: 'Partager', onPress: handleSharePdf },
-    canSign
-      ? { key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign }
-      : canConvert
-        ? { key: 'convert', icon: 'file-text', label: 'Convertir', onPress: handleConvert }
-        : { key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') },
+    ...(canSign ? [{ key: 'sign', icon: 'edit-3', label: 'Signer', onPress: handleSign } as QuickAction] : []),
+    ...(status === 'refuse' ? [{ key: 'reminder', icon: 'bell', label: 'Rappel', onPress: () => router.push('/rappels') } as QuickAction] : []),
   ];
-  if (canSign) {
-    quickActions.push({ key: 'relaunch', icon: 'send', label: 'Relancer', onPress: () => setComposer('relance') });
-  }
 
   const menuItems: ActionSheetItem[] = [
-    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push('/devis/new') },
-    { key: 'duplicate', icon: 'copy', label: 'Dupliquer', onPress: () => soon('Dupliquer le devis') },
+    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push(`/devis/new?editId=${devis.id}` as never) },
+    { key: 'duplicate', icon: 'copy', label: 'Dupliquer', onPress: () => router.push(`/devis/new?duplicateFromId=${devis.id}` as never) },
     { key: 'delete', icon: 'trash-2', label: 'Supprimer', onPress: handleDelete, destructive: true },
   ];
 

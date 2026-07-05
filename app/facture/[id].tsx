@@ -60,8 +60,6 @@ export default function FactureDetailScreen() {
   const meta = FACTURE_STATUS_META[status];
   const client = getClientById(facture.clientId);
 
-  const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
-
   const handleCall = () => {
     if (!client?.phone) return;
     Linking.openURL(`tel:${client.phone.replace(/\s+/g, '')}`);
@@ -102,30 +100,30 @@ export default function FactureDetailScreen() {
     ]);
   };
 
+  // Exactly one recommended action per status — the QuickActionsRow below
+  // never repeats it, only genuinely distinct secondary actions.
   const nextAction =
     status === 'brouillon'
       ? { label: 'Envoyer la facture', icon: 'send' as const, onPress: () => setComposer('send') }
-      : status === 'enRetard'
-        ? { label: 'Relancer le client', icon: 'send' as const, onPress: () => setComposer('relance') }
-        : status === 'payee' && !archived
-          ? { label: 'Archiver la facture', icon: 'archive' as const, onPress: handleArchive }
-          : null;
+      : status === 'envoyee'
+        ? { label: 'Partager PDF', icon: 'share' as const, onPress: handleSharePdf }
+        : status === 'enRetard'
+          ? { label: 'Relancer le client', icon: 'send' as const, onPress: () => setComposer('relance') }
+          : status === 'payee' && !archived
+            ? { label: 'Archiver la facture', icon: 'archive' as const, onPress: handleArchive }
+            : null;
 
   const quickActions: QuickAction[] = [
-    ...(status !== 'brouillon' ? [{ key: 'send', icon: 'send', label: 'Envoyer', onPress: () => setComposer('send') } as QuickAction] : []),
-    { key: 'pdf', icon: 'share', label: 'Partager PDF', onPress: handleSharePdf },
-    status !== 'payee'
-      ? { key: 'paid', icon: 'check-circle', label: 'Marquer payée', onPress: handleMarkPaid }
-      : { key: 'payment', icon: 'plus-circle', label: 'Paiement', onPress: () => setPaymentSheetOpen(true) },
+    ...(status !== 'envoyee' ? [{ key: 'pdf', icon: 'share', label: 'Partager PDF', onPress: handleSharePdf } as QuickAction] : []),
+    ...(status === 'envoyee' || status === 'enRetard'
+      ? [{ key: 'paid', icon: 'check-circle', label: 'Marquer payée', onPress: handleMarkPaid } as QuickAction]
+      : []),
     { key: 'call', icon: 'phone', label: 'Appeler', onPress: handleCall },
   ];
-  if (status === 'enRetard') {
-    quickActions.push({ key: 'relaunch', icon: 'send', label: 'Relancer', onPress: () => setComposer('relance') });
-  }
 
   const menuItems: ActionSheetItem[] = [
-    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push('/facture/new') },
-    { key: 'duplicate', icon: 'copy', label: 'Dupliquer', onPress: () => soon('Dupliquer la facture') },
+    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push(`/facture/new?editId=${facture.id}` as never) },
+    { key: 'duplicate', icon: 'copy', label: 'Dupliquer', onPress: () => router.push(`/facture/new?duplicateFromId=${facture.id}` as never) },
     { key: 'delete', icon: 'trash-2', label: 'Supprimer', onPress: handleDelete, destructive: true },
   ];
 

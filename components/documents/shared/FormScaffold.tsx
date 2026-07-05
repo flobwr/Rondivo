@@ -4,18 +4,22 @@ import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'rea
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { PressableScale } from './primitives';
+import { FeatherIconName } from '../types';
+import { IconTile, PressableScale } from './primitives';
 
 // Shared chrome for the Documents module's creation screens (Facture, Devis,
-// Rapport). These are architecture-first skeletons — real line items, VAT
-// math, etc. come later — so the scaffold favours a few very clear sections
-// over a dense form.
+// Rapport). Each section can carry a small icon tile next to its title — the
+// same "step" beat as SectionCard on detail screens — so a creation form
+// reads as a guided sequence rather than a flat list of fields.
 
-export function FormSection({ title, children }: { title: string; children: ReactNode }) {
+export function FormSection({ title, icon, children }: { title: string; icon?: FeatherIconName; children: ReactNode }) {
   const fields = Children.toArray(children);
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionHeader}>
+        {icon ? <IconTile icon={icon} color={Palette.blue} soft={Palette.blueSoft} size={22} iconSize={12} radius={7} /> : null}
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
       <View style={styles.sectionCard}>
         {fields.map((field, index) => (
           <View key={index}>
@@ -88,13 +92,18 @@ const styles = StyleSheet.create({
   section: {
     marginTop: Spacing.section,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.3,
     color: Palette.textTertiary,
     textTransform: 'uppercase',
-    marginBottom: 10,
     marginLeft: 2,
   },
   sectionCard: {
