@@ -1,54 +1,89 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
-import { IconTile } from '@/components/documents/shared/primitives';
+import { PressableScale, IconTile } from '@/components/documents/shared/primitives';
+import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { Note, NOTES } from '@/data/notes';
+import { formatNoteDate, Note, NOTES } from '@/data/notes';
 
-function NoteRow({ note }: { note: Note }) {
+function NoteRow({ note, onPress }: { note: Note; onPress: () => void }) {
   return (
-    <View style={styles.row}>
+    <PressableScale onPress={onPress} to={0.985} style={styles.row} accessibilityLabel={note.title}>
       <IconTile icon="file-text" color={Palette.purple} soft={Palette.purpleSoft} size={38} iconSize={16} radius={12} />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
           {note.title}
         </Text>
-        <Text style={styles.preview} numberOfLines={2} ellipsizeMode="tail">
-          {note.preview}
-        </Text>
+        {note.content ? (
+          <Text style={styles.preview} numberOfLines={2} ellipsizeMode="tail">
+            {note.content}
+          </Text>
+        ) : null}
       </View>
-      <Text style={styles.date}>{note.dateLabel}</Text>
-    </View>
+      <Text style={styles.date}>{formatNoteDate(note.updatedAt)}</Text>
+    </PressableScale>
   );
 }
 
 export default function NotesScreen() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [allNotes, setAllNotes] = useState<Note[]>(() => [...NOTES]);
+
+  // Notes are created/edited/deleted on a separate pushed screen (note/new),
+  // which stays mounted underneath — refresh our snapshot whenever this list
+  // regains focus so saves are reflected immediately.
+  useFocusEffect(
+    useCallback(() => {
+      setAllNotes([...NOTES]);
+    }, [])
+  );
+
+  const notes = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = q
+      ? allNotes.filter((n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
+      : allNotes;
+    return [...list].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+  }, [search, allNotes]);
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <DetailHeader title="Notes" onBack={() => router.back()} />
+        <DetailHeader title="Notes" onBack={() => router.back()} onAdd={() => router.push('/note/new')} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          {NOTES.length > 0 ? (
+          <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher une note…" />
+
+          {notes.length > 0 ? (
             <View style={styles.card}>
-              {NOTES.map((note, index) => (
+              {notes.map((note, index) => (
                 <View key={note.id}>
                   {index > 0 ? <View style={styles.separator} /> : null}
-                  <NoteRow note={note} />
+                  <NoteRow note={note} onPress={() => router.push({ pathname: '/note/new', params: { editId: note.id } })} />
                 </View>
               ))}
             </View>
           ) : (
-            <EmptyState icon="file-text" title="Aucune note" subtitle="Vos notes et pense-bêtes apparaîtront ici." />
+            <EmptyState
+              icon="file-text"
+              title={search ? 'Aucun résultat' : 'Aucune note'}
+              subtitle={search ? 'Aucune note ne correspond à votre recherche.' : 'Vos notes et pense-bêtes apparaîtront ici.'}
+              actionLabel={search ? undefined : 'Créer une note'}
+              onAction={search ? undefined : () => router.push('/note/new')}
+            />
           )}
         </ScrollView>
       </SafeAreaView>
+
+      <BottomNav activeIndex={0} />
     </View>
   );
 }
@@ -64,6 +99,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
+    gap: Spacing.lg,
   },
   card: {
     backgroundColor: Palette.card,

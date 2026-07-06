@@ -17,6 +17,11 @@ export default function RootLayout() {
         <Stack.Screen name="clients" />
         <Stack.Screen name="client/[id]" />
         <Stack.Screen name="client/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="notes" />
+        <Stack.Screen name="note/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="tasks" />
+        <Stack.Screen name="task/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="appointment/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="intervention/[id]" />
         <Stack.Screen name="documents" />

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionRequiredCard } from '@/components/documents/ActionRequiredCard';
-import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
+import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
+import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
 import { DocumentsHeader } from '@/components/documents/DocumentsHeader';
 import { ModuleCard } from '@/components/documents/ModuleCard';
 import { SecondaryModulesCard } from '@/components/documents/SecondaryModulesCard';
@@ -128,7 +128,7 @@ const ALL_MODULES = [...PRIMARY_MODULES, ...SECONDARY_MODULES];
 export default function DocumentsScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>('loading');
-  const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const creationMenu = useDocumentCreationMenu();
   const fadeIn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -153,27 +153,10 @@ export default function DocumentsScreen() {
     if (module) handleModulePress(module);
   };
 
-  const handleAddPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setAddMenuOpen(true);
-  };
-
-  const addMenuItems: ActionSheetItem[] = [
-    { key: 'devis', icon: 'edit-3', label: 'Nouveau devis', onPress: () => router.push('/devis/new' as never) },
-    { key: 'facture', icon: 'file-text', label: 'Nouvelle facture', onPress: () => router.push('/facture/new' as never) },
-    { key: 'rapport', icon: 'clipboard', label: 'Nouveau rapport', onPress: () => router.push('/rapport/new' as never) },
-    {
-      key: 'import',
-      icon: 'upload',
-      label: 'Importer un document',
-      onPress: () => router.push('/documents-importes' as never),
-    },
-  ];
-
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <DocumentsHeader onSearch={() => router.push('/documents-search' as never)} onAdd={handleAddPress} />
+        <DocumentsHeader onSearch={() => router.push('/documents-search' as never)} onAdd={creationMenu.open} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           {status === 'loading' ? (
@@ -206,10 +189,10 @@ export default function DocumentsScreen() {
       <BottomNav activeIndex={3} />
 
       <ActionSheetMenu
-        visible={addMenuOpen}
+        visible={creationMenu.visible}
         title="Créer"
-        items={addMenuItems}
-        onClose={() => setAddMenuOpen(false)}
+        items={creationMenu.items}
+        onClose={creationMenu.close}
       />
     </View>
   );

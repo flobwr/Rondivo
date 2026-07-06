@@ -8,6 +8,8 @@ import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
+import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
+import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
 import { ScreenFadeInDuration } from '@/constants/animation';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
@@ -82,6 +84,7 @@ const skStyles = StyleSheet.create({
 export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const fadeIn = useRef(new Animated.Value(0)).current;
+  const creationMenu = useDocumentCreationMenu();
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -114,7 +117,7 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.section}>
-                <QuickActions />
+                <QuickActions onNewDocument={creationMenu.open} />
               </View>
 
               <View style={styles.section}>
@@ -142,6 +145,13 @@ export default function HomeScreen() {
       </SafeAreaView>
 
       <BottomNav activeIndex={0} />
+
+      <ActionSheetMenu
+        visible={creationMenu.visible}
+        title="Créer"
+        items={creationMenu.items}
+        onClose={creationMenu.close}
+      />
     </View>
   );
 }

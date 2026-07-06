@@ -12,17 +12,20 @@ type Action = {
   icon: React.ComponentProps<typeof Feather>['name'];
   color: string;
   background: string;
-  route: Href;
+  /** Omitted only for "Nouveau document", which opens the shared creation menu instead of navigating. */
+  route?: Href;
 };
 
 const ACTIONS: Action[] = [
-  { label: 'Devis', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft, route: '/devis' },
-  { label: 'Client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft, route: '/clients' },
+  { label: 'Nouveau document', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft },
+  { label: 'Nouveau client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft, route: '/client/new' },
   { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft, route: '/notes' },
-  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft, route: '/rappels' },
+  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft, route: '/tasks' },
 ];
 
-function ActionCard({ label, icon, color, background, route }: Action) {
+type ActionCardProps = Action & { onNewDocument: () => void };
+
+function ActionCard({ label, icon, color, background, route, onNewDocument }: ActionCardProps) {
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -50,7 +53,7 @@ function ActionCard({ label, icon, color, background, route }: Action) {
       style={styles.wrapper}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
-      onPress={() => router.push(route)}>
+      onPress={() => (route ? router.push(route) : onNewDocument())}>
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <View style={[styles.iconTile, { backgroundColor: background }]}>
           <Feather name={icon} size={ICON_SIZE} color={color} />
@@ -63,11 +66,11 @@ function ActionCard({ label, icon, color, background, route }: Action) {
   );
 }
 
-export function QuickActions() {
+export function QuickActions({ onNewDocument }: { onNewDocument: () => void }) {
   return (
     <View style={styles.row}>
       {ACTIONS.map((action) => (
-        <ActionCard key={action.label} {...action} />
+        <ActionCard key={action.label} {...action} onNewDocument={onNewDocument} />
       ))}
     </View>
   );
