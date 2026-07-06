@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -11,16 +12,18 @@ type Action = {
   icon: React.ComponentProps<typeof Feather>['name'];
   color: string;
   background: string;
+  route: Href;
 };
 
 const ACTIONS: Action[] = [
-  { label: 'Devis', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft },
-  { label: 'Client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft },
-  { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft },
-  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft },
+  { label: 'Devis', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft, route: '/devis' },
+  { label: 'Client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft, route: '/clients' },
+  { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft, route: '/notes' },
+  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft, route: '/rappels' },
 ];
 
-function ActionCard({ label, icon, color, background }: Action) {
+function ActionCard({ label, icon, color, background, route }: Action) {
+  const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -43,7 +46,11 @@ function ActionCard({ label, icon, color, background }: Action) {
   };
 
   return (
-    <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>
+    <Pressable
+      style={styles.wrapper}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={() => router.push(route)}>
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <View style={[styles.iconTile, { backgroundColor: background }]}>
           <Feather name={icon} size={ICON_SIZE} color={color} />

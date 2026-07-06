@@ -1,4 +1,5 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
@@ -6,6 +7,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { floatingButtonShadow, heroShadow } from '@/constants/shadow';
+import { openMapsTo } from '@/utils/openMaps';
 
 type HeroCardProps = {
   isEmpty?: boolean;
@@ -13,7 +15,12 @@ type HeroCardProps = {
 
 const GPS = 48;
 
+// Matches INTERVENTIONS['next'] in components/intervention/mock-data.ts.
+const NEXT_INTERVENTION_ID = 'next';
+const NEXT_INTERVENTION_ADDRESS = '24 Av. Félix Faure, 69003 Lyon';
+
 export function HeroCard({ isEmpty = false }: HeroCardProps) {
+  const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
   const gpsScale = useRef(new Animated.Value(1)).current;
 
@@ -52,6 +59,11 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         tension: 150,
       }),
     ]).start();
+    openMapsTo(NEXT_INTERVENTION_ADDRESS);
+  };
+
+  const onCardPress = () => {
+    router.push({ pathname: '/intervention/[id]', params: { id: NEXT_INTERVENTION_ID } });
   };
 
   if (isEmpty) {
@@ -66,7 +78,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         <Text style={[styles.metaText, { marginTop: 8, opacity: 0.6 }]}>
           Aucune intervention prévue aujourd&apos;hui
         </Text>
-        <Pressable style={styles.emptyAction} hitSlop={8}>
+        <Pressable style={styles.emptyAction} hitSlop={8} onPress={() => router.push('/appointment/new')}>
           <Text style={styles.emptyActionText}>Créer une intervention</Text>
           <Feather name="plus" size={14} color={Palette.white} />
         </Pressable>
@@ -75,7 +87,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
   }
 
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onCardPress}>
       <Animated.View style={{ transform: [{ scale }] }}>
         <LinearGradient
           colors={[Palette.gradientStart, Palette.gradientEnd]}

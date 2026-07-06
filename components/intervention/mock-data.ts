@@ -152,6 +152,23 @@ const INTERVENTIONS: Record<string, Intervention> = {
     travelKm: 5.8,
     priority: 'haute',
   },
+  // Matches the Home screen's "Prochaine intervention" hero card.
+  next: {
+    ...DEFAULT_INTERVENTION,
+    id: 'next',
+    reference: '#INT-2026-0158',
+    type: 'Entretien chaudière',
+    status: 'planifiee',
+    client: 'Martin Dupont',
+    dateLabel: "Aujourd'hui",
+    startTime: '10:30',
+    endTime: '11:15',
+    duration: '45min',
+    address: '24 Av. Félix Faure, 69003 Lyon',
+    travelMinutes: 18,
+    travelKm: 7.4,
+    description: "Entretien annuel de la chaudière : contrôle de combustion, nettoyage et vérification de la sécurité.",
+  },
 };
 
 export function getIntervention(id?: string): Intervention {

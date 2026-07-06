@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddressCard } from '@/components/intervention/AddressCard';
@@ -19,6 +19,7 @@ import { ReportCard } from '@/components/intervention/ReportCard';
 import { TimingCard } from '@/components/intervention/TimingCard';
 import { Photo } from '@/components/intervention/types';
 import { Palette, Spacing } from '@/constants/design';
+import { openMapsTo } from '@/utils/openMaps';
 
 export default function InterventionScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -36,15 +37,7 @@ export default function InterventionScreen() {
 
   const handleCall = () => Linking.openURL(`tel:${intervention.phone}`);
   const handleSms = () => Linking.openURL(`sms:${intervention.phone}`);
-  const handleNavigate = () => {
-    const query = encodeURIComponent(intervention.address);
-    const url = Platform.select({
-      ios: `maps://?daddr=${query}`,
-      android: `geo:0,0?q=${query}`,
-      default: `https://maps.google.com/?q=${query}`,
-    });
-    Linking.openURL(url);
-  };
+  const handleNavigate = () => openMapsTo(intervention.address);
 
   return (
     <View style={styles.root}>

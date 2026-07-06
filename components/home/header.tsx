@@ -1,4 +1,5 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -7,11 +8,12 @@ import { badgeShadow, iconButtonShadow } from '@/constants/shadow';
 type RoundButtonProps = {
   children: React.ReactNode;
   notificationCount?: number;
+  onPress?: () => void;
 };
 
-function RoundButton({ children, notificationCount }: RoundButtonProps) {
+function RoundButton({ children, notificationCount, onPress }: RoundButtonProps) {
   return (
-    <Pressable style={styles.roundButton} hitSlop={8}>
+    <Pressable style={styles.roundButton} hitSlop={8} onPress={onPress}>
       {children}
       {notificationCount ? (
         <View style={styles.notificationBadge}>
@@ -23,6 +25,8 @@ function RoundButton({ children, notificationCount }: RoundButtonProps) {
 }
 
 export function Header() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
@@ -40,10 +44,10 @@ export function Header() {
         </View>
 
         <View style={styles.actions}>
-          <RoundButton notificationCount={3}>
+          <RoundButton notificationCount={3} onPress={() => router.push('/notifications')}>
             <Feather name="bell" size={19} color={Palette.textPrimary} />
           </RoundButton>
-          <RoundButton>
+          <RoundButton onPress={() => router.push('/plus')}>
             <Ionicons name="settings-outline" size={19} color={Palette.textPrimary} />
           </RoundButton>
         </View>

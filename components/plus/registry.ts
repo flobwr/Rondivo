@@ -22,6 +22,8 @@ export type PlusItemId =
   | 'rappels'
   | 'notifications'
   | 'sauvegarde'
+  | 'synchronisation'
+  | 'stockage'
   | 'apparence'
   | 'langue'
   | 'tva'
@@ -67,6 +69,8 @@ export const PLUS_ITEMS: Record<PlusItemId, PlusItemMeta> = {
   notifications: { title: 'Notifications', icon: 'bell', description: 'Choisissez les notifications que vous souhaitez recevoir.', route: '/plus/notifications' },
   relances: { title: 'Relances automatiques', icon: 'send', description: 'Automatisez les relances de devis et factures impayées.', route: '/plus/relances' },
   sauvegarde: { title: 'Sauvegarde', icon: 'cloud', description: 'Sauvegardez et restaurez les données de votre entreprise.', route: '/plus/sauvegarde' },
+  synchronisation: { title: 'Synchronisation', icon: 'refresh-cw', description: 'Synchronisez vos données entre vos appareils.', route: '/plus/synchronisation' },
+  stockage: { title: 'Stockage', icon: 'hard-drive', description: "Gérez l'espace de stockage utilisé par l'application.", route: '/plus/stockage' },
 
   // Paramètres — business/document settings first (what artisans touch to get invoicing right),
   // app preferences (apparence, langue) last since they're cosmetic and rarely revisited.
@@ -95,7 +99,7 @@ export type PlusSection = { label: string; items: PlusItemId[] };
 export const PLUS_SECTIONS: PlusSection[] = [
   { label: 'Gestion', items: ['entreprise', 'employes', 'equipe', 'vehicules', 'materiel', 'fournisseurs'] },
   { label: 'Catalogue', items: ['prestations', 'produits', 'modeles-devis', 'modeles-factures', 'modeles-contrats'] },
-  { label: 'Automatisations', items: ['rappels', 'notifications', 'relances', 'sauvegarde'] },
+  { label: 'Automatisations', items: ['rappels', 'notifications', 'relances', 'sauvegarde', 'synchronisation', 'stockage'] },
   { label: 'Paramètres', items: ['coordonnees', 'tva', 'numerotation', 'paiements', 'signature', 'apparence', 'langue'] },
   { label: 'Support', items: ['aide', 'contact-support', 'tutoriels', 'signaler-bug', 'suggestion'] },
 ];
