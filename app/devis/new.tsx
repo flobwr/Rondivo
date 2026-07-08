@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,14 +21,16 @@ import {
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { IconTile } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { Palette, Radius, Spacing } from '@/constants/design';
-import { getClientById } from '@/data/clients';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getClientById } from '@/services/clients';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
-import { Devis, MOCK_DEVIS } from '@/data/documents/devis';
+import { Devis, createDevis, getDevis, updateDevis } from '@/services/documents/devis';
 import { DocumentLine } from '@/data/documents/lines';
 import { buildSendMessage } from '@/data/documents/messaging';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
-import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
+import { PhotoIntervention, listPhotoInterventions } from '@/services/documents/photos';
 
 const VALIDITY_PRESETS = [
   { label: '15 jours', days: 15 },
@@ -63,13 +66,23 @@ function isBlankDraft(lines: DraftLine[]): boolean {
 
 export default function NewDevisScreen() {
   const router = useRouter();
-  const { editId, duplicateFromId, interventionId } = useLocalSearchParams<{
+  const { editId, duplicateFromId, interventionId, clientId } = useLocalSearchParams<{
     editId?: string;
     duplicateFromId?: string;
     interventionId?: string;
+    clientId?: string;
   }>();
 
-  const editingDevis = useMemo(() => (editId ? MOCK_DEVIS.find((d) => d.id === editId) : undefined), [editId]);
+  const isEditing = !!editId;
+
+  const fetchInitialData = useCallback(async () => {
+    const interventions = await listPhotoInterventions();
+    const editingDevis = editId ? await getDevis(editId) : undefined;
+    const source = editingDevis ?? (duplicateFromId ? await getDevis(duplicateFromId) : undefined);
+    return { editingDevis, source, interventions };
+  }, [editId, duplicateFromId]);
+  const { data: initial, status: fetchStatus } = useAsyncItem(fetchInitialData);
+  const editingDevis = initial?.editingDevis;
 
   const [client, setClient] = useState<Client | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
@@ -79,38 +92,44 @@ export default function NewDevisScreen() {
   const [vatRate, setVatRate] = useState(20);
   const [validityDays, setValidityDays] = useState(30);
   const [notes, setNotes] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
   const [createdDevis, setCreatedDevis] = useState<Devis | null>(null);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const isEditing = !!editingDevis;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
 
   useEffect(() => {
-    const source = editingDevis ?? (duplicateFromId ? MOCK_DEVIS.find((d) => d.id === duplicateFromId) : undefined);
+    if (!initial || initialized) return;
+    const { source, interventions } = initial;
 
     if (source) {
       setClient(getClientById(source.clientId) ?? null);
       setLines(linesToDraft(source.lines));
       setNotes(source.notes ?? '');
       if (source.interventionId) {
-        const linked = PHOTO_INTERVENTIONS.find((i) => i.id === source.interventionId);
+        const linked = interventions.find((i) => i.id === source.interventionId);
         if (linked) setIntervention(linked);
       }
       if (editingDevis) setValidityDays(nearestValidityPreset(editingDevis.issuedAt, editingDevis.validUntil));
+      setInitialized(true);
       return;
     }
 
     if (interventionId) {
-      const preselected = PHOTO_INTERVENTIONS.find((i) => i.id === interventionId);
+      const preselected = interventions.find((i) => i.id === interventionId);
       if (preselected) {
         setIntervention(preselected);
         setClient(getClientById(preselected.clientId) ?? null);
         setLines((prev) => (isBlankDraft(prev) ? [createDraftLine(preselected.label)] : prev));
       }
+    } else if (clientId) {
+      setClient(getClientById(clientId) ?? null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId, duplicateFromId, interventionId]);
+    setInitialized(true);
+  }, [initial, initialized, interventionId, clientId, editingDevis]);
 
   const handleSelectIntervention = (selected: PhotoIntervention) => {
     setIntervention(selected);
@@ -122,38 +141,61 @@ export default function NewDevisScreen() {
   const { subtotal, vat, total } = computeTotals(lines, vatRate);
   const lineCount = lines.filter((l) => l.label.trim().length > 0).length || lines.length;
 
-  const buildDevis = (): Devis => {
-    const finalLines: DocumentLine[] = lines
+  const buildLines = (): DocumentLine[] =>
+    lines
       .filter((l) => l.label.trim().length > 0)
       .map((l) => ({ id: l.id, label: l.label.trim(), amount: computeLineAmount(l) }));
-    return {
-      id: editingDevis?.id ?? `de-draft-${Date.now()}`,
-      number: editingDevis?.number ?? `DE-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
-      clientId: client!.id,
-      clientName: client!.name,
-      amount: total,
-      issuedAt: editingDevis?.issuedAt ?? new Date().toISOString(),
-      validUntil: new Date(Date.now() + validityDays * 86_400_000).toISOString(),
-      status: editingDevis?.status ?? 'brouillon',
-      interventionId: intervention?.id,
-      lines: finalLines,
-      notes: notes.trim() || undefined,
-    };
-  };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    if (submitting) return;
     if (!client) {
       Alert.alert('Client requis', 'Choisissez un client pour créer le devis.');
       return;
     }
-    if (isEditing) {
-      Alert.alert('Modifications enregistrées', `Le devis ${editingDevis!.number} a bien été mis à jour.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+
+    const finalLines = buildLines();
+
+    if (finalLines.length === 0) {
+      Alert.alert('Lignes manquantes', 'Ajoutez au moins une ligne au devis avant de le créer.');
       return;
     }
-    setCreatedDevis(buildDevis());
-    setConfirmationVisible(true);
+    const validUntil = new Date(Date.now() + validityDays * 86_400_000).toISOString();
+
+    setSubmitting(true);
+    try {
+      if (isEditing && editingDevis) {
+        await updateDevis(editingDevis.id, {
+          clientId: client.id,
+          clientName: client.name,
+          amount: total,
+          validUntil,
+          interventionId: intervention?.id,
+          lines: finalLines,
+          notes: notes.trim() || undefined,
+        });
+        Alert.alert('Modifications enregistrées', `Le devis ${editingDevis.number} a bien été mis à jour.`, [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+        return;
+      }
+
+      const created = await createDevis({
+        number: `DE-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
+        clientId: client.id,
+        clientName: client.name,
+        amount: total,
+        issuedAt: new Date().toISOString(),
+        validUntil,
+        status: 'brouillon',
+        interventionId: intervention?.id,
+        lines: finalLines,
+        notes: notes.trim() || undefined,
+      });
+      setCreatedDevis(created);
+      setConfirmationVisible(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSharePdf = async () => {
@@ -163,13 +205,21 @@ export default function NewDevisScreen() {
   };
 
   const composedMessage = createdDevis ? buildSendMessage('devis', createdDevis, createdDevis.clientName) : { subject: '', body: '' };
-  const createdClient = createdDevis ? getClientById(createdDevis.clientId) : undefined;
+  // The created devis' client is exactly the client already selected in this
+  // form — no need to re-fetch it from the service.
+  const createdClient = createdDevis ? client : undefined;
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title={isEditing ? 'Modifier le devis' : 'Nouveau devis'} onBack={() => router.back()} />
 
+        {isLoadingEdit ? (
+          <View style={styles.content}>
+            <SkeletonBlock height={90} radius={20} />
+            <SkeletonBlock height={160} radius={20} style={{ marginTop: Spacing.section }} />
+          </View>
+        ) : (
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <FormSection title="Client" icon="user">
             <FormField
@@ -207,7 +257,11 @@ export default function NewDevisScreen() {
                 return (
                   <Pressable
                     key={preset.days}
-                    onPress={() => setValidityDays(preset.days)}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setValidityDays(preset.days);
+                    }}
+                    hitSlop={{ top: 5, bottom: 5 }}
                     style={[styles.validityPill, active ? styles.validityPillActive : null]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}>
@@ -243,9 +297,14 @@ export default function NewDevisScreen() {
             />
           </View>
         </ScrollView>
+        )}
       </SafeAreaView>
 
-      <StickyFormFooter label={isEditing ? 'Enregistrer les modifications' : 'Créer le devis'} onPress={handleCreate} />
+      <StickyFormFooter
+        label={isEditing ? 'Enregistrer les modifications' : 'Créer le devis'}
+        onPress={handleCreate}
+        loading={submitting}
+      />
 
       <ClientPickerSheet
         visible={clientPickerOpen}

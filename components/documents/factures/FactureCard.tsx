@@ -18,7 +18,7 @@ export function FactureCard({ facture, onPress }: { facture: Facture; onPress: (
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.card} accessibilityLabel={`Facture de ${facture.clientName}`}>
       <View style={styles.topRow}>
-        <Text style={styles.client} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={styles.client} numberOfLines={1} ellipsizeMode="tail" maxFontSizeMultiplier={1.3}>
           {facture.clientName}
         </Text>
         <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />

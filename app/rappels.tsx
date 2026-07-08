@@ -1,110 +1,35 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TINT_COLORS } from '@/components/clients/types';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
+import { useAsyncList } from '@/hooks/use-async-list';
+import { listReminderSections } from '@/services/reminders';
+import type { ReminderIconFamily, ReminderItem, ReminderSection } from '@/services/reminders';
 
-type Item = {
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  tint: string;
-  background: string;
+const ICON_FAMILIES: Record<ReminderIconFamily, typeof Feather> = {
+  Feather,
+  Ionicons: Ionicons as unknown as typeof Feather,
+  MaterialCommunityIcons: MaterialCommunityIcons as unknown as typeof Feather,
 };
 
-type Section = {
-  title: string;
-  items: Item[];
-};
+function ActionRow({ item }: { item: ReminderItem }) {
+  const router = useRouter();
+  const tint = TINT_COLORS[item.tint];
+  const IconComponent = ICON_FAMILIES[item.icon.family];
 
-const SECTIONS: Section[] = [
-  {
-    title: 'Tâches & rappels',
-    items: [
-      {
-        title: 'Appeler M. Dupont à 14:00',
-        subtitle: 'Confirmer le rendez-vous',
-        icon: <Ionicons name="notifications" size={20} color={Palette.purple} />,
-        tint: Palette.purple,
-        background: Palette.purpleSoft,
-      },
-      {
-        title: 'Commander la pièce pour demain',
-        subtitle: 'Chaudière — M. Dupont',
-        icon: <Feather name="package" size={18} color={Palette.purple} />,
-        tint: Palette.purple,
-        background: Palette.purpleSoft,
-      },
-    ],
-  },
-  {
-    title: 'Devis à traiter',
-    items: [
-      {
-        title: 'Devis #1042 — Mme Bernard',
-        subtitle: 'En attente depuis 2 jours',
-        icon: <Feather name="file-text" size={18} color={Palette.blue} />,
-        tint: Palette.blue,
-        background: Palette.blueSoft,
-      },
-    ],
-  },
-  {
-    title: 'Factures à envoyer',
-    items: [
-      {
-        title: 'Facture #2087 — M. Leroy',
-        subtitle: 'Intervention du 22 juin',
-        icon: <Feather name="file-text" size={18} color={Palette.orange} />,
-        tint: Palette.orange,
-        background: Palette.orangeSoft,
-      },
-    ],
-  },
-  {
-    title: 'Paiements à relancer',
-    items: [
-      {
-        title: 'Relancer M. Petit',
-        subtitle: '320 € — échéance dépassée',
-        icon: <MaterialCommunityIcons name="cash-multiple" size={18} color={Palette.green} />,
-        tint: Palette.green,
-        background: Palette.greenSoft,
-      },
-    ],
-  },
-  {
-    title: 'Administratif',
-    items: [
-      {
-        title: 'Mettre à jour l’attestation d’assurance',
-        subtitle: 'Expire le 30 juin',
-        icon: <Feather name="shield" size={18} color={Palette.blue} />,
-        tint: Palette.blue,
-        background: Palette.blueSoft,
-      },
-    ],
-  },
-  {
-    title: 'Messages',
-    items: [
-      {
-        title: 'Nouveau message de Mme Garnier',
-        subtitle: 'Demande de devis climatisation',
-        icon: <Feather name="message-square" size={18} color={Palette.purple} />,
-        tint: Palette.purple,
-        background: Palette.purpleSoft,
-      },
-    ],
-  },
-];
-
-function ActionRow({ item }: { item: Item }) {
   return (
-    <Pressable style={styles.row}>
-      <View style={[styles.rowIcon, { backgroundColor: item.background }]}>{item.icon}</View>
+    <PressableScale style={styles.row} to={0.98} onPress={() => router.push(item.route as never)}>
+      <View style={[styles.rowIcon, { backgroundColor: tint.soft }]}>
+        <IconComponent name={item.icon.name as never} size={18} color={tint.color} />
+      </View>
       <View style={styles.rowText}>
         <Text style={styles.rowTitle} numberOfLines={2} ellipsizeMode="tail">
           {item.title}
@@ -114,42 +39,62 @@ function ActionRow({ item }: { item: Item }) {
         </Text>
       </View>
       <Feather name="chevron-right" size={20} color={Palette.textTertiary} />
-    </Pressable>
+    </PressableScale>
+  );
+}
+
+function RappelsSkeleton() {
+  return (
+    <View style={{ gap: Spacing.lg }}>
+      {[0, 1, 2].map((i) => (
+        <SkeletonBlock key={i} height={70} radius={24} />
+      ))}
+    </View>
   );
 }
 
 export default function RappelsScreen() {
   const router = useRouter();
+  const fetchSections = useCallback(() => listReminderSections(), []);
+  const { data: sections, status, refresh } = useAsyncList<ReminderSection>(fetchSections);
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <View style={styles.header}>
-          <Pressable style={styles.backButton} hitSlop={8} onPress={() => router.back()}>
+          <PressableScale style={styles.backButton} to={0.9} onPress={() => router.back()} accessibilityLabel="Retour">
             <Feather name="chevron-left" size={24} color={Palette.textPrimary} />
-          </Pressable>
+          </PressableScale>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Rappels</Text>
             <Text style={styles.headerSubtitle}>Tout ce qui nécessite votre attention</Text>
           </View>
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}>
-          {SECTIONS.map((section) => (
-            <View key={section.title} style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <View style={styles.card}>
-                {section.items.map((item, index) => (
-                  <View key={item.title}>
-                    {index > 0 ? <View style={styles.separator} /> : null}
-                    <ActionRow item={item} />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          {status === 'loading' ? (
+            <RappelsSkeleton />
+          ) : status === 'error' ? (
+            <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+          ) : sections.every((s) => s.items.length === 0) ? (
+            <EmptyState icon="check-circle" title="Rien à signaler" subtitle="Vous êtes à jour sur tout." />
+          ) : (
+            sections.map((section) =>
+              section.items.length > 0 ? (
+                <View key={section.title} style={styles.section}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <View style={styles.card}>
+                    {section.items.map((item, index) => (
+                      <View key={item.id}>
+                        {index > 0 ? <View style={styles.separator} /> : null}
+                        <ActionRow item={item} />
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            </View>
-          ))}
+                </View>
+              ) : null
+            )
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>

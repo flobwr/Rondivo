@@ -11,7 +11,7 @@ const TUTORIELS: AccordionItem[] = [
   {
     key: 'planning',
     question: 'Organiser sa journée avec le Planning',
-    answer: 'Le Planning affiche vos interventions du jour dans l’ordre, avec le temps de trajet estimé jusqu’au prochain rendez-vous — utile pour partir à l’heure.',
+    answer: 'Le Planning affiche vos interventions du jour dans l’ordre, avec le temps de trajet estimé jusqu’à la prochaine intervention — utile pour partir à l’heure.',
   },
   {
     key: 'catalogue',

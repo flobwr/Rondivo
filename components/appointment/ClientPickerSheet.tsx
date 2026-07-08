@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { type Client } from '@/components/clients/types';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { queryClients } from '@/data/clients';
+import { queryClients } from '@/services/clients';
 import { PressableScale } from './AppointmentUI';
 
 type Props = {

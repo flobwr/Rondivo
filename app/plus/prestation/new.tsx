@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,15 +9,16 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
 import { FontSize, Palette, Spacing } from '@/constants/design';
+import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createPrestation,
   deletePrestation,
-  getPrestationById,
+  getPrestation,
   PRESTATION_UNIT_LABEL,
   PRESTATION_UNIT_ORDER,
   type PrestationUnit,
   updatePrestation,
-} from '@/data/plus/prestations';
+} from '@/services/plus/prestations';
 
 const UNIT_OPTIONS: PickerOption[] = PRESTATION_UNIT_ORDER.map((unit) => ({
   key: unit,
@@ -28,31 +29,52 @@ const UNIT_OPTIONS: PickerOption[] = PRESTATION_UNIT_ORDER.map((unit) => ({
 export default function NewPrestationScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getPrestationById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [name, setName] = useState(editing?.name ?? '');
-  const [unitPrice, setUnitPrice] = useState(editing ? String(editing.unitPrice) : '');
-  const [unit, setUnit] = useState<PrestationUnit>(editing?.unit ?? 'heure');
+  const fetchEditing = useCallback(() => (editId ? getPrestation(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = name.trim().length > 0 && unitPrice.trim().length > 0;
+  const [name, setName] = useState('');
+  const [unitPrice, setUnitPrice] = useState('');
+  const [unit, setUnit] = useState<PrestationUnit>('heure');
+  const [initialized, setInitialized] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (editing && !initialized) {
+      setName(editing.name);
+      setUnitPrice(String(editing.unitPrice));
+      setUnit(editing.unit);
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const [submitting, setSubmitting] = useState(false);
+  const canSubmit = name.trim().length > 0 && unitPrice.trim().length > 0 && !submitting;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
     const input = { name: name.trim(), unitPrice: Number(unitPrice.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0, unit };
-    if (isEditing) {
-      updatePrestation(editing!.id, input);
-    } else {
-      createPrestation(input);
+    setSubmitting(true);
+    try {
+      if (isEditing && editing) {
+        await updatePrestation(editing.id, input);
+      } else {
+        await createPrestation(input);
+      }
+      router.back();
+    } catch {
+      Alert.alert('Échec de l’enregistrement', 'Veuillez réessayer.');
+    } finally {
+      setSubmitting(false);
     }
-    router.back();
   };
 
   const handleDelete = () => {
     if (!editing) return;
     Alert.alert('Supprimer cette prestation', `Supprimer définitivement ${editing.name} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deletePrestation(editing.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deletePrestation(editing.id); router.back(); } },
     ]);
   };
 
@@ -67,29 +89,32 @@ export default function NewPrestationScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <FormSection title="Prestation" icon="layers">
-              <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. Main d’œuvre chauffagiste" />
-              <FormField label="Prix unitaire (€)" value={unitPrice} onChangeText={setUnitPrice} placeholder="0" keyboardType="decimal-pad" />
-              <PickerField label="Unité" value={UNIT_OPTIONS.find((o) => o.key === unit)} options={UNIT_OPTIONS} onSelect={(k) => setUnit(k as PrestationUnit)} />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <FormSection title="Prestation" icon="layers">
+                <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. Main d’œuvre chauffagiste" />
+                <FormField label="Prix unitaire (€)" value={unitPrice} onChangeText={setUnitPrice} placeholder="0" keyboardType="decimal-pad" />
+                <PickerField label="Unité" value={UNIT_OPTIONS.find((o) => o.key === unit)} options={UNIT_OPTIONS} onSelect={(k) => setUnit(k as PrestationUnit)} />
+              </FormSection>
 
-            {isEditing ? (
-              <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette prestation">
-                <Text style={styles.deleteText}>Supprimer cette prestation</Text>
-              </PressableScale>
-            ) : null}
+              {isEditing ? (
+                <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette prestation">
+                  <Text style={styles.deleteText}>Supprimer cette prestation</Text>
+                </PressableScale>
+              ) : null}
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Créer la prestation'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={submitting}
       />
     </View>
   );

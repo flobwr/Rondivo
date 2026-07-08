@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +10,9 @@ import { PressableScale, IconTile } from '@/components/documents/shared/primitiv
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { formatNoteDate, Note, NOTES } from '@/data/notes';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { useAsyncList } from '@/hooks/use-async-list';
+import { formatNoteDate, listNotes, Note } from '@/services/notes';
 
 function NoteRow({ note, onPress }: { note: Note; onPress: () => void }) {
   return (
@@ -35,16 +36,9 @@ function NoteRow({ note, onPress }: { note: Note; onPress: () => void }) {
 export default function NotesScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const [allNotes, setAllNotes] = useState<Note[]>(() => [...NOTES]);
 
-  // Notes are created/edited/deleted on a separate pushed screen (note/new),
-  // which stays mounted underneath — refresh our snapshot whenever this list
-  // regains focus so saves are reflected immediately.
-  useFocusEffect(
-    useCallback(() => {
-      setAllNotes([...NOTES]);
-    }, [])
-  );
+  const fetchNotes = useCallback(() => listNotes(), []);
+  const { data: allNotes, status, refresh } = useAsyncList<Note>(fetchNotes);
 
   const notes = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -62,7 +56,15 @@ export default function NotesScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher une note…" />
 
-          {notes.length > 0 ? (
+          {status === 'loading' ? (
+            <View style={{ gap: Spacing.lg }}>
+              <SkeletonBlock height={72} radius={24} />
+              <SkeletonBlock height={72} radius={24} />
+              <SkeletonBlock height={72} radius={24} />
+            </View>
+          ) : status === 'error' ? (
+            <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+          ) : notes.length > 0 ? (
             <View style={styles.card}>
               {notes.map((note, index) => (
                 <View key={note.id}>
@@ -83,7 +85,7 @@ export default function NotesScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={0} />
+      <BottomNav activeIndex={-1} />
     </View>
   );
 }

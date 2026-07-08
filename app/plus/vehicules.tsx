@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,17 +9,19 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
 import { Palette, Spacing } from '@/constants/design';
 import { formatShortDate } from '@/data/documents/date-utils';
+import { useAsyncList } from '@/hooks/use-async-list';
 import {
   VEHICLE_STATUS_META,
   VEHICLE_STATUS_ORDER,
   VEHICLE_TYPE_LABEL,
-  VEHICLES,
   Vehicle,
   VehicleStatus,
-} from '@/data/plus/vehicles';
+  listVehicles,
+} from '@/services/plus/vehicles';
 
 function normalize(text: string) {
   return text
@@ -34,24 +36,27 @@ export default function VehiculesScreen() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<VehicleStatus | null>(null);
 
+  const fetchVehicles = useCallback(() => listVehicles(), []);
+  const { data: vehicles, status: loadStatus, refresh } = useAsyncList<Vehicle>(fetchVehicles);
+
   const counts = useMemo(() => {
     const c = { disponible: 0, 'en-intervention': 0, maintenance: 0 } as Record<VehicleStatus, number>;
-    for (const v of VEHICLES) c[v.status] += 1;
+    for (const v of vehicles) c[v.status] += 1;
     return c;
-  }, []);
+  }, [vehicles]);
 
   const filtered = useMemo(() => {
-    let list = VEHICLES;
+    let list = vehicles;
     if (status) list = list.filter((v) => v.status === status);
     if (search.trim()) {
       const q = normalize(search);
       list = list.filter((v) => normalize(v.name).includes(q) || normalize(v.plate).includes(q));
     }
     return list;
-  }, [status, search]);
+  }, [vehicles, status, search]);
 
   const chipDefs: ChipDef[] = [
-    { key: 'all', label: 'Tous', count: VEHICLES.length, color: Palette.blue },
+    { key: 'all', label: 'Tous', count: vehicles.length, color: Palette.blue },
     ...VEHICLE_STATUS_ORDER.map((s) => ({ key: s, label: VEHICLE_STATUS_META[s].label, count: counts[s], color: VEHICLE_STATUS_META[s].color })),
   ];
 
@@ -78,46 +83,55 @@ export default function VehiculesScreen() {
           <FilterChips defs={chipDefs} activeKey={status} onSelect={(k) => setStatus(k as VehicleStatus | null)} />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(v) => v.id}
-          renderItem={({ item, index }) => (
-            <FadeInItem index={index}>
-              <EntityCard
+        {loadStatus === 'loading' ? (
+          <View style={[styles.list, { gap: Spacing.md }]}>
+            <SkeletonBlock height={90} radius={18} />
+            <SkeletonBlock height={90} radius={18} />
+          </View>
+        ) : loadStatus === 'error' ? (
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(v) => v.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <EntityCard
+                  icon="truck"
+                  title={item.name}
+                  subtitle={`${VEHICLE_TYPE_LABEL[item.type]} · ${item.plate}`}
+                  meta={`${item.mileage.toLocaleString('fr-FR')} km${
+                    item.nextServiceDate ? ` · Entretien ${formatShortDate(item.nextServiceDate)}` : ''
+                  }`}
+                  statusLabel={VEHICLE_STATUS_META[item.status].label}
+                  statusColor={VEHICLE_STATUS_META[item.status].color}
+                  statusSoft={VEHICLE_STATUS_META[item.status].soft}
+                  onPress={() => handleOpen(item)}
+                />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <View style={styles.summaryWrap}>
+                <Text style={styles.count}>
+                  {filtered.length} véhicule{filtered.length > 1 ? 's' : ''}
+                  {summary ? <Text style={styles.summary}> · {summary}</Text> : null}
+                </Text>
+              </View>
+            }
+            ListEmptyComponent={
+              <EmptyState
                 icon="truck"
-                title={item.name}
-                subtitle={`${VEHICLE_TYPE_LABEL[item.type]} · ${item.plate}`}
-                meta={`${item.mileage.toLocaleString('fr-FR')} km${
-                  item.nextServiceDate ? ` · Entretien ${formatShortDate(item.nextServiceDate)}` : ''
-                }`}
-                statusLabel={VEHICLE_STATUS_META[item.status].label}
-                statusColor={VEHICLE_STATUS_META[item.status].color}
-                statusSoft={VEHICLE_STATUS_META[item.status].soft}
-                onPress={() => handleOpen(item)}
+                title="Aucun véhicule"
+                subtitle={isFiltering ? 'Aucun véhicule ne correspond à votre recherche.' : 'Ajoutez votre premier véhicule pour commencer.'}
+                actionLabel={isFiltering ? undefined : 'Ajouter un véhicule'}
+                onAction={isFiltering ? undefined : handleAdd}
               />
-            </FadeInItem>
-          )}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <View style={styles.summaryWrap}>
-              <Text style={styles.count}>
-                {filtered.length} véhicule{filtered.length > 1 ? 's' : ''}
-                {summary ? <Text style={styles.summary}> · {summary}</Text> : null}
-              </Text>
-            </View>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="truck"
-              title="Aucun véhicule"
-              subtitle={isFiltering ? 'Aucun véhicule ne correspond à votre recherche.' : 'Ajoutez votre premier véhicule pour commencer.'}
-              actionLabel={isFiltering ? undefined : 'Ajouter un véhicule'}
-              onAction={isFiltering ? undefined : handleAdd}
-            />
-          }
-        />
+            }
+          />
+        )}
       </SafeAreaView>
 
       <BottomNav activeIndex={4} />

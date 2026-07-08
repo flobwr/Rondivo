@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,16 +9,18 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
 import { Palette, Spacing } from '@/constants/design';
+import { useAsyncList } from '@/hooks/use-async-list';
 import {
-  MATERIEL,
   MATERIEL_CATEGORY_LABEL,
   MATERIEL_CONDITION_META,
   MATERIEL_CONDITION_ORDER,
   MaterielCondition,
   MaterielItem,
-} from '@/data/plus/materiel';
+  listMateriel,
+} from '@/services/plus/materiel';
 
 const CATEGORY_ICON = {
   'outillage-electroportatif': 'tool',
@@ -41,11 +43,14 @@ export default function MaterielScreen() {
   const [search, setSearch] = useState('');
   const [condition, setCondition] = useState<MaterielCondition | null>(null);
 
+  const fetchMateriel = useCallback(() => listMateriel(), []);
+  const { data: MATERIEL, status: loadStatus, refresh } = useAsyncList<MaterielItem>(fetchMateriel);
+
   const counts = useMemo(() => {
     const c = { 'bon-etat': 0, 'a-reviser': 0, 'hors-service': 0 } as Record<MaterielCondition, number>;
     for (const m of MATERIEL) c[m.condition] += 1;
     return c;
-  }, []);
+  }, [MATERIEL]);
 
   const filtered = useMemo(() => {
     let list = MATERIEL;
@@ -55,7 +60,7 @@ export default function MaterielScreen() {
       list = list.filter((m) => normalize(m.name).includes(q) || normalize(m.location).includes(q));
     }
     return list;
-  }, [condition, search]);
+  }, [MATERIEL, condition, search]);
 
   const chipDefs: ChipDef[] = [
     { key: 'all', label: 'Tous', count: MATERIEL.length, color: Palette.blue },
@@ -84,40 +89,50 @@ export default function MaterielScreen() {
           <FilterChips defs={chipDefs} activeKey={condition} onSelect={(k) => setCondition(k as MaterielCondition | null)} />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(m) => m.id}
-          renderItem={({ item, index }) => (
-            <FadeInItem index={index}>
-              <EntityCard
-                icon={CATEGORY_ICON[item.category]}
-                title={item.name}
-                subtitle={`${MATERIEL_CATEGORY_LABEL[item.category]} · ${item.location}`}
-                statusLabel={MATERIEL_CONDITION_META[item.condition].label}
-                statusColor={MATERIEL_CONDITION_META[item.condition].color}
-                statusSoft={MATERIEL_CONDITION_META[item.condition].soft}
-                onPress={() => handleOpen(item)}
+        {loadStatus === 'loading' ? (
+          <View style={[styles.list, { gap: Spacing.md }]}>
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+          </View>
+        ) : loadStatus === 'error' ? (
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(m) => m.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <EntityCard
+                  icon={CATEGORY_ICON[item.category]}
+                  title={item.name}
+                  subtitle={`${MATERIEL_CATEGORY_LABEL[item.category]} · ${item.location}`}
+                  statusLabel={MATERIEL_CONDITION_META[item.condition].label}
+                  statusColor={MATERIEL_CONDITION_META[item.condition].color}
+                  statusSoft={MATERIEL_CONDITION_META[item.condition].soft}
+                  onPress={() => handleOpen(item)}
+                />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} élément{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon="tool"
+                title="Aucun matériel"
+                subtitle={isFiltering ? 'Aucun matériel ne correspond à votre recherche.' : 'Ajoutez votre premier équipement pour commencer.'}
+                actionLabel={isFiltering ? undefined : 'Ajouter du matériel'}
+                onAction={isFiltering ? undefined : handleAdd}
               />
-            </FadeInItem>
-          )}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} élément{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="tool"
-              title="Aucun matériel"
-              subtitle={isFiltering ? 'Aucun matériel ne correspond à votre recherche.' : 'Ajoutez votre premier équipement pour commencer.'}
-              actionLabel={isFiltering ? undefined : 'Ajouter du matériel'}
-              onAction={isFiltering ? undefined : handleAdd}
-            />
-          }
-        />
+            }
+          />
+        )}
       </SafeAreaView>
 
       <BottomNav activeIndex={4} />

@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter, type Href } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius } from '@/constants/design';
+import { Palette, Radius, type PaletteShape } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
@@ -16,16 +16,18 @@ type Action = {
   route?: Href;
 };
 
-const ACTIONS: Action[] = [
-  { label: 'Nouveau document', icon: 'file-plus', color: Palette.blue, background: Palette.blueSoft },
-  { label: 'Nouveau client', icon: 'user-plus', color: Palette.orange, background: Palette.orangeSoft, route: '/client/new' },
-  { label: 'Notes', icon: 'message-square', color: Palette.purple, background: Palette.purpleSoft, route: '/notes' },
-  { label: 'Tâches', icon: 'check-square', color: Palette.green, background: Palette.greenSoft, route: '/tasks' },
-];
+function buildActions(palette: PaletteShape): Action[] {
+  return [
+    { label: 'Nouveau document', icon: 'file-plus', color: palette.blue, background: palette.blueSoft },
+    { label: 'Nouveau client', icon: 'user-plus', color: palette.orange, background: palette.orangeSoft, route: '/client/new' },
+    { label: 'Notes', icon: 'message-square', color: palette.purple, background: palette.purpleSoft, route: '/notes' },
+    { label: 'Tâches', icon: 'check-square', color: palette.green, background: palette.greenSoft, route: '/tasks' },
+  ];
+}
 
-type ActionCardProps = Action & { onNewDocument: () => void };
+type ActionCardProps = Action & { onNewDocument: () => void; styles: ReturnType<typeof createStyles> };
 
-function ActionCard({ label, icon, color, background, route, onNewDocument }: ActionCardProps) {
+function ActionCard({ label, icon, color, background, route, onNewDocument, styles }: ActionCardProps) {
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -66,11 +68,21 @@ function ActionCard({ label, icon, color, background, route, onNewDocument }: Ac
   );
 }
 
-export function QuickActions({ onNewDocument }: { onNewDocument: () => void }) {
+export function QuickActions({
+  onNewDocument,
+  palette = Palette,
+}: {
+  onNewDocument: () => void;
+  /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
+  palette?: PaletteShape;
+}) {
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const actions = useMemo(() => buildActions(palette), [palette]);
+
   return (
     <View style={styles.row}>
-      {ACTIONS.map((action) => (
-        <ActionCard key={action.label} {...action} onNewDocument={onNewDocument} />
+      {actions.map((action) => (
+        <ActionCard key={action.label} {...action} onNewDocument={onNewDocument} styles={styles} />
       ))}
     </View>
   );
@@ -80,38 +92,40 @@ const TILE = 36;
 const TILE_RADIUS = 12;
 const ICON_SIZE = 17;
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  wrapper: {
-    flex: 1,
-  },
-  card: {
-    backgroundColor: Palette.cardMuted,
-    borderRadius: Radius.tile,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E8EF',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    gap: 7,
-    ...actionShadow,
-  },
-  iconTile: {
-    width: TILE,
-    height: TILE,
-    borderRadius: TILE_RADIUS,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Palette.textPrimary,
-    letterSpacing: -0.1,
-    lineHeight: 17,
-    textAlign: 'center',
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    wrapper: {
+      flex: 1,
+    },
+    card: {
+      backgroundColor: Palette.cardMuted,
+      borderRadius: Radius.tile,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
+      paddingVertical: 12,
+      paddingHorizontal: 4,
+      alignItems: 'center',
+      gap: 7,
+      ...actionShadow,
+    },
+    iconTile: {
+      width: TILE,
+      height: TILE,
+      borderRadius: TILE_RADIUS,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: Palette.textPrimary,
+      letterSpacing: -0.1,
+      lineHeight: 17,
+      textAlign: 'center',
+    },
+  });
+}

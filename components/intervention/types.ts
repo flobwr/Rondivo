@@ -1,26 +1,14 @@
 import { Feather } from '@expo/vector-icons';
-import { ImageSourcePropType } from 'react-native';
 
 export type InterventionStatus = 'planifiee' | 'enCours' | 'terminee' | 'annulee';
 
 export type Priority = 'basse' | 'normale' | 'haute';
-
-// 'pendant' exists for the future Avant/Pendant/Après tagging flow — not yet
-// assignable from the UI, but PhotosCard and the gallery already render it
-// correctly the day a category picker ships.
-export type PhotoCategory = 'avant' | 'pendant' | 'apres' | 'document';
 
 export type Equipment = {
   id: string;
   name: string;
   detail: string;
   icon: React.ComponentProps<typeof Feather>['name'];
-};
-
-export type Photo = {
-  id: string;
-  source: ImageSourcePropType;
-  category?: PhotoCategory;
 };
 
 export type MaterialItem = {
@@ -87,7 +75,6 @@ export type Intervention = {
   notes: string[];
   priority: Priority;
   equipment: Equipment[];
-  photos: Photo[];
   material: MaterialItem[];
   reportNote: string;
   hasVoiceNote: boolean;

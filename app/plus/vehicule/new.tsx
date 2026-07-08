@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
@@ -10,10 +10,12 @@ import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/St
 import { formatIsoToFr, parseFrDateToIso } from '@/components/plus/resource/date-input';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
 import { Palette, Spacing } from '@/constants/design';
-import { EMPLOYEES } from '@/data/plus/employees';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { useAsyncList } from '@/hooks/use-async-list';
+import { listEmployees, type Employee } from '@/services/plus/employees';
 import {
   createVehicle,
-  getVehicleById,
+  getVehicle,
   updateVehicle,
   VEHICLE_STATUS_META,
   VEHICLE_STATUS_ORDER,
@@ -21,7 +23,7 @@ import {
   VEHICLE_TYPE_ORDER,
   type VehicleStatus,
   type VehicleType,
-} from '@/data/plus/vehicles';
+} from '@/services/plus/vehicles';
 
 const TYPE_OPTIONS: PickerOption[] = VEHICLE_TYPE_ORDER.map((type) => ({
   key: type,
@@ -36,30 +38,49 @@ const STATUS_OPTIONS: PickerOption[] = VEHICLE_STATUS_ORDER.map((status) => ({
 }));
 
 const UNASSIGNED = 'none';
-const ASSIGNEE_OPTIONS: PickerOption[] = [
-  { key: UNASSIGNED, label: 'Non assigné', icon: 'user-x' },
-  ...EMPLOYEES.map((e) => ({ key: e.id, label: e.name, icon: 'user' as const })),
-];
 
 export default function NewVehiculeScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getVehicleById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [name, setName] = useState(editing?.name ?? '');
-  const [plate, setPlate] = useState(editing?.plate ?? '');
-  const [type, setType] = useState<VehicleType>(editing?.type ?? 'utilitaire');
-  const [status, setStatus] = useState<VehicleStatus>(editing?.status ?? 'disponible');
-  const [assignedToId, setAssignedToId] = useState(editing?.assignedToId ?? UNASSIGNED);
-  const [mileage, setMileage] = useState(editing ? String(editing.mileage) : '');
-  const [nextServiceDate, setNextServiceDate] = useState(
-    editing?.nextServiceDate ? formatIsoToFr(editing.nextServiceDate) : ''
-  );
+  const fetchEditing = useCallback(() => (editId ? getVehicle(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = name.trim().length > 0 && plate.trim().length > 0;
+  const fetchEmployees = useCallback(() => listEmployees(), []);
+  const { data: employees } = useAsyncList<Employee>(fetchEmployees);
+  const ASSIGNEE_OPTIONS: PickerOption[] = [
+    { key: UNASSIGNED, label: 'Non assigné', icon: 'user-x' },
+    ...employees.map((e) => ({ key: e.id, label: e.name, icon: 'user' as const })),
+  ];
 
-  const handleSubmit = () => {
+  const [name, setName] = useState('');
+  const [plate, setPlate] = useState('');
+  const [type, setType] = useState<VehicleType>('utilitaire');
+  const [status, setStatus] = useState<VehicleStatus>('disponible');
+  const [assignedToId, setAssignedToId] = useState(UNASSIGNED);
+  const [mileage, setMileage] = useState('');
+  const [nextServiceDate, setNextServiceDate] = useState('');
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (editing && !initialized) {
+      setName(editing.name);
+      setPlate(editing.plate);
+      setType(editing.type);
+      setStatus(editing.status);
+      setAssignedToId(editing.assignedToId ?? UNASSIGNED);
+      setMileage(String(editing.mileage));
+      setNextServiceDate(editing.nextServiceDate ? formatIsoToFr(editing.nextServiceDate) : '');
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const [submitting, setSubmitting] = useState(false);
+  const canSubmit = name.trim().length > 0 && plate.trim().length > 0 && !submitting;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
     const input = {
       name: name.trim(),
@@ -70,12 +91,19 @@ export default function NewVehiculeScreen() {
       mileage: Number(mileage.replace(/\D/g, '')) || 0,
       nextServiceDate: parseFrDateToIso(nextServiceDate) ?? undefined,
     };
-    if (isEditing) {
-      updateVehicle(editing!.id, input);
-      router.back();
-    } else {
-      const created = createVehicle(input);
-      router.replace(`/plus/vehicule/${created.id}` as never);
+    setSubmitting(true);
+    try {
+      if (isEditing && editing) {
+        await updateVehicle(editing.id, input);
+        router.back();
+      } else {
+        const created = await createVehicle(input);
+        router.replace(`/plus/vehicule/${created.id}` as never);
+      }
+    } catch {
+      Alert.alert('Échec de l’enregistrement', 'Veuillez réessayer.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -90,38 +118,41 @@ export default function NewVehiculeScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            <FormSection title="Véhicule" icon="truck">
-              <FormField label="Nom / modèle" value={name} onChangeText={setName} placeholder="Ex. Renault Trafic" />
-              <FormField label="Immatriculation" value={plate} onChangeText={setPlate} placeholder="AA-123-BB" />
-              <PickerField label="Type" value={TYPE_OPTIONS.find((o) => o.key === type)} options={TYPE_OPTIONS} onSelect={(k) => setType(k as VehicleType)} />
-              <PickerField label="Statut" value={STATUS_OPTIONS.find((o) => o.key === status)} options={STATUS_OPTIONS} onSelect={(k) => setStatus(k as VehicleStatus)} />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled">
+              <FormSection title="Véhicule" icon="truck">
+                <FormField label="Nom / modèle" value={name} onChangeText={setName} placeholder="Ex. Renault Trafic" />
+                <FormField label="Immatriculation" value={plate} onChangeText={setPlate} placeholder="AA-123-BB" />
+                <PickerField label="Type" value={TYPE_OPTIONS.find((o) => o.key === type)} options={TYPE_OPTIONS} onSelect={(k) => setType(k as VehicleType)} />
+                <PickerField label="Statut" value={STATUS_OPTIONS.find((o) => o.key === status)} options={STATUS_OPTIONS} onSelect={(k) => setStatus(k as VehicleStatus)} />
+              </FormSection>
 
-            <FormSection title="Suivi" icon="clipboard">
-              <PickerField
-                label="Assigné à"
-                value={ASSIGNEE_OPTIONS.find((o) => o.key === assignedToId)}
-                options={ASSIGNEE_OPTIONS}
-                onSelect={setAssignedToId}
-              />
-              <FormField label="Kilométrage" value={mileage} onChangeText={setMileage} placeholder="0" keyboardType="number-pad" />
-              <FormField label="Prochain entretien" value={nextServiceDate} onChangeText={setNextServiceDate} placeholder="JJ/MM/AAAA" />
-            </FormSection>
+              <FormSection title="Suivi" icon="clipboard">
+                <PickerField
+                  label="Assigné à"
+                  value={ASSIGNEE_OPTIONS.find((o) => o.key === assignedToId)}
+                  options={ASSIGNEE_OPTIONS}
+                  onSelect={setAssignedToId}
+                />
+                <FormField label="Kilométrage" value={mileage} onChangeText={setMileage} placeholder="0" keyboardType="number-pad" />
+                <FormField label="Prochain entretien" value={nextServiceDate} onChangeText={setNextServiceDate} placeholder="JJ/MM/AAAA" />
+              </FormSection>
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Créer le véhicule'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={submitting}
       />
     </View>
   );

@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, SectionCard } from '@/components/documents/shared/primitives';
@@ -17,6 +18,7 @@ import { formatLongDate } from '@/data/documents/date-utils';
 import { buildSendMessage } from '@/data/documents/messaging';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { CONTRAT_STATUS_META, MOCK_CONTRATS } from '@/data/documents/contrats';
+import { deleteContrat, updateContrat } from '@/services/documents/contrats';
 
 export default function ContratDetailScreen() {
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function ContratDetailScreen() {
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
           <DetailHeader title="Contrat" onBack={() => router.back()} />
-          <Text style={styles.notFound}>Contrat introuvable.</Text>
+          <EmptyState icon="alert-circle" title="Contrat introuvable" subtitle="Ce contrat n’existe pas ou a été supprimé." />
         </SafeAreaView>
       </View>
     );
@@ -41,19 +43,31 @@ export default function ContratDetailScreen() {
   const contrat = { ...source, status };
   const meta = CONTRAT_STATUS_META[status];
   const client = getClientById(contrat.clientId);
-  const soon = (feature: string) => Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
 
   const handleSign = () => {
     Alert.alert('Signature électronique', `Confirmer la signature de ${contrat.clientName} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', onPress: () => setStatus('signe') },
+      {
+        text: 'Confirmer',
+        onPress: () => {
+          setStatus('signe');
+          updateContrat(contrat.id, { status: 'signe' });
+        },
+      },
     ]);
   };
 
   const handleDelete = () => {
     Alert.alert('Supprimer le contrat', `Supprimer définitivement ${contrat.number} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => router.back() },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteContrat(contrat.id);
+          router.back();
+        },
+      },
     ]);
   };
 
@@ -79,7 +93,7 @@ export default function ContratDetailScreen() {
   ];
 
   const menuItems: ActionSheetItem[] = [
-    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => soon('Modifier le contrat') },
+    { key: 'edit', icon: 'edit-2', label: 'Modifier', onPress: () => router.push(`/contrat/new?editId=${contrat.id}` as never) },
     { key: 'delete', icon: 'trash-2', label: 'Supprimer', onPress: handleDelete, destructive: true },
   ];
 
@@ -141,7 +155,10 @@ export default function ContratDetailScreen() {
         note="Le PDF du contrat est disponible via le bouton PDF — le mail ne peut pas le joindre automatiquement."
         onClose={() => setComposerOpen(false)}
         onSent={() => {
-          if (status === 'brouillon') setStatus('enAttenteSignature');
+          if (status === 'brouillon') {
+            setStatus('enAttenteSignature');
+            updateContrat(contrat.id, { status: 'enAttenteSignature' });
+          }
         }}
       />
     </View>
@@ -178,11 +195,5 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Palette.textTertiary,
     letterSpacing: -0.1,
-  },
-  notFound: {
-    textAlign: 'center',
-    marginTop: 40,
-    color: Palette.textSecondary,
-    fontSize: 15,
   },
 });

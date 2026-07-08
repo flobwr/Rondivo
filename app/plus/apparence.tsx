@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,7 +6,8 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
 import { Palette, Spacing } from '@/constants/design';
-import { Appearance, SETTINGS, updateSettings } from '@/data/plus/settings';
+import { useTheme } from '@/contexts/theme';
+import { Appearance } from '@/services/plus/settings';
 
 const OPTIONS: SelectableOption<Appearance>[] = [
   { key: 'clair', label: 'Clair' },
@@ -17,12 +17,7 @@ const OPTIONS: SelectableOption<Appearance>[] = [
 
 export default function ApparenceScreen() {
   const router = useRouter();
-  const [appearance, setAppearance] = useState<Appearance>(SETTINGS.appearance);
-
-  const handleSelect = (key: Appearance) => {
-    setAppearance(key);
-    updateSettings({ appearance: key });
-  };
+  const { appearance, setAppearance } = useTheme();
 
   return (
     <View style={styles.root}>
@@ -31,7 +26,7 @@ export default function ApparenceScreen() {
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.intro}>Choisissez l’apparence de Rondivo sur cet appareil.</Text>
-          <SelectableList options={OPTIONS} selected={appearance} onSelect={handleSelect} />
+          <SelectableList options={OPTIONS} selected={appearance} onSelect={setAppearance} />
         </ScrollView>
       </SafeAreaView>
 

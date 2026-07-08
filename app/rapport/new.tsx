@@ -13,7 +13,8 @@ import { Palette, Spacing } from '@/constants/design';
 import { getClientById } from '@/data/clients';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
-import { MOCK_RAPPORTS } from '@/data/documents/rapports';
+import { MOCK_RAPPORTS, RapportInput } from '@/data/documents/rapports';
+import { createRapport, updateRapport } from '@/services/documents/rapports';
 
 function clientSubtitle(c: Client | null): string | undefined {
   if (!c) return undefined;
@@ -35,6 +36,7 @@ export default function NewRapportScreen() {
   const [intervention, setIntervention] = useState<PhotoIntervention | null>(null);
   const [interventionPickerOpen, setInterventionPickerOpen] = useState(false);
   const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const isEditing = !!editingRapport;
 
@@ -62,20 +64,45 @@ export default function NewRapportScreen() {
     setInterventionPickerOpen(false);
   };
 
-  const handleCreate = () => {
+  const buildRapportInput = (): RapportInput => ({
+    number: editingRapport?.number ?? `RA-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
+    interventionId: intervention?.id ?? editingRapport?.interventionId ?? '',
+    interventionLabel: intervention?.label ?? editingRapport?.interventionLabel ?? '',
+    clientId: client!.id,
+    clientName: client!.name,
+    date: editingRapport?.date ?? new Date().toISOString(),
+    status: editingRapport?.status ?? 'aCompleter',
+    notes: notes.trim() || undefined,
+    photosCount: editingRapport?.photosCount ?? 0,
+    checklist: editingRapport?.checklist ?? [],
+    materialUsed: editingRapport?.materialUsed ?? [],
+    timeSpentMinutes: editingRapport?.timeSpentMinutes ?? 0,
+    signed: editingRapport?.signed ?? false,
+  });
+
+  const handleCreate = async () => {
+    if (submitting) return;
     if (!client) {
       Alert.alert('Client requis', 'Choisissez un client pour créer le rapport.');
       return;
     }
-    if (isEditing) {
-      Alert.alert('Modifications enregistrées', `Le rapport ${editingRapport!.number} a bien été mis à jour.`, [
+    const input = buildRapportInput();
+    setSubmitting(true);
+    try {
+      if (isEditing && editingRapport) {
+        await updateRapport(editingRapport.id, input);
+        Alert.alert('Modifications enregistrées', `Le rapport ${editingRapport.number} a bien été mis à jour.`, [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+        return;
+      }
+      await createRapport(input);
+      Alert.alert('Rapport créé', `Le rapport pour ${client.name} a bien été créé.`, [
         { text: 'OK', onPress: () => router.back() },
       ]);
-      return;
+    } finally {
+      setSubmitting(false);
     }
-    Alert.alert('Rapport créé', `Le rapport pour ${client.name} a bien été créé.`, [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
   };
 
   return (
@@ -116,7 +143,11 @@ export default function NewRapportScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <StickyFormFooter label={isEditing ? 'Enregistrer les modifications' : 'Créer le rapport'} onPress={handleCreate} />
+      <StickyFormFooter
+        label={isEditing ? 'Enregistrer les modifications' : 'Créer le rapport'}
+        onPress={handleCreate}
+        loading={submitting}
+      />
 
       <ClientPickerSheet
         visible={clientPickerOpen}

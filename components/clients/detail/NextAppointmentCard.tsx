@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { type NextAppointment } from '@/data/client-details';
+import { type NextAppointment } from '@/services/client-details';
 import { PressableScale, TintIcon } from './primitives';
 
 type Props = {
@@ -19,11 +19,11 @@ export function NextAppointmentCard({ appointment, onOpen }: Props) {
   const shortDate = appointment.dateLabel.replace(/^\w+\s/, ''); // drop weekday word
 
   return (
-    <PressableScale onPress={onOpen} to={0.98} style={styles.card} accessibilityLabel="Ouvrir le rendez-vous dans le planning">
+    <PressableScale onPress={onOpen} to={0.98} style={styles.card} accessibilityLabel="Ouvrir l’intervention dans le planning">
       <TintIcon icon="calendar" tint="blue" size={38} />
 
       <View style={styles.texts}>
-        <Text style={styles.eyebrow}>PROCHAIN RENDEZ-VOUS</Text>
+        <Text style={styles.eyebrow}>PROCHAINE INTERVENTION</Text>
         <Text style={styles.title} numberOfLines={1}>
           {appointment.title}
         </Text>

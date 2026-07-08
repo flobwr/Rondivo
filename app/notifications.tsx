@@ -1,24 +1,26 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale } from '@/components/documents/shared/primitives';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
+import { useAsyncList } from '@/hooks/use-async-list';
 import {
   bucketOf,
-  clearRead,
-  markAllAsRead,
-  markAsRead,
-  NOTIFICATIONS,
+  clearReadNotifications,
+  listNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
   NotificationBucket,
   NotificationItem,
   removeNotification,
-} from '@/data/notifications';
+} from '@/services/notifications';
 import { NotificationRow } from '@/components/notifications/NotificationRow';
 
 const SECTION_META: Record<NotificationBucket, string> = {
@@ -31,7 +33,8 @@ const SECTION_ORDER: NotificationBucket[] = ['today', 'week', 'older'];
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const [items, setItems] = useState<NotificationItem[]>(() => [...NOTIFICATIONS]);
+  const fetchNotifications = useCallback(() => listNotifications(), []);
+  const { data: items, status, refresh, setData: setItems } = useAsyncList<NotificationItem>(fetchNotifications);
 
   const unreadCount = useMemo(() => items.filter((n) => !n.read).length, [items]);
   const readCount = useMemo(() => items.filter((n) => n.read).length, [items]);
@@ -46,12 +49,12 @@ export default function NotificationsScreen() {
 
   const handleMarkRead = (id: string) => {
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    markAsRead(id);
+    markNotificationAsRead(id);
   };
 
   const handleMarkAllRead = () => {
     setItems((prev) => prev.map((n) => ({ ...n, read: true })));
-    markAllAsRead();
+    markAllNotificationsAsRead();
   };
 
   const handleDelete = (id: string) => {
@@ -61,7 +64,7 @@ export default function NotificationsScreen() {
 
   const handleClearRead = () => {
     setItems((prev) => prev.filter((n) => !n.read));
-    clearRead();
+    clearReadNotifications();
   };
 
   return (
@@ -70,7 +73,14 @@ export default function NotificationsScreen() {
         <DetailHeader title="Notifications" onBack={() => router.back()} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          {items.length > 0 ? (
+          {status === 'loading' ? (
+            <View style={{ gap: Spacing.lg }}>
+              <SkeletonBlock height={72} radius={24} />
+              <SkeletonBlock height={72} radius={24} />
+            </View>
+          ) : status === 'error' ? (
+            <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+          ) : items.length > 0 ? (
             <>
               <View style={styles.toolbar}>
                 <Text style={styles.toolbarText}>

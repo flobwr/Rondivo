@@ -24,7 +24,7 @@ import { PhoneField } from '@/components/clients/new/PhoneField';
 import { DEFAULT_PHONE_COUNTRY, formatNational, toE164, type CountryCode } from '@/components/clients/new/phone-utils';
 import { FormInput } from '@/components/ui/FormInput';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { computeInitials, createClient, tintForName } from '@/data/clients';
+import { computeInitials, createClient, tintForName } from '@/services/clients';
 
 type EquipmentDraft = { id: string; name: string };
 

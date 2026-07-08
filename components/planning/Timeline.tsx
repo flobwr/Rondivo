@@ -3,6 +3,7 @@ import { memo, useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/design';
+import { openMapsTo } from '@/utils/openMaps';
 import { PlanningAppointmentCard } from './PlanningAppointmentCard';
 import { TravelCard } from './TravelCard';
 import { AppointmentStatus, DayItem } from './types';
@@ -37,6 +38,8 @@ type Row = {
   index: number;
   lineMode: LineMode;
   isLastRow: boolean;
+  /** Address of the appointment this travel leg leads to, if any. */
+  destinationAddress?: string;
 };
 
 // One row of the timeline. Each row paints its own rail segment over its full
@@ -69,11 +72,16 @@ const TimelineRow = function TimelineRow({
   const rowStyle = [styles.row, !isLastRow ? { paddingBottom: ROW_GAP } : null];
 
   if (item.kind === 'travel') {
+    const destination = row.destinationAddress;
     return (
       <View style={rowStyle}>
         <View style={styles.gutter}>{lineStyle ? <View style={[styles.line, lineStyle]} /> : null}</View>
         <View style={styles.content}>
-          <TravelCard travel={item.data} index={index} />
+          <TravelCard
+            travel={item.data}
+            index={index}
+            onNavigate={destination ? () => openMapsTo(destination) : undefined}
+          />
         </View>
       </View>
     );
@@ -117,7 +125,16 @@ export function Timeline({ items }: Props) {
       if (isFirstAppt && isLastAppt) lineMode = 'none';
       else if (isLastAppt) lineMode = 'capBottom';
       else if (isFirstAppt) lineMode = 'capTop';
-      return { item, index, lineMode, isLastRow: index === lastRow };
+
+      // A travel leg's destination is the next appointment in the day —
+      // the one this trip is actually taking the artisan to.
+      let destinationAddress: string | undefined;
+      if (item.kind === 'travel') {
+        const next = items.slice(index + 1).find((i) => i.kind === 'appointment');
+        destinationAddress = next?.kind === 'appointment' ? next.data.address : undefined;
+      }
+
+      return { item, index, lineMode, isLastRow: index === lastRow, destinationAddress };
     });
   }, [items]);
 

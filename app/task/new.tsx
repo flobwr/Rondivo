@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,7 +11,8 @@ import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/St
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
 import { Priority } from '@/components/intervention/types';
 import { FontSize, Palette, Spacing } from '@/constants/design';
-import { createTask, deleteTask, getTaskById, updateTask } from '@/data/tasks';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { createTask, deleteTask, getTask, updateTask } from '@/services/tasks';
 
 const PRIORITY_ORDER: Priority[] = ['basse', 'normale', 'haute'];
 
@@ -41,23 +42,39 @@ function dueDateToOption(dueDate?: string): DueOption {
 export default function NewTaskScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getTaskById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [title, setTitle] = useState(editing?.title ?? '');
-  const [notes, setNotes] = useState(editing?.notes ?? '');
-  const [due, setDue] = useState<DueOption>(dueDateToOption(editing?.dueDate));
-  const [priority, setPriority] = useState<Priority>(editing?.priority ?? 'normale');
+  const fetchEditing = useCallback(() => (editId ? getTask(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = title.trim().length > 0;
+  const [title, setTitle] = useState('');
+  const [notes, setNotes] = useState('');
+  const [due, setDue] = useState<DueOption>('none');
+  const [priority, setPriority] = useState<Priority>('normale');
+  const [initialized, setInitialized] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (editing && !initialized) {
+      setTitle(editing.title);
+      setNotes(editing.notes ?? '');
+      setDue(dueDateToOption(editing.dueDate));
+      setPriority(editing.priority);
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const canSubmit = title.trim().length > 0 && !saving;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
+    setSaving(true);
     const input = { title: title.trim(), notes: notes.trim() || undefined, dueDate: dueOptionToDate(due), priority };
-    if (isEditing) {
-      updateTask(editing!.id, input);
+    if (isEditing && editing) {
+      await updateTask(editing.id, input);
     } else {
-      createTask(input);
+      await createTask(input);
     }
     router.back();
   };
@@ -66,7 +83,7 @@ export default function NewTaskScreen() {
     if (!editing) return;
     Alert.alert('Supprimer cette tâche', `Supprimer définitivement "${editing.title}" ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteTask(editing.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteTask(editing.id); router.back(); } },
     ]);
   };
 
@@ -81,50 +98,53 @@ export default function NewTaskScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <FormSection title="Tâche" icon="check-square">
-              <FormField label="Titre" value={title} onChangeText={setTitle} placeholder="Ex. Commander la pièce" />
-              <FormField label="Notes (optionnel)" value={notes} onChangeText={setNotes} placeholder="Détails complémentaires…" multiline />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <FormSection title="Tâche" icon="check-square">
+                <FormField label="Titre" value={title} onChangeText={setTitle} placeholder="Ex. Commander la pièce" />
+                <FormField label="Notes (optionnel)" value={notes} onChangeText={setNotes} placeholder="Détails complémentaires…" multiline />
+              </FormSection>
 
-            <Field label="Échéance">
-              <ChipScroll>
-                {DUE_OPTIONS.map((option) => (
-                  <Chip key={option.key} label={option.label} active={due === option.key} onPress={() => setDue(option.key)} />
-                ))}
-              </ChipScroll>
-            </Field>
+              <Field label="Échéance">
+                <ChipScroll>
+                  {DUE_OPTIONS.map((option) => (
+                    <Chip key={option.key} label={option.label} active={due === option.key} onPress={() => setDue(option.key)} />
+                  ))}
+                </ChipScroll>
+              </Field>
 
-            <Field label="Priorité">
-              <ChipScroll>
-                {PRIORITY_ORDER.map((p) => (
-                  <Chip
-                    key={p}
-                    label={PRIORITY_CONFIG[p].shortLabel}
-                    active={priority === p}
-                    onPress={() => setPriority(p)}
-                    accent={PRIORITY_CONFIG[p].color}
-                  />
-                ))}
-              </ChipScroll>
-            </Field>
+              <Field label="Priorité">
+                <ChipScroll>
+                  {PRIORITY_ORDER.map((p) => (
+                    <Chip
+                      key={p}
+                      label={PRIORITY_CONFIG[p].shortLabel}
+                      active={priority === p}
+                      onPress={() => setPriority(p)}
+                      accent={PRIORITY_CONFIG[p].color}
+                    />
+                  ))}
+                </ChipScroll>
+              </Field>
 
-            {isEditing ? (
-              <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette tâche">
-                <Text style={styles.deleteText}>Supprimer cette tâche</Text>
-              </PressableScale>
-            ) : null}
+              {isEditing ? (
+                <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette tâche">
+                  <Text style={styles.deleteText}>Supprimer cette tâche</Text>
+                </PressableScale>
+              ) : null}
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Créer la tâche'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={saving}
       />
     </View>
   );

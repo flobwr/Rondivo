@@ -36,7 +36,9 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
           hitSlop={6}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          onPress={onAdd}>
+          onPress={onAdd}
+          accessibilityRole="button"
+          accessibilityLabel="Nouvelle intervention">
           <Feather name="plus" size={22} color={Palette.blue} />
         </Pressable>
       </Animated.View>

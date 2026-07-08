@@ -23,7 +23,7 @@ export const DEVIS_STATUS_META: Record<DevisStatus, { label: string; color: stri
   brouillon: { label: 'Brouillon', color: Palette.textSecondary, soft: Palette.cardMuted },
   envoye: { label: 'Envoyé', color: Palette.blue, soft: Palette.blueSoft },
   vu: { label: 'Vu', color: Palette.purple, soft: Palette.purpleSoft },
-  accepte: { label: 'Accepté', color: Palette.green, soft: Palette.greenSoft },
+  accepte: { label: 'Accepté', color: Palette.greenInk, soft: Palette.greenSoft },
   refuse: { label: 'Refusé', color: DocumentsTone.red.color, soft: DocumentsTone.red.soft },
   expire: { label: 'Expiré', color: DocumentsTone.orange.color, soft: DocumentsTone.orange.soft },
 };
@@ -200,4 +200,33 @@ export function expiringDevis(withinDays = 2): Devis[] {
     const daysLeft = -daysSince(d.validUntil);
     return daysLeft >= 0 && daysLeft <= withinDays;
   }).sort((a, b) => new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime());
+}
+
+export function getDevisById(id: string): Devis | undefined {
+  return MOCK_DEVIS.find((d) => d.id === id);
+}
+
+function nextDevisId(): string {
+  const maxN = MOCK_DEVIS.reduce((max, d) => Math.max(max, Number(d.id.replace('de-', '')) || 0), 0);
+  return `de-${maxN + 1}`;
+}
+
+export type DevisInput = Omit<Devis, 'id'>;
+
+export function createDevis(input: DevisInput): Devis {
+  const devis: Devis = { id: nextDevisId(), ...input };
+  MOCK_DEVIS.unshift(devis);
+  return devis;
+}
+
+export function updateDevis(id: string, patch: Partial<DevisInput>): Devis | undefined {
+  const devis = getDevisById(id);
+  if (!devis) return undefined;
+  Object.assign(devis, patch);
+  return devis;
+}
+
+export function deleteDevis(id: string) {
+  const index = MOCK_DEVIS.findIndex((d) => d.id === id);
+  if (index !== -1) MOCK_DEVIS.splice(index, 1);
 }

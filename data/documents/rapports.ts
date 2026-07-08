@@ -25,7 +25,7 @@ export type Rapport = {
 export const RAPPORT_STATUS_META: Record<RapportStatus, { label: string; color: string; soft: string }> = {
   aCompleter: { label: 'À compléter', color: DocumentsTone.orange.color, soft: DocumentsTone.orange.soft },
   enCours: { label: 'En cours', color: Palette.blue, soft: Palette.blueSoft },
-  termine: { label: 'Terminé', color: Palette.green, soft: Palette.greenSoft },
+  termine: { label: 'Terminé', color: Palette.greenInk, soft: Palette.greenSoft },
   pdfGenere: { label: 'PDF généré', color: Palette.purple, soft: Palette.purpleSoft },
 };
 
@@ -152,4 +152,33 @@ export function rapportsToComplete(): Rapport[] {
   return MOCK_RAPPORTS.filter((r) => r.status === 'aCompleter').sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
+}
+
+export function getRapportById(id: string): Rapport | undefined {
+  return MOCK_RAPPORTS.find((r) => r.id === id);
+}
+
+function nextRapportId(): string {
+  const maxN = MOCK_RAPPORTS.reduce((max, r) => Math.max(max, Number(r.id.replace('ra-', '')) || 0), 0);
+  return `ra-${maxN + 1}`;
+}
+
+export type RapportInput = Omit<Rapport, 'id'>;
+
+export function createRapport(input: RapportInput): Rapport {
+  const rapport: Rapport = { id: nextRapportId(), ...input };
+  MOCK_RAPPORTS.unshift(rapport);
+  return rapport;
+}
+
+export function updateRapport(id: string, patch: Partial<RapportInput>): Rapport | undefined {
+  const rapport = getRapportById(id);
+  if (!rapport) return undefined;
+  Object.assign(rapport, patch);
+  return rapport;
+}
+
+export function deleteRapport(id: string) {
+  const index = MOCK_RAPPORTS.findIndex((r) => r.id === id);
+  if (index !== -1) MOCK_RAPPORTS.splice(index, 1);
 }

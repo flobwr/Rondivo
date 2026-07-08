@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
 export type Appointment = {
@@ -18,11 +18,14 @@ export type Appointment = {
 
 type AppointmentCardProps = {
   appointment: Appointment;
+  /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
+  palette?: PaletteShape;
 };
 
-export function AppointmentCard({ appointment }: AppointmentCardProps) {
+export function AppointmentCard({ appointment, palette = Palette }: AppointmentCardProps) {
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -62,7 +65,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
             {appointment.type}
           </Text>
           <View style={styles.addressRow}>
-            <Feather name="map" size={12} color={Palette.textTertiary} style={styles.mapIcon} />
+            <Feather name="map" size={12} color={palette.textTertiary} style={styles.mapIcon} />
             <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
               {appointment.address}
             </Text>
@@ -81,81 +84,83 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    ...cardShadow,
-  },
-  timeColumn: {
-    alignItems: 'center',
-    width: 42,
-  },
-  time: {
-    fontSize: FontSize.body,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.3,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Palette.blue,
-    marginTop: 10,
-    opacity: 0.85,
-  },
-  info: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  client: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.3,
-  },
-  type: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    marginTop: 3,
-    letterSpacing: -0.1,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 6,
-    gap: 5,
-  },
-  mapIcon: {
-    marginTop: 1,
-    opacity: 0.7,
-  },
-  address: {
-    flex: 1,
-    fontSize: 11,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: 0,
-  },
-  statusPill: {
-    backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    marginLeft: Spacing.sm,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Palette.blue,
-    letterSpacing: 0,
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: Palette.card,
+      borderRadius: Radius.card,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      ...cardShadow,
+    },
+    timeColumn: {
+      alignItems: 'center',
+      width: 42,
+    },
+    time: {
+      fontSize: FontSize.body,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.3,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: Palette.blue,
+      marginTop: 10,
+      opacity: 0.85,
+    },
+    info: {
+      flex: 1,
+      marginLeft: Spacing.md,
+    },
+    client: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.3,
+    },
+    type: {
+      fontSize: 13,
+      fontWeight: '400',
+      color: Palette.textSecondary,
+      marginTop: 3,
+      letterSpacing: -0.1,
+    },
+    addressRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginTop: 6,
+      gap: 5,
+    },
+    mapIcon: {
+      marginTop: 1,
+      opacity: 0.7,
+    },
+    address: {
+      flex: 1,
+      fontSize: 11,
+      fontWeight: '400',
+      color: Palette.textTertiary,
+      letterSpacing: 0,
+    },
+    statusPill: {
+      backgroundColor: Palette.blueSoft,
+      borderRadius: Radius.pill,
+      paddingHorizontal: 9,
+      paddingVertical: 3,
+      marginLeft: Spacing.sm,
+      alignSelf: 'flex-start',
+      marginTop: 2,
+    },
+    statusText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: Palette.blue,
+      letterSpacing: 0,
+    },
+  });
+}

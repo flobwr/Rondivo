@@ -18,7 +18,7 @@ export type Contrat = {
 export const CONTRAT_STATUS_META: Record<ContratStatus, { label: string; color: string; soft: string }> = {
   brouillon: { label: 'Brouillon', color: Palette.textSecondary, soft: Palette.cardMuted },
   enAttenteSignature: { label: 'En attente de signature', color: DocumentsTone.orange.color, soft: DocumentsTone.orange.soft },
-  signe: { label: 'Signé', color: Palette.green, soft: Palette.greenSoft },
+  signe: { label: 'Signé', color: Palette.greenInk, soft: Palette.greenSoft },
   expire: { label: 'Expiré', color: Palette.textTertiary, soft: Palette.cardMuted },
 };
 
@@ -106,4 +106,33 @@ export function expiringContrats(withinDays = EXPIRING_SOON_WITHIN_DAYS): Contra
     const daysLeft = -daysSince(c.endDate);
     return daysLeft >= 0 && daysLeft <= withinDays;
   }).sort((a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime());
+}
+
+export function getContratById(id: string): Contrat | undefined {
+  return MOCK_CONTRATS.find((c) => c.id === id);
+}
+
+function nextContratId(): string {
+  const maxN = MOCK_CONTRATS.reduce((max, c) => Math.max(max, Number(c.id.replace('co-', '')) || 0), 0);
+  return `co-${maxN + 1}`;
+}
+
+export type ContratInput = Omit<Contrat, 'id'>;
+
+export function createContrat(input: ContratInput): Contrat {
+  const contrat: Contrat = { id: nextContratId(), ...input };
+  MOCK_CONTRATS.unshift(contrat);
+  return contrat;
+}
+
+export function updateContrat(id: string, patch: Partial<ContratInput>): Contrat | undefined {
+  const contrat = getContratById(id);
+  if (!contrat) return undefined;
+  Object.assign(contrat, patch);
+  return contrat;
+}
+
+export function deleteContrat(id: string) {
+  const index = MOCK_CONTRATS.findIndex((c) => c.id === id);
+  if (index !== -1) MOCK_CONTRATS.splice(index, 1);
 }

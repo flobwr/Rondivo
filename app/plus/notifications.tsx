@@ -25,7 +25,7 @@ export default function NotificationsScreen() {
           <SectionCard icon="bell" title="Recevoir une notification pour">
             <SwitchRow
               label="Rappels et tâches"
-              description="Vos rendez-vous et rappels du jour"
+              description="Vos interventions et rappels du jour"
               value={reminders}
               onValueChange={(v) => { setReminders(v); updateSettings({ notifyReminders: v }); }}
             />

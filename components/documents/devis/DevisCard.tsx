@@ -22,7 +22,7 @@ export function DevisCard({ devis, onPress }: { devis: Devis; onPress: () => voi
   return (
     <PressableScale onPress={onPress} to={0.98} style={styles.card} accessibilityLabel={`Devis de ${devis.clientName}`}>
       <View style={styles.topRow}>
-        <Text style={styles.client} numberOfLines={1} ellipsizeMode="tail">
+        <Text style={styles.client} numberOfLines={1} ellipsizeMode="tail" maxFontSizeMultiplier={1.3}>
           {devis.clientName}
         </Text>
         <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />

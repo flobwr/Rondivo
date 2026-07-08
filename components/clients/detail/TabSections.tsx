@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { type Tint } from '@/components/clients/types';
 import { FontSize, Palette, Radius } from '@/constants/design';
@@ -13,7 +13,7 @@ import {
   type DocumentCategory,
   type FinanceItem,
   type InterventionItem,
-} from '@/data/client-details';
+} from '@/services/client-details';
 import { ListRow } from './ListRow';
 import { DETAIL_CARD_PADDING, DETAIL_GAP, PressableScale, SectionCard, TintIcon } from './primitives';
 import { FilterChips, SearchField } from './TabControls';
@@ -287,8 +287,17 @@ export function NotesSection({
   };
 
   const remove = (index: number) => {
-    onChangeNotes(notes.filter((_, i) => i !== index));
-    if (editingIndex === index) setEditingIndex(null);
+    Alert.alert('Supprimer la note', 'Cette action est définitive.', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: () => {
+          onChangeNotes(notes.filter((_, i) => i !== index));
+          if (editingIndex === index) setEditingIndex(null);
+        },
+      },
+    ]);
   };
 
   const startEdit = (index: number) => {

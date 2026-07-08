@@ -50,11 +50,13 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
 
         <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
-            hitSlop={8}
+            hitSlop={10}
             style={styles.navBtn}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            onPress={onNavigate}>
+            onPress={onNavigate}
+            accessibilityRole="button"
+            accessibilityLabel="Itinéraire vers la prochaine intervention">
             <Feather name="navigation" size={13} color={Palette.blue} />
           </Pressable>
         </Animated.View>

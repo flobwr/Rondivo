@@ -15,7 +15,7 @@ import {
 import { TINT_COLORS, type Tint } from '@/components/clients/types';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { type AlertSeverity, type ClientAlert } from '@/data/client-details';
+import { type AlertSeverity, type ClientAlert } from '@/services/client-details';
 import { PressableScale } from './primitives';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

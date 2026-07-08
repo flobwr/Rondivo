@@ -1,15 +1,25 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { DocumentModule } from './types';
 
 const TILE = 28;
 
-function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: () => void }) {
+function SecondaryRow({
+  module,
+  onPress,
+  styles,
+  palette,
+}: {
+  module: DocumentModule;
+  onPress?: () => void;
+  styles: ReturnType<typeof createStyles>;
+  palette: PaletteShape;
+}) {
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -24,7 +34,7 @@ function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View style={[styles.row, { transform: [{ scale: pressScale }] }]}>
         <View style={styles.iconTile}>
-          <Feather name={module.icon} size={14} color={Palette.blue} />
+          <Feather name={module.icon} size={14} color={palette.blue} />
         </View>
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
@@ -34,7 +44,7 @@ function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: (
             {module.count} {module.unit}
           </Text>
         </View>
-        <Feather name="chevron-right" size={15} color={Palette.textTertiary} style={styles.chevron} />
+        <Feather name="chevron-right" size={15} color={palette.textTertiary} style={styles.chevron} />
       </Animated.View>
     </Pressable>
   );
@@ -46,10 +56,14 @@ function SecondaryRow({ module, onPress }: { module: DocumentModule; onPress?: (
 export function SecondaryModulesCard({
   modules,
   onModulePress,
+  palette = Palette,
 }: {
   modules: DocumentModule[];
   onModulePress: (module: DocumentModule) => void;
+  /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
+  palette?: PaletteShape;
 }) {
+  const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <View>
       <Text style={styles.sectionLabel}>Autres documents</Text>
@@ -57,7 +71,7 @@ export function SecondaryModulesCard({
         {modules.map((module, index) => (
           <View key={module.id}>
             {index > 0 ? <View style={styles.separator} /> : null}
-            <SecondaryRow module={module} onPress={() => onModulePress(module)} />
+            <SecondaryRow module={module} onPress={() => onModulePress(module)} styles={styles} palette={palette} />
           </View>
         ))}
       </View>
@@ -65,58 +79,60 @@ export function SecondaryModulesCard({
   );
 }
 
-const styles = StyleSheet.create({
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    color: Palette.textTertiary,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginLeft: 2,
-  },
-  card: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingHorizontal: Spacing.lg,
-    ...cardShadow,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    gap: Spacing.sm + 2,
-  },
-  iconTile: {
-    width: TILE,
-    height: TILE,
-    borderRadius: 9,
-    backgroundColor: Palette.blueSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: FontSize.label,
-    fontWeight: '600',
-    color: Palette.textPrimary,
-    letterSpacing: -0.2,
-  },
-  count: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-    marginTop: 1,
-  },
-  chevron: {
-    opacity: 0.7,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Palette.border,
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    sectionLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+      color: Palette.textTertiary,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+      marginLeft: 2,
+    },
+    card: {
+      backgroundColor: Palette.card,
+      borderRadius: Radius.card,
+      paddingHorizontal: Spacing.lg,
+      ...cardShadow,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      gap: Spacing.sm + 2,
+    },
+    iconTile: {
+      width: TILE,
+      height: TILE,
+      borderRadius: 9,
+      backgroundColor: Palette.blueSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    content: {
+      flex: 1,
+    },
+    title: {
+      fontSize: FontSize.label,
+      fontWeight: '600',
+      color: Palette.textPrimary,
+      letterSpacing: -0.2,
+    },
+    count: {
+      fontSize: 12,
+      fontWeight: '400',
+      color: Palette.textTertiary,
+      letterSpacing: -0.1,
+      marginTop: 1,
+    },
+    chevron: {
+      opacity: 0.7,
+    },
+    separator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: Palette.border,
+    },
+  });
+}

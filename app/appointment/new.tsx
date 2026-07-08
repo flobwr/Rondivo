@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   LayoutAnimation,
@@ -42,9 +42,10 @@ import {
 } from '@/components/appointment/appointment-utils';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { getClientById } from '@/data/clients';
-import { getTemplateById, type InterventionTemplate } from '@/data/intervention-templates';
-import { CURRENT_TECHNICIAN, TECHNICIANS } from '@/data/technicians';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getClientById } from '@/services/clients';
+import { listInterventionTemplates, type InterventionTemplate } from '@/services/intervention-templates';
+import { getCurrentTechnician, listTechnicians, type Technician } from '@/services/technicians';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -65,9 +66,34 @@ function formatEuro(value: number): string {
   return `${value.toLocaleString('fr-FR')} €`;
 }
 
+type AppointmentFormOptions = {
+  technicians: Technician[];
+  currentTechnicianId: string;
+  templates: InterventionTemplate[];
+};
+
+// Stable references so the derived arrays below never change identity while
+// the form options are still loading (avoids re-triggering memos each render).
+const EMPTY_TECHNICIANS: Technician[] = [];
+const EMPTY_TEMPLATES: InterventionTemplate[] = [];
+
+async function fetchAppointmentFormOptions(): Promise<AppointmentFormOptions> {
+  const [technicians, currentTechnician, templates] = await Promise.all([
+    listTechnicians(),
+    getCurrentTechnician(),
+    listInterventionTemplates(),
+  ]);
+  return { technicians, currentTechnicianId: currentTechnician.id, templates };
+}
+
 export default function NewAppointmentScreen() {
   const router = useRouter();
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
+
+  const fetchFormOptions = useCallback(() => fetchAppointmentFormOptions(), []);
+  const { data: formOptions } = useAsyncItem(fetchFormOptions);
+  const technicians = formOptions?.technicians ?? EMPTY_TECHNICIANS;
+  const templates = formOptions?.templates ?? EMPTY_TEMPLATES;
 
   const initial = useMemo(() => defaultStart(), []);
   const [client, setClient] = useState<Client | null>(() => (clientId ? getClientById(clientId) ?? null : null));
@@ -84,7 +110,7 @@ export default function NewAppointmentScreen() {
   const [priority, setPriority] = useState<Priority>('normal');
 
   const [advanced, setAdvanced] = useState(false);
-  const [technicianId, setTechnicianId] = useState(CURRENT_TECHNICIAN.id);
+  const [technicianId, setTechnicianId] = useState('');
   const [recurrence, setRecurrence] = useState<Recurrence>('none');
   const [reminder, setReminder] = useState<Reminder>('none');
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
@@ -92,12 +118,17 @@ export default function NewAppointmentScreen() {
 
   const [created, setCreated] = useState(false);
 
+  // Defaults to "me" as soon as the roster loads — never blocks the form.
+  useEffect(() => {
+    if (formOptions && !technicianId) setTechnicianId(formOptions.currentTechnicianId);
+  }, [formOptions, technicianId]);
+
   const endTime = addMinutesToTime(time, duration);
   const isCustom = templateId === 'custom';
   const hasType = (templateId && !isCustom) || (isCustom && customTitle.trim().length > 0);
   const totalTTC = price > 0 ? Math.round(price * (1 + tva / 100)) : 0;
 
-  const selectedTemplate = useMemo(() => getTemplateById(templateId ?? undefined), [templateId]);
+  const selectedTemplate = useMemo(() => templates.find((t) => t.id === templateId), [templates, templateId]);
   const typeLabel = isCustom ? customTitle.trim() || 'Personnalisé' : selectedTemplate?.name ?? null;
 
   // Recomputes instantly on every day/duration change — three real states
@@ -181,7 +212,7 @@ export default function NewAppointmentScreen() {
           <PressableScale onPress={() => router.back()} to={0.9} style={styles.iconBtn} accessibilityLabel="Fermer">
             <Feather name="x" size={22} color={Palette.textPrimary} />
           </PressableScale>
-          <Text style={styles.headerTitle}>Nouveau rendez-vous</Text>
+          <Text style={styles.headerTitle}>Nouvelle intervention</Text>
           <View style={styles.iconBtn} />
         </View>
 
@@ -219,7 +250,7 @@ export default function NewAppointmentScreen() {
 
             {/* Type */}
             <Field label="Type d'intervention">
-              <TemplatePicker selectedId={templateId} onSelect={applyTemplate} onSelectCustom={selectCustom} />
+              <TemplatePicker templates={templates} selectedId={templateId} onSelect={applyTemplate} onSelectCustom={selectCustom} />
               {isCustom ? (
                 <TextInput
                   style={styles.customInput}
@@ -327,7 +358,7 @@ export default function NewAppointmentScreen() {
               <View>
                 <Field label="Technicien">
                   <ChipScroll>
-                    {TECHNICIANS.map((t) => (
+                    {technicians.map((t) => (
                       <Chip key={t.id} label={t.name} active={t.id === technicianId} onPress={() => setTechnicianId(t.id)} />
                     ))}
                   </ChipScroll>
@@ -411,11 +442,11 @@ export default function NewAppointmentScreen() {
                   ) : null}
                 </View>
 
-                <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={missingStep ?? 'Créer le rendez-vous'}>
+                <PressableScale onPress={handleCreatePress} to={0.96} disabled={created} accessibilityLabel={missingStep ?? 'Créer l’intervention'}>
                   <View style={[styles.createBtn, !!missingStep && styles.createBtnDisabled, created && styles.createBtnDone]}>
                     <Feather name={created ? 'check' : 'calendar'} size={16} color={missingStep ? Palette.blue : Palette.white} />
                     <Text style={[styles.createText, !!missingStep && styles.createTextMuted]} numberOfLines={1}>
-                      {created ? 'Créé' : missingStep ?? 'Créer le rendez-vous'}
+                      {created ? 'Créé' : missingStep ?? 'Créer l’intervention'}
                     </Text>
                   </View>
                 </PressableScale>

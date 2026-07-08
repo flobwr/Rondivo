@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,15 +9,17 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
 import { Palette, Spacing } from '@/constants/design';
+import { useAsyncList } from '@/hooks/use-async-list';
 import {
   SUPPLIER_CATEGORY_LABEL,
   SUPPLIER_CATEGORY_ORDER,
   Supplier,
   SupplierCategory,
-  SUPPLIERS,
-} from '@/data/plus/suppliers';
+  listSuppliers,
+} from '@/services/plus/suppliers';
 
 function normalize(text: string) {
   return text
@@ -32,12 +34,15 @@ export default function FournisseursScreen() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<SupplierCategory | null>(null);
 
+  const fetchSuppliers = useCallback(() => listSuppliers(), []);
+  const { data: SUPPLIERS, status: loadStatus, refresh } = useAsyncList<Supplier>(fetchSuppliers);
+
   const counts = useMemo(() => {
     const c = {} as Record<SupplierCategory, number>;
     for (const cat of SUPPLIER_CATEGORY_ORDER) c[cat] = 0;
     for (const s of SUPPLIERS) c[s.category] += 1;
     return c;
-  }, []);
+  }, [SUPPLIERS]);
 
   const filtered = useMemo(() => {
     let list = SUPPLIERS;
@@ -47,7 +52,7 @@ export default function FournisseursScreen() {
       list = list.filter((s) => normalize(s.name).includes(q));
     }
     return list;
-  }, [category, search]);
+  }, [SUPPLIERS, category, search]);
 
   const chipDefs: ChipDef[] = [
     { key: 'all', label: 'Tous', count: SUPPLIERS.length, color: Palette.blue },
@@ -76,38 +81,48 @@ export default function FournisseursScreen() {
           <FilterChips defs={chipDefs} activeKey={category} onSelect={(k) => setCategory(k as SupplierCategory | null)} />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(s) => s.id}
-          renderItem={({ item, index }) => (
-            <FadeInItem index={index}>
-              <EntityCard
+        {loadStatus === 'loading' ? (
+          <View style={[styles.list, { gap: Spacing.md }]}>
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+          </View>
+        ) : loadStatus === 'error' ? (
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(s) => s.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <EntityCard
+                  icon="package"
+                  title={item.name}
+                  subtitle={SUPPLIER_CATEGORY_LABEL[item.category]}
+                  meta={item.phone}
+                  onPress={() => handleOpen(item)}
+                />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} fournisseur{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState
                 icon="package"
-                title={item.name}
-                subtitle={SUPPLIER_CATEGORY_LABEL[item.category]}
-                meta={item.phone}
-                onPress={() => handleOpen(item)}
+                title="Aucun fournisseur"
+                subtitle={isFiltering ? 'Aucun fournisseur ne correspond à votre recherche.' : 'Ajoutez votre premier fournisseur pour commencer.'}
+                actionLabel={isFiltering ? undefined : 'Ajouter un fournisseur'}
+                onAction={isFiltering ? undefined : handleAdd}
               />
-            </FadeInItem>
-          )}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} fournisseur{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="package"
-              title="Aucun fournisseur"
-              subtitle={isFiltering ? 'Aucun fournisseur ne correspond à votre recherche.' : 'Ajoutez votre premier fournisseur pour commencer.'}
-              actionLabel={isFiltering ? undefined : 'Ajouter un fournisseur'}
-              onAction={isFiltering ? undefined : handleAdd}
-            />
-          }
-        />
+            }
+          />
+        )}
       </SafeAreaView>
 
       <BottomNav activeIndex={4} />

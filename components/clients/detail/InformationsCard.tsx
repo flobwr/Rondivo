@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { type Client } from '@/components/clients/types';
 import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
 import { FontSize, Palette } from '@/constants/design';
-import { type ClientDetail } from '@/data/client-details';
+import { type ClientDetail } from '@/services/client-details';
 import { CardSeparator, PressableScale, SectionCard } from './primitives';
 
 type Props = {

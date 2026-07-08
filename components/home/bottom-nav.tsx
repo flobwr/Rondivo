@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette, type PaletteShape } from '@/constants/design';
 
 type Tab = {
   label: string;
@@ -21,7 +21,16 @@ const TABS: Tab[] = [
   { label: 'Plus', icon: 'menu', route: '/plus' },
 ];
 
-export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
+export function BottomNav({
+  activeIndex = 0,
+  palette = Palette,
+}: {
+  activeIndex?: number;
+  /** Defaults to the static light palette — pass the live `useTheme().palette`
+   *  from screens that have opted into dark mode; every other screen keeps
+   *  today's light nav bar regardless of the global appearance setting. */
+  palette?: PaletteShape;
+}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
@@ -36,10 +45,14 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: palette.card, borderTopColor: palette.border, paddingBottom: Math.max(insets.bottom, 8) },
+      ]}>
       {TABS.map((tab, index) => {
         const active = index === activeIndex;
-        const color = active ? Palette.blue : Palette.textTertiary;
+        const color = active ? palette.blue : palette.textTertiary;
         return (
           <Pressable
             key={tab.label}
@@ -59,15 +72,15 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: Palette.card,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.border,
     paddingTop: 10,
     paddingHorizontal: 6,
   },
   tab: {
     flex: 1,
+    minHeight: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
   },
   label: {

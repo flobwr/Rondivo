@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { type ContactPerson } from '@/data/client-details';
+import { type ContactPerson } from '@/services/client-details';
 import { PressableScale, SectionCard } from './primitives';
 
 type Props = {

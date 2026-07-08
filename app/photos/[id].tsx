@@ -14,7 +14,7 @@ import { NextActionBanner } from '@/components/documents/shared/NextActionBanner
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { PhotoLightbox } from '@/components/documents/photos/PhotoLightbox';
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
-import { pickFromCamera, pickFromLibrary } from '@/components/documents/photos/photo-picker';
+import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
 import { formatLongDate } from '@/data/documents/date-utils';
@@ -28,6 +28,7 @@ import {
   photoCategoryCounts,
 } from '@/data/documents/photos';
 import { MOCK_RAPPORTS } from '@/data/documents/rapports';
+import { addInterventionPhoto, removeInterventionPhoto, updateInterventionPhotoCategory } from '@/services/documents/photos';
 
 const GAP = 6;
 const COLUMNS = 3;
@@ -88,7 +89,8 @@ export default function PhotoInterventionScreen() {
     setSourceSheetOpen(false);
     const uri = await pickFromCamera();
     if (uri && pendingCategory) {
-      setPhotos((prev) => [...prev, { id: `photo-${Date.now()}`, uri, category: pendingCategory }]);
+      const photo = await addInterventionPhoto(intervention.id, { uri, category: pendingCategory });
+      if (photo) setPhotos((prev) => [...prev, photo]);
     }
   };
 
@@ -96,13 +98,15 @@ export default function PhotoInterventionScreen() {
     setSourceSheetOpen(false);
     const uri = await pickFromLibrary();
     if (uri && pendingCategory) {
-      setPhotos((prev) => [...prev, { id: `photo-${Date.now()}`, uri, category: pendingCategory }]);
+      const photo = await addInterventionPhoto(intervention.id, { uri, category: pendingCategory });
+      if (photo) setPhotos((prev) => [...prev, photo]);
     }
   };
 
   const handleDeletePhoto = (photo: InterventionPhoto) => {
     setViewerPhoto(null);
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+    removeInterventionPhoto(intervention.id, photo.id);
   };
 
   const handleChangeCategory = (photo: InterventionPhoto) => {
@@ -110,6 +114,7 @@ export default function PhotoInterventionScreen() {
     const next = PHOTO_CATEGORY_ORDER[(index + 1) % PHOTO_CATEGORY_ORDER.length];
     setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, category: next } : p)));
     setViewerPhoto((prev) => (prev ? { ...prev, category: next } : prev));
+    updateInterventionPhotoCategory(intervention.id, photo.id, next);
   };
 
   const handleGenerateReport = () => {

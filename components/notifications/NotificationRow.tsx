@@ -32,7 +32,7 @@ export function NotificationRow({ notification, onPress, onDelete }: Props) {
         <Text style={styles.time}>{notification.time}</Text>
       </View>
 
-      <PressableScale onPress={onDelete} to={0.9} style={styles.deleteButton} accessibilityLabel="Supprimer">
+      <PressableScale onPress={onDelete} to={0.9} hitSlop={12} style={styles.deleteButton} accessibilityLabel="Supprimer">
         <Feather name="trash-2" size={15} color={Palette.textTertiary} />
       </PressableScale>
     </PressableScale>

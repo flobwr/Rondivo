@@ -44,7 +44,7 @@ export type Facture = {
 export const FACTURE_STATUS_META: Record<FactureStatus, { label: string; color: string; soft: string }> = {
   brouillon: { label: 'Brouillon', color: Palette.textSecondary, soft: Palette.cardMuted },
   envoyee: { label: 'Envoyée', color: Palette.blue, soft: Palette.blueSoft },
-  payee: { label: 'Payée', color: Palette.green, soft: Palette.greenSoft },
+  payee: { label: 'Payée', color: Palette.greenInk, soft: Palette.greenSoft },
   enRetard: { label: 'En retard', color: DocumentsTone.red.color, soft: DocumentsTone.red.soft },
   annulee: { label: 'Annulée', color: Palette.textTertiary, soft: Palette.cardMuted },
 };
@@ -263,4 +263,40 @@ export function overdueFactures(): Facture[] {
   return MOCK_FACTURES.filter((f) => f.status === 'enRetard').sort(
     (a, b) => daysSince(b.dueAt) - daysSince(a.dueAt)
   );
+}
+
+export function getFactureById(id: string): Facture | undefined {
+  return MOCK_FACTURES.find((f) => f.id === id);
+}
+
+function nextFactureId(): string {
+  const maxN = MOCK_FACTURES.reduce((max, f) => Math.max(max, Number(f.id.replace('fa-', '')) || 0), 0);
+  return `fa-${maxN + 1}`;
+}
+
+export type FactureInput = Omit<Facture, 'id'>;
+
+export function createFacture(input: FactureInput): Facture {
+  const facture: Facture = { id: nextFactureId(), ...input };
+  MOCK_FACTURES.unshift(facture);
+  return facture;
+}
+
+export function updateFacture(id: string, patch: Partial<FactureInput>): Facture | undefined {
+  const facture = getFactureById(id);
+  if (!facture) return undefined;
+  Object.assign(facture, patch);
+  return facture;
+}
+
+export function deleteFacture(id: string) {
+  const index = MOCK_FACTURES.findIndex((f) => f.id === id);
+  if (index !== -1) MOCK_FACTURES.splice(index, 1);
+}
+
+export function addPayment(factureId: string, payment: Payment): Facture | undefined {
+  const facture = getFactureById(factureId);
+  if (!facture) return undefined;
+  facture.payments.push(payment);
+  return facture;
 }

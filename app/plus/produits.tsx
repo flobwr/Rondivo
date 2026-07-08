@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,10 +8,12 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
 import { Palette, Spacing } from '@/constants/design';
 import { formatAmount } from '@/data/documents/date-utils';
-import { Produit, PRODUITS } from '@/data/plus/produits';
+import { useAsyncList } from '@/hooks/use-async-list';
+import { Produit, listProduits } from '@/services/plus/produits';
 
 function normalize(text: string) {
   return text
@@ -25,11 +27,14 @@ export default function ProduitsScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
 
+  const fetchProduits = useCallback(() => listProduits(), []);
+  const { data: PRODUITS, status: loadStatus, refresh } = useAsyncList<Produit>(fetchProduits);
+
   const filtered = useMemo(() => {
     if (!search.trim()) return PRODUITS;
     const q = normalize(search);
     return PRODUITS.filter((p) => normalize(p.name).includes(q) || normalize(p.reference).includes(q));
-  }, [search]);
+  }, [PRODUITS, search]);
 
   const handleOpen = (produit: Produit) => router.push(`/plus/produit/new?editId=${produit.id}` as never);
   const handleAdd = () => router.push('/plus/produit/new' as never);
@@ -44,38 +49,48 @@ export default function ProduitsScreen() {
           <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher un produit, une référence…" />
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(p) => p.id}
-          renderItem={({ item, index }) => (
-            <FadeInItem index={index}>
-              <EntityCard
+        {loadStatus === 'loading' ? (
+          <View style={[styles.list, { gap: Spacing.md }]}>
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+            <SkeletonBlock height={72} radius={18} />
+          </View>
+        ) : loadStatus === 'error' ? (
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(p) => p.id}
+            renderItem={({ item, index }) => (
+              <FadeInItem index={index}>
+                <EntityCard
+                  icon="box"
+                  title={item.name}
+                  subtitle={`${item.reference} · ${formatAmount(item.unitPrice)}`}
+                  meta={`${item.stock} en stock`}
+                  onPress={() => handleOpen(item)}
+                />
+              </FadeInItem>
+            )}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListHeaderComponent={
+              <Text style={styles.count}>
+                {filtered.length} produit{filtered.length > 1 ? 's' : ''}
+              </Text>
+            }
+            ListEmptyComponent={
+              <EmptyState
                 icon="box"
-                title={item.name}
-                subtitle={`${item.reference} · ${formatAmount(item.unitPrice)}`}
-                meta={`${item.stock} en stock`}
-                onPress={() => handleOpen(item)}
+                title="Aucun produit"
+                subtitle={isFiltering ? 'Aucun produit ne correspond à votre recherche.' : 'Ajoutez votre premier produit pour commencer.'}
+                actionLabel={isFiltering ? undefined : 'Ajouter un produit'}
+                onAction={isFiltering ? undefined : handleAdd}
               />
-            </FadeInItem>
-          )}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filtered.length} produit{filtered.length > 1 ? 's' : ''}
-            </Text>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="box"
-              title="Aucun produit"
-              subtitle={isFiltering ? 'Aucun produit ne correspond à votre recherche.' : 'Ajoutez votre premier produit pour commencer.'}
-              actionLabel={isFiltering ? undefined : 'Ajouter un produit'}
-              onAction={isFiltering ? undefined : handleAdd}
-            />
-          }
-        />
+            }
+          />
+        )}
       </SafeAreaView>
 
       <BottomNav activeIndex={4} />

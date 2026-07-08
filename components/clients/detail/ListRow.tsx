@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { formatEuroShort } from '@/data/client-details';
+import { formatEuroShort } from '@/services/client-details';
 import { PressableScale, TintIcon } from './primitives';
 
 type Props = {

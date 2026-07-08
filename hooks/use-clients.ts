@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type Client } from '@/components/clients/types';
-import { fetchClientsPage, paginateClients, type ClientQuery } from '@/data/clients';
+import { fetchClientsPage, paginateClients, type ClientQuery } from '@/services/clients';
 
 export type ClientsStatus = 'loading' | 'refreshing' | 'error' | 'success';
 

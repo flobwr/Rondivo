@@ -52,7 +52,13 @@ export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Pr
         </View>
 
         <View style={styles.actions}>
-          <Pressable onPressIn={copyPress.onPressIn} onPressOut={copyPress.onPressOut} onPress={handleCopy} hitSlop={6}>
+          <Pressable
+            onPressIn={copyPress.onPressIn}
+            onPressOut={copyPress.onPressOut}
+            onPress={handleCopy}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={copied ? 'Adresse copiée' : 'Copier l’adresse'}>
             <Animated.View style={[styles.iconButton, { transform: [{ scale: copyPress.scale }] }]}>
               <Feather name={copied ? 'check' : 'copy'} size={15} color={Palette.blue} />
             </Animated.View>

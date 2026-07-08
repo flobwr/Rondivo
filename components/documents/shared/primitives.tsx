@@ -6,6 +6,14 @@ import { StaggerRowCap, StaggerRowDelay } from '@/constants/animation';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 import { FeatherIconName } from '../types';
+import { DocumentsTone } from '../palette';
+
+// Red-toned statuses ("Impayée", "En retard", "Refusé", "Action requise"…)
+// carry real financial/urgency weight — they shouldn't have the same visual
+// footprint as "Brouillon" or "Nouveau client". Detected from the color
+// itself so every call site gets this automatically, no per-status flag to
+// remember to pass.
+const CRITICAL_TONES: string[] = [Palette.red, DocumentsTone.red.color];
 
 /**
  * Shared building blocks for the whole Documents module (Factures, Devis,
@@ -51,10 +59,11 @@ export const StatusPill = memo(function StatusPill({
   color: string;
   soft: string;
 }) {
+  const critical = CRITICAL_TONES.includes(color);
   return (
-    <View style={[styles.pill, { backgroundColor: soft }]}>
+    <View style={[styles.pill, { backgroundColor: soft }, critical && { borderWidth: 1, borderColor: color }]}>
       <View style={[styles.pillDot, { backgroundColor: color }]} />
-      <Text style={[styles.pillText, { color }]} numberOfLines={1}>
+      <Text style={[styles.pillText, { color, fontWeight: critical ? '800' : '700' }]} numberOfLines={1}>
         {label}
       </Text>
     </View>

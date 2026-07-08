@@ -1,24 +1,62 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { FontSize, Palette, Spacing } from '@/constants/design';
 import { formatLongDate } from '@/data/documents/date-utils';
-import { getEmployeeById } from '@/data/plus/employees';
-import { deleteVehicle, getVehicleById, VEHICLE_STATUS_META, VEHICLE_TYPE_LABEL } from '@/data/plus/vehicles';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getEmployee, type Employee } from '@/services/plus/employees';
+import { deleteVehicle, getVehicle, VEHICLE_STATUS_META, VEHICLE_TYPE_LABEL, type Vehicle } from '@/services/plus/vehicles';
+
+type VehicleBundle = { vehicle: Vehicle; assignedTo?: Employee };
+
+async function fetchVehicleBundle(id: string): Promise<VehicleBundle | undefined> {
+  const vehicle = await getVehicle(id);
+  if (!vehicle) return undefined;
+  const assignedTo = vehicle.assignedToId ? await getEmployee(vehicle.assignedToId) : undefined;
+  return { vehicle, assignedTo };
+}
 
 export default function VehiculeDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const vehicle = getVehicleById(id);
 
-  if (!vehicle) {
+  const fetchBundle = useCallback(() => fetchVehicleBundle(id), [id]);
+  const { data: bundle, status, refresh } = useAsyncItem(fetchBundle);
+
+  if (status === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Véhicule" onBack={() => router.back()} />
+          <View style={styles.content}>
+            <SkeletonBlock height={140} radius={24} />
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Véhicule" onBack={() => router.back()} />
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!bundle) {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -29,13 +67,13 @@ export default function VehiculeDetailScreen() {
     );
   }
 
+  const { vehicle, assignedTo } = bundle;
   const statusMeta = VEHICLE_STATUS_META[vehicle.status];
-  const assignedTo = vehicle.assignedToId ? getEmployeeById(vehicle.assignedToId) : undefined;
 
   const handleDelete = () => {
     Alert.alert('Supprimer le véhicule', `Supprimer définitivement ${vehicle.name} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteVehicle(vehicle.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteVehicle(vehicle.id); router.back(); } },
     ]);
   };
 

@@ -1,4 +1,5 @@
 import { type FeatherIconName } from '@/components/clients/types';
+import { MOCK_BUSY_BY_WEEKDAY, type BusyInterval } from '@/data/availability';
 
 export type Priority = 'normal' | 'high' | 'urgent';
 export type Recurrence = 'none' | 'weekly' | 'biweekly' | 'monthly';
@@ -141,20 +142,6 @@ export function formatDayFooter(key: string): string {
 export const DURATION_OPTIONS = [30, 60, 90, 120, 180, 420];
 
 // ── Slot availability ───────────────────────────────────────────────────────
-// Mocked existing bookings per weekday, so the "Heure" strip can demonstrate
-// real three-state availability without a backend. Minutes since midnight.
-
-type BusyInterval = { start: number; end: number };
-
-const MOCK_BUSY_BY_WEEKDAY: Record<number, BusyInterval[]> = {
-  0: [], // Sunday
-  1: [{ start: 9 * 60, end: 10 * 60 }, { start: 14 * 60, end: 16 * 60 }], // Monday
-  2: [{ start: 8 * 60, end: 9 * 60 + 30 }], // Tuesday
-  3: [{ start: 10 * 60 + 30, end: 12 * 60 }, { start: 15 * 60, end: 15 * 60 + 30 }], // Wednesday
-  4: [{ start: 7 * 60 + 30, end: 8 * 60 + 30 }, { start: 13 * 60, end: 14 * 60 + 30 }], // Thursday
-  5: [{ start: 9 * 60, end: 11 * 60 }], // Friday
-  6: [], // Saturday
-};
 
 const DAY_CLOSE_MINUTES = 19 * 60 + 30; // soft closing time, past the last 19:00 slot
 

@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { type Equipment } from '@/data/client-details';
+import { type Equipment } from '@/services/client-details';
 import { PressableScale, SectionCard, TintIcon } from './primitives';
 
 type Props = {

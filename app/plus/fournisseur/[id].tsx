@@ -1,21 +1,50 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { FontSize, Palette, Spacing } from '@/constants/design';
-import { deleteSupplier, getSupplierById, SUPPLIER_CATEGORY_LABEL } from '@/data/plus/suppliers';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { deleteSupplier, getSupplier, SUPPLIER_CATEGORY_LABEL } from '@/services/plus/suppliers';
 
 export default function FournisseurDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const supplier = getSupplierById(id);
+
+  const fetchSupplier = useCallback(() => getSupplier(id), [id]);
+  const { data: supplier, status, refresh } = useAsyncItem(fetchSupplier);
+
+  if (status === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Fournisseur" onBack={() => router.back()} />
+          <View style={styles.content}>
+            <SkeletonBlock height={140} radius={24} />
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Fournisseur" onBack={() => router.back()} />
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   if (!supplier) {
     return (
@@ -31,7 +60,7 @@ export default function FournisseurDetailScreen() {
   const handleDelete = () => {
     Alert.alert('Supprimer ce fournisseur', `Supprimer définitivement ${supplier.name} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteSupplier(supplier.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteSupplier(supplier.id); router.back(); } },
     ]);
   };
 

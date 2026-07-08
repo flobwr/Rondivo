@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Alert, Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,8 +9,8 @@ import { LogoutButton } from '@/components/plus/LogoutButton';
 import { PLUS_ABOUT_ITEMS, PLUS_ITEMS, PLUS_SECTIONS, PlusItemId } from '@/components/plus/registry';
 import { PlusSectionCard } from '@/components/plus/PlusSectionCard';
 import { ScreenFadeInDuration } from '@/constants/animation';
-import { FontSize, Palette, Spacing } from '@/constants/design';
-import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { FontSize, Spacing, type PaletteShape } from '@/constants/design';
+import { useTheme } from '@/contexts/theme';
 import { ACCOUNT, COMPANY } from '@/data/plus/company';
 import { activeEmployeesCount, EMPLOYEES } from '@/data/plus/employees';
 import { MATERIEL } from '@/data/plus/materiel';
@@ -29,36 +29,19 @@ const SECTION_GAP = 22;
 
 const APP_VERSION = '1.0.0';
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-
-function PlusSkeleton() {
-  return (
-    <>
-      <SkeletonBlock height={148} radius={24} />
-      <View style={{ marginTop: SECTION_GAP, gap: SECTION_GAP }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <SkeletonBlock key={i} height={i === 3 ? 220 : 130} radius={24} />
-        ))}
-      </View>
-    </>
-  );
-}
-
 // ── Screen ────────────────────────────────────────────────────────────────────
-
-type Status = 'loading' | 'loaded';
 
 export default function PlusScreen() {
   const router = useRouter();
-  const [status, setStatus] = useState<Status>('loading');
   const fadeIn = useRef(new Animated.Value(0)).current;
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
+  // All the data below is synchronous mock data (no network round-trip), so
+  // there's nothing to actually wait for — just a fade-in on mount, no
+  // artificial delay or skeleton pretending otherwise.
   useEffect(() => {
-    const t = setTimeout(() => {
-      setStatus('loaded');
-      Animated.timing(fadeIn, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
-    }, 750);
-    return () => clearTimeout(t);
+    Animated.timing(fadeIn, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
   }, [fadeIn]);
 
   // Live counts from the same mock data the sub-screens read — never a
@@ -112,95 +95,95 @@ export default function PlusScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          {status === 'loading' ? (
-            <PlusSkeleton />
-          ) : (
-            <Animated.View style={{ opacity: fadeIn }}>
-              <View style={{ marginTop: HEADER_GAP }}>
-                <CompanyCard
-                  company={{
-                    name: COMPANY.name,
-                    ownerName: ACCOUNT.name,
-                    initials: COMPANY.initials,
-                    plan: COMPANY.plan,
-                    employeesCount: EMPLOYEES.length,
-                    synced: COMPANY.synced,
-                  }}
-                  infoLine={infoLine}
-                  onPress={() => router.push('/plus/compte')}
+          <Animated.View style={{ opacity: fadeIn }}>
+            <View style={{ marginTop: HEADER_GAP }}>
+              <CompanyCard
+                company={{
+                  name: COMPANY.name,
+                  ownerName: ACCOUNT.name,
+                  initials: COMPANY.initials,
+                  plan: COMPANY.plan,
+                  employeesCount: EMPLOYEES.length,
+                  synced: COMPANY.synced,
+                }}
+                infoLine={infoLine}
+                onPress={() => router.push('/plus/compte')}
+                palette={palette}
+              />
+            </View>
+
+            <View style={{ marginTop: SECTION_GAP, gap: SECTION_GAP }}>
+              {PLUS_SECTIONS.map((section) => (
+                <PlusSectionCard
+                  key={section.label}
+                  label={section.label}
+                  items={section.items}
+                  subtitles={subtitles}
+                  onItemPress={handleItemPress}
+                  palette={palette}
                 />
-              </View>
+              ))}
+            </View>
 
-              <View style={{ marginTop: SECTION_GAP, gap: SECTION_GAP }}>
-                {PLUS_SECTIONS.map((section) => (
-                  <PlusSectionCard
-                    key={section.label}
-                    label={section.label}
-                    items={section.items}
-                    subtitles={subtitles}
-                    onItemPress={handleItemPress}
-                  />
-                ))}
-              </View>
+            <View style={{ marginTop: SECTION_GAP }}>
+              <PlusSectionCard label="À propos" items={PLUS_ABOUT_ITEMS} onItemPress={handleItemPress} palette={palette} />
+              <Text style={styles.version}>Version {APP_VERSION}</Text>
+            </View>
 
-              <View style={{ marginTop: SECTION_GAP }}>
-                <PlusSectionCard label="À propos" items={PLUS_ABOUT_ITEMS} onItemPress={handleItemPress} />
-                <Text style={styles.version}>Version {APP_VERSION}</Text>
-              </View>
-
-              <View style={styles.logoutWrapper}>
-                <LogoutButton onPress={handleLogout} />
-              </View>
-            </Animated.View>
-          )}
+            <View style={styles.logoutWrapper}>
+              <LogoutButton onPress={handleLogout} palette={palette} />
+            </View>
+          </Animated.View>
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomNav activeIndex={4} palette={palette} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Palette.screen,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 14,
-    paddingBottom: 2,
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.8,
-  },
-  headerSubtitle: {
-    fontSize: FontSize.small,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    letterSpacing: -0.1,
-    marginTop: 3,
-  },
-  content: {
-    paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
-  },
-  version: {
-    textAlign: 'center',
-    fontSize: 11.5,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-    marginTop: 14,
-    opacity: 0.8,
-  },
-  logoutWrapper: {
-    marginTop: SECTION_GAP + 20,
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: Palette.screen,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    header: {
+      paddingHorizontal: Spacing.screen,
+      paddingTop: 14,
+      paddingBottom: 2,
+    },
+    headerTitle: {
+      fontSize: 30,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.8,
+    },
+    headerSubtitle: {
+      fontSize: FontSize.small,
+      fontWeight: '400',
+      color: Palette.textSecondary,
+      letterSpacing: -0.1,
+      marginTop: 3,
+    },
+    content: {
+      paddingHorizontal: Spacing.screen,
+      paddingBottom: Spacing.section,
+    },
+    version: {
+      textAlign: 'center',
+      fontSize: 11.5,
+      fontWeight: '400',
+      color: Palette.textTertiary,
+      letterSpacing: -0.1,
+      marginTop: 14,
+      opacity: 0.8,
+    },
+    logoutWrapper: {
+      marginTop: SECTION_GAP + 20,
+    },
+  });
+}

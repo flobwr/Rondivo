@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,11 +7,14 @@ import { TINT_COLORS } from '@/components/clients/types';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { FontSize, Palette, Spacing } from '@/constants/design';
+import { useAsyncItem } from '@/hooks/use-async-item';
 import { formatLongDate } from '@/data/documents/date-utils';
-import { deleteEmployee, EMPLOYEE_ROLE_META, EMPLOYEE_STATUS_META, getEmployeeById } from '@/data/plus/employees';
+import { deleteEmployee, EMPLOYEE_ROLE_META, EMPLOYEE_STATUS_META, getEmployee } from '@/services/plus/employees';
 
 const AVATAR = 64;
 
@@ -19,7 +22,33 @@ export default function EmployeDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const employee = getEmployeeById(id);
+
+  const fetchEmployee = useCallback(() => getEmployee(id), [id]);
+  const { data: employee, status, refresh } = useAsyncItem(fetchEmployee);
+
+  if (status === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Employé" onBack={() => router.back()} />
+          <View style={styles.content}>
+            <SkeletonBlock height={140} radius={24} />
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Employé" onBack={() => router.back()} />
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   if (!employee) {
     return (
@@ -39,7 +68,7 @@ export default function EmployeDetailScreen() {
   const handleDelete = () => {
     Alert.alert('Supprimer l’employé', `Supprimer définitivement ${employee.name} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteEmployee(employee.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteEmployee(employee.id); router.back(); } },
     ]);
   };
 

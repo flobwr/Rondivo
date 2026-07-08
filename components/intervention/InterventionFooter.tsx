@@ -10,6 +10,9 @@ import { iconButtonShadow } from '@/constants/shadow';
 type Props = {
   onEdit?: () => void;
   onStart?: () => void;
+  onComplete?: () => void;
+  started?: boolean;
+  completed?: boolean;
 };
 
 function usePressScale() {
@@ -24,10 +27,14 @@ function usePressScale() {
   return { scale, onPressIn, onPressOut };
 }
 
-export function InterventionFooter({ onEdit, onStart }: Props) {
+export function InterventionFooter({ onEdit, onStart, onComplete, started, completed }: Props) {
   const insets = useSafeAreaInsets();
   const edit = usePressScale();
   const start = usePressScale();
+
+  const label = completed ? 'Intervention terminée' : started ? 'Terminer l’intervention' : 'Commencer l’intervention';
+  const icon = completed ? 'check-circle' : started ? 'check' : 'play';
+  const onPress = completed ? undefined : started ? onComplete : onStart;
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 14) }]}>
@@ -38,11 +45,20 @@ export function InterventionFooter({ onEdit, onStart }: Props) {
         </Animated.View>
       </Pressable>
 
-      <Pressable style={styles.startWrapper} onPressIn={start.onPressIn} onPressOut={start.onPressOut} onPress={onStart}>
-        <Animated.View style={[styles.startButton, { transform: [{ scale: start.scale }] }]}>
-          <Feather name="play" size={15} color={Palette.white} />
-          <Text style={styles.startText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-            Commencer l&rsquo;intervention
+      <Pressable
+        style={styles.startWrapper}
+        onPressIn={completed ? undefined : start.onPressIn}
+        onPressOut={completed ? undefined : start.onPressOut}
+        onPress={onPress}
+        disabled={completed}>
+        <Animated.View style={[styles.startButton, completed ? styles.startButtonDone : null, { transform: [{ scale: start.scale }] }]}>
+          <Feather name={icon} size={15} color={completed ? Palette.textPrimary : Palette.white} />
+          <Text
+            style={[styles.startText, completed ? styles.startTextDone : null]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}>
+            {label}
           </Text>
         </Animated.View>
       </Pressable>
@@ -94,10 +110,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     backgroundColor: Palette.blue,
   },
+  startButtonDone: {
+    backgroundColor: Palette.cardMuted,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
   startText: {
     fontSize: 12,
     fontWeight: '700',
     color: Palette.white,
     letterSpacing: -0.2,
+  },
+  startTextDone: {
+    color: Palette.textPrimary,
   },
 });

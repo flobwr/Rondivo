@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
+    paddingVertical: 13,
   },
   rowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,

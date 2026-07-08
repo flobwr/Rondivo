@@ -4,12 +4,12 @@ import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
 import { Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
 import { Palette } from '@/constants/design';
-import { pickFromCamera, pickFromLibrary } from './photo-picker';
+import { InterventionPhoto } from '@/services/documents/photos';
+import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
 import { PhotoGalleryModal } from './PhotoGalleryModal';
-import { PhotoPickerSheet } from './PhotoPickerSheet';
 import { SectionCard } from './SectionCard';
-import { Photo } from './types';
 
 const SLOTS = 3;
 
@@ -25,7 +25,7 @@ function useSlotPress() {
   return { scale, onPressIn, onPressOut };
 }
 
-function PhotoSlot({ photo, onPress }: { photo: Photo; onPress: () => void }) {
+function PhotoSlot({ photo, onPress }: { photo: InterventionPhoto; onPress: () => void }) {
   const press = useSlotPress();
   return (
     <Pressable
@@ -35,7 +35,7 @@ function PhotoSlot({ photo, onPress }: { photo: Photo; onPress: () => void }) {
       onPress={onPress}
       accessibilityLabel="Voir la photo">
       <Animated.View style={[styles.slotFill, { transform: [{ scale: press.scale }] }]}>
-        <Image source={photo.source} style={styles.slotImage} contentFit="cover" />
+        <Image source={{ uri: photo.uri }} style={styles.slotImage} contentFit="cover" />
       </Animated.View>
     </Pressable>
   );
@@ -66,7 +66,7 @@ function EmptySlot() {
 }
 
 type Props = {
-  photos: Photo[];
+  photos: InterventionPhoto[];
   onAddPhoto: (uri: string) => void;
 };
 
@@ -115,7 +115,7 @@ export function PhotosCard({ photos, onAddPhoto }: Props) {
 
       <View style={styles.row}>{slots}</View>
 
-      <PhotoPickerSheet
+      <PhotoSourceSheet
         visible={pickerVisible}
         onClose={() => setPickerVisible(false)}
         onPickCamera={handlePickCamera}

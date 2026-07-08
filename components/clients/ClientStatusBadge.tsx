@@ -12,11 +12,17 @@ type ClientStatusBadgeProps = {
 // name above it always wins the horizontal space.
 function ClientStatusBadgeComponent({ status }: ClientStatusBadgeProps) {
   const meta = STATUS_META[status];
+  // "Action requise" carries real urgency — give it a touch more visual
+  // weight than a routine "Nouveau client"/"Tout est à jour" badge.
+  const critical = status === 'action-required';
 
   return (
-    <View style={[styles.pill, { backgroundColor: meta.soft }]}>
+    <View style={[styles.pill, { backgroundColor: meta.soft }, critical && { borderWidth: 1, borderColor: meta.color }]}>
       <View style={[styles.dot, { backgroundColor: meta.color }]} />
-      <Text style={[styles.text, { color: meta.color }]} numberOfLines={1}>
+      <Text
+        style={[styles.text, { color: meta.color, fontWeight: critical ? '800' : '600' }]}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.3}>
         {meta.label}
       </Text>
     </View>

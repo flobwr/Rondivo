@@ -1,10 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenFadeInDuration } from '@/constants/animation';
+import { type Client } from '@/components/clients/types';
 import { ActivityCard } from '@/components/clients/detail/ActivityCard';
 import { AlertsBanner } from '@/components/clients/detail/AlertsBanner';
 import { ContactsCard } from '@/components/clients/detail/ContactsCard';
@@ -25,19 +26,52 @@ import {
 } from '@/components/clients/detail/TabSections';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { FontSize, Palette, Spacing } from '@/constants/design';
-import { getClientAlerts, getClientDetail, type ClientAlert } from '@/data/client-details';
-import { getClientById } from '@/data/clients';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getClientAlerts, getClientDetail, type ClientAlert, type ClientDetail } from '@/services/client-details';
+import { getClientById } from '@/services/clients';
 
 const light = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+type ClientBundle = {
+  client: Client;
+  detail: ClientDetail;
+  alerts: ClientAlert[];
+};
+
+async function fetchClientBundle(id: string | undefined): Promise<ClientBundle | undefined> {
+  const client = id ? getClientById(id) : undefined;
+  if (!client) return undefined;
+  const detail = await getClientDetail(client);
+  const alerts = await getClientAlerts(client, detail);
+  return { client, detail, alerts };
+}
+
+function ClientDetailSkeleton() {
+  return (
+    <View style={{ gap: Spacing.md, paddingTop: Spacing.xs }}>
+      <SkeletonBlock height={92} radius={24} />
+      <SkeletonBlock height={64} radius={20} />
+      <SkeletonBlock height={120} radius={20} />
+      <SkeletonBlock height={160} radius={20} />
+      <SkeletonBlock height={140} radius={20} />
+    </View>
+  );
+}
 
 export default function ClientDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const client = getClientById(id);
 
-  const detail = useMemo(() => (client ? getClientDetail(client) : null), [client]);
-  const [notes, setNotes] = useState<string[]>(detail?.importantNotes ?? []);
+  const fetchBundle = useCallback(() => fetchClientBundle(id), [id]);
+  const { data: bundle, status } = useAsyncItem(fetchBundle);
+
+  const [notes, setNotes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<DetailTab>('resume');
+
+  useEffect(() => {
+    if (bundle) setNotes(bundle.detail.importantNotes);
+  }, [bundle]);
 
   // Gentle fade + rise on mount — matches the app's calm, premium motion.
   const enter = useRef(new Animated.Value(0)).current;
@@ -45,7 +79,20 @@ export default function ClientDetailScreen() {
     Animated.timing(enter, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
   }, [enter]);
 
-  if (!client || !detail) {
+  if (status === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader onBack={() => router.back()} onEdit={() => {}} onMenu={() => {}} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <ClientDetailSkeleton />
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!bundle) {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -55,6 +102,8 @@ export default function ClientDetailScreen() {
       </View>
     );
   }
+
+  const { client, detail, alerts } = bundle;
 
   const soon = (feature: string) =>
     Alert.alert(feature, 'Cette action sera bientôt disponible.', [{ text: 'OK' }]);
@@ -84,7 +133,6 @@ export default function ClientDetailScreen() {
     Linking.openURL(url!);
   };
 
-  const alerts: ClientAlert[] = getClientAlerts(client, detail);
   const stats = detail.stats['12m'];
 
   return (
@@ -113,8 +161,8 @@ export default function ClientDetailScreen() {
               onCall={() => call()}
               onMessage={message}
               onNewIntervention={() => router.push({ pathname: '/appointment/new', params: { clientId: client.id } })}
-              onNewQuote={() => soon('Nouveau devis')}
-              onNewInvoice={() => soon('Nouvelle facture')}
+              onNewQuote={() => router.push({ pathname: '/devis/new', params: { clientId: client.id } })}
+              onNewInvoice={() => router.push({ pathname: '/facture/new', params: { clientId: client.id } })}
             />
 
             {alerts.length > 0 ? (
@@ -177,8 +225,8 @@ export default function ClientDetailScreen() {
                 paid={stats.totalPaid}
                 unpaid={stats.totalUnpaid}
                 onOpenItem={(item) => item && soon(item.reference)}
-                onNewQuote={() => soon('Nouveau devis')}
-                onNewInvoice={() => soon('Nouvelle facture')}
+                onNewQuote={() => router.push({ pathname: '/devis/new', params: { clientId: client.id } })}
+                onNewInvoice={() => router.push({ pathname: '/facture/new', params: { clientId: client.id } })}
               />
             ) : null}
 

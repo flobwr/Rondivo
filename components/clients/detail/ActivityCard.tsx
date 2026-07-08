@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
 import { FontSize, Palette } from '@/constants/design';
-import { type ActivityEntry, type ActivityKind } from '@/data/client-details';
+import { type ActivityEntry, type ActivityKind } from '@/services/client-details';
 import { SectionCard } from './primitives';
 
 type Props = {

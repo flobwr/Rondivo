@@ -3,13 +3,16 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
+import { ThemeProvider, useTheme } from '@/contexts/theme';
+
 export const unstable_settings = {
   anchor: 'index',
 };
 
-export default function RootLayout() {
+function RootStack() {
+  const { scheme } = useTheme();
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="planning" />
@@ -79,7 +82,17 @@ export default function RootLayout() {
         <Stack.Screen name="plus/confidentialite" />
         <Stack.Screen name="plus/[slug]" />
       </Stack>
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <RootStack />
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

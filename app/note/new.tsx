@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,26 +8,40 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { FontSize, Palette, Spacing } from '@/constants/design';
-import { createNote, deleteNote, getNoteById, updateNote } from '@/data/notes';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { createNote, deleteNote, getNote, updateNote } from '@/services/notes';
 
 export default function NewNoteScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getNoteById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [title, setTitle] = useState(editing?.title ?? '');
-  const [content, setContent] = useState(editing?.content ?? '');
+  const fetchEditing = useCallback(() => (editId ? getNote(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = title.trim().length > 0;
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [initialized, setInitialized] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (editing && !initialized) {
+      setTitle(editing.title);
+      setContent(editing.content);
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const canSubmit = title.trim().length > 0 && !saving;
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
+    setSaving(true);
     const input = { title: title.trim(), content: content.trim() };
-    if (isEditing) {
-      updateNote(editing!.id, input);
+    if (isEditing && editing) {
+      await updateNote(editing.id, input);
     } else {
-      createNote(input);
+      await createNote(input);
     }
     router.back();
   };
@@ -36,9 +50,11 @@ export default function NewNoteScreen() {
     if (!editing) return;
     Alert.alert('Supprimer cette note', `Supprimer définitivement "${editing.title}" ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteNote(editing.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteNote(editing.id); router.back(); } },
     ]);
   };
+
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
 
   return (
     <View style={styles.root}>
@@ -51,28 +67,31 @@ export default function NewNoteScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <FormSection title="Note" icon="file-text">
-              <FormField label="Titre" value={title} onChangeText={setTitle} placeholder="Ex. Accès chantier" />
-              <FormField label="Contenu" value={content} onChangeText={setContent} placeholder="Détails, code d’accès, rappel…" multiline />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <FormSection title="Note" icon="file-text">
+                <FormField label="Titre" value={title} onChangeText={setTitle} placeholder="Ex. Accès chantier" />
+                <FormField label="Contenu" value={content} onChangeText={setContent} placeholder="Détails, code d’accès, rappel…" multiline />
+              </FormSection>
 
-            {isEditing ? (
-              <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette note">
-                <Text style={styles.deleteText}>Supprimer cette note</Text>
-              </PressableScale>
-            ) : null}
+              {isEditing ? (
+                <PressableScale onPress={handleDelete} to={0.97} style={styles.deleteButton} accessibilityLabel="Supprimer cette note">
+                  <Text style={styles.deleteText}>Supprimer cette note</Text>
+                </PressableScale>
+              ) : null}
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Créer la note'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={saving}
       />
     </View>
   );

@@ -23,7 +23,15 @@ function getInitials(name: string) {
     .join('');
 }
 
-function RoundButton({ icon, onPress }: { icon: React.ComponentProps<typeof Feather>['name']; onPress?: () => void }) {
+function RoundButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+}: {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  onPress?: () => void;
+  accessibilityLabel: string;
+}) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -35,7 +43,13 @@ function RoundButton({ icon, onPress }: { icon: React.ComponentProps<typeof Feat
   };
 
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress} hitSlop={6}>
+    <Pressable
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={onPress}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}>
       <Animated.View style={[styles.roundButton, { transform: [{ scale }] }]}>
         <Feather name={icon} size={19} color={Palette.textPrimary} />
       </Animated.View>
@@ -57,8 +71,8 @@ export function InterventionHeader({ intervention, onBack, onMore }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <RoundButton icon="chevron-left" onPress={onBack} />
-        <RoundButton icon="more-horizontal" onPress={onMore} />
+        <RoundButton icon="chevron-left" onPress={onBack} accessibilityLabel="Retour" />
+        <RoundButton icon="more-horizontal" onPress={onMore} accessibilityLabel="Options" />
       </View>
 
       <View style={styles.statusRow}>

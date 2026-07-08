@@ -16,11 +16,15 @@ const BUTTON = 40;
 export function DetailHeader({ onBack, onEdit, onMenu }: Props) {
   return (
     <View style={styles.row}>
+      <View style={styles.titleWrap} pointerEvents="none">
+        <Text style={styles.title} numberOfLines={1}>
+          Client
+        </Text>
+      </View>
+
       <PressableScale onPress={onBack} to={0.9} style={styles.iconButton} accessibilityLabel="Retour">
         <Feather name="chevron-left" size={24} color={Palette.textPrimary} />
       </PressableScale>
-
-      <Text style={styles.title}>Client</Text>
 
       <View style={styles.rightGroup}>
         <PressableScale onPress={onEdit} to={0.9} style={styles.iconButton} accessibilityLabel="Modifier">
@@ -36,6 +40,7 @@ export function DetailHeader({ onBack, onEdit, onMenu }: Props) {
 
 const styles = StyleSheet.create({
   row: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -43,7 +48,21 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     paddingBottom: 14,
   },
+  titleWrap: {
+    position: 'absolute',
+    // Full row width rather than clearing each button group individually —
+    // the button counts differ left (1) vs right (2), so clearing both
+    // would center "Client" in an off-center box. The label is short and
+    // fixed, so it never reaches either button group regardless.
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
+    textAlign: 'center',
     fontSize: FontSize.title,
     fontWeight: '800',
     color: Palette.textPrimary,

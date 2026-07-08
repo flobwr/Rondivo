@@ -2,10 +2,11 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
@@ -122,15 +123,14 @@ export default function FacturesScreen() {
                 <Text style={styles.count}>
                   {filtered.length} facture{filtered.length > 1 ? 's' : ''}
                 </Text>
-                <Pressable
+                <PressableScale
                   onPress={() => setSortMenuOpen(true)}
-                  hitSlop={6}
+                  hitSlop={{ top: 14, bottom: 14, left: 10, right: 10 }}
                   style={styles.sortButton}
-                  accessibilityRole="button"
                   accessibilityLabel="Trier">
                   <Feather name="sliders" size={14} color={Palette.textSecondary} />
                   <Text style={styles.sortLabel}>{SORT_LABEL[sortKey]}</Text>
-                </Pressable>
+                </PressableScale>
               </View>
             }
             ListEmptyComponent={

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   FlatList,
   Linking,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { ClientCard } from '@/components/clients/ClientCard';
 import { ClientFilterChips } from '@/components/clients/ClientFilterChips';
 import { ClientFilterSheet } from '@/components/clients/ClientFilterSheet';
@@ -28,14 +28,17 @@ import {
   type SortKey,
   type ViewMode,
 } from '@/components/clients/types';
-import { Palette, Spacing } from '@/constants/design';
-import { countByStatus } from '@/data/clients';
+import { Palette, Spacing, type PaletteShape } from '@/constants/design';
+import { useTheme } from '@/contexts/theme';
+import { countByStatus } from '@/services/clients';
 import { useClients } from '@/hooks/use-clients';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { usePersistentState } from '@/hooks/use-persistent-state';
 
 export default function ClientsScreen() {
   const router = useRouter();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<ClientStatus[]>([]);
@@ -111,9 +114,9 @@ export default function ClientsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Client }) => (
-      <ClientCard client={item} variant={viewMode} onPress={handleOpenClient} onCall={handleCall} />
+      <ClientCard client={item} variant={viewMode} onPress={handleOpenClient} onCall={handleCall} palette={palette} />
     ),
-    [viewMode, handleOpenClient, handleCall]
+    [viewMode, handleOpenClient, handleCall, palette]
   );
 
   const filtersActive = selectedStatuses.length > 0 || sortKey !== 'priority';
@@ -131,6 +134,7 @@ export default function ClientsScreen() {
           total={allCount}
           activeStatus={activeStatus}
           onSelect={handleChipSelect}
+          palette={palette}
         />
       </View>
 
@@ -139,14 +143,14 @@ export default function ClientsScreen() {
           {isInitialLoading ? 'Chargement…' : `${total} client${total > 1 ? 's' : ''}`}
         </Text>
 
-        <Pressable
+        <PressableScale
           style={styles.viewToggle}
           onPress={toggleViewMode}
           hitSlop={6}
-          accessibilityRole="button"
+          haptic={false}
           accessibilityLabel={viewMode === 'comfortable' ? 'Vue compacte' : 'Vue détaillée'}>
-          <Feather name={viewMode === 'comfortable' ? 'list' : 'grid'} size={17} color={Palette.textPrimary} />
-        </Pressable>
+          <Feather name={viewMode === 'comfortable' ? 'list' : 'grid'} size={17} color={palette.textPrimary} />
+        </PressableScale>
       </View>
     </View>
   );
@@ -164,13 +168,14 @@ export default function ClientsScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         {/* Fixed — keeps the search field focused while typing */}
         <View style={styles.fixedHeader}>
-          <ClientHeader onAddPress={handleAddPress} />
+          <ClientHeader onAddPress={handleAddPress} palette={palette} />
           <View style={styles.searchWrap}>
             <ClientSearch
               value={searchQuery}
               onChangeText={setSearchQuery}
               onFilterPress={() => setFiltersOpen(true)}
               filtersActive={filtersActive}
+              palette={palette}
             />
           </View>
         </View>
@@ -212,7 +217,7 @@ export default function ClientsScreen() {
         </View>
       </SafeAreaView>
 
-      <BottomNav activeIndex={2} />
+      <BottomNav activeIndex={2} palette={palette} />
 
       <ClientFilterSheet
         visible={filtersOpen}
@@ -228,63 +233,65 @@ export default function ClientsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Palette.screen,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  fixedHeader: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  searchWrap: {
-    marginTop: Spacing.lg,
-  },
-  content: {
-    paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
-    flexGrow: 1,
-  },
-  chipsWrap: {
-    // Full-bleed so the chips can scroll edge to edge, cancelling the list padding.
-    marginHorizontal: -Spacing.screen,
-    marginBottom: Spacing.sm,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  count: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.3,
-  },
-  viewToggle: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: Palette.cardMuted,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E8EF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  separator: {
-    height: 10,
-  },
-  footerLoader: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: Palette.screen,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    flex: {
+      flex: 1,
+    },
+    fixedHeader: {
+      paddingHorizontal: Spacing.screen,
+      paddingTop: Spacing.lg,
+      paddingBottom: Spacing.md,
+    },
+    searchWrap: {
+      marginTop: Spacing.lg,
+    },
+    content: {
+      paddingHorizontal: Spacing.screen,
+      paddingBottom: Spacing.section,
+      flexGrow: 1,
+    },
+    chipsWrap: {
+      // Full-bleed so the chips can scroll edge to edge, cancelling the list padding.
+      marginHorizontal: -Spacing.screen,
+      marginBottom: Spacing.sm,
+    },
+    toolbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: Spacing.md,
+      marginBottom: Spacing.sm,
+    },
+    count: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.3,
+    },
+    viewToggle: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: Palette.cardMuted,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    separator: {
+      height: 10,
+    },
+    footerLoader: {
+      paddingVertical: 20,
+      alignItems: 'center',
+    },
+  });
+}

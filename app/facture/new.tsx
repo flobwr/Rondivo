@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,12 +24,13 @@ import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/St
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { getClientById } from '@/data/clients';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
-import { Facture, MOCK_FACTURES } from '@/data/documents/factures';
+import { Facture, FactureInput, MOCK_FACTURES } from '@/data/documents/factures';
 import { buildSendMessage } from '@/data/documents/messaging';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { DocumentLine } from '@/data/documents/lines';
 import { MOCK_DEVIS } from '@/data/documents/devis';
 import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
+import { createFacture, updateFacture } from '@/services/documents/factures';
 
 const DUE_PRESETS = [
   { label: '15 jours', days: 15 },
@@ -62,11 +64,12 @@ function isBlankDraft(lines: DraftLine[]): boolean {
 
 export default function NewFactureScreen() {
   const router = useRouter();
-  const { editId, duplicateFromId, fromDevisId, interventionId } = useLocalSearchParams<{
+  const { editId, duplicateFromId, fromDevisId, interventionId, clientId } = useLocalSearchParams<{
     editId?: string;
     duplicateFromId?: string;
     fromDevisId?: string;
     interventionId?: string;
+    clientId?: string;
   }>();
 
   const editingFacture = useMemo(() => (editId ? MOCK_FACTURES.find((f) => f.id === editId) : undefined), [editId]);
@@ -83,6 +86,7 @@ export default function NewFactureScreen() {
   const [createdFacture, setCreatedFacture] = useState<Facture | null>(null);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isEditing = !!editingFacture;
 
@@ -114,9 +118,11 @@ export default function NewFactureScreen() {
         setClient(getClientById(preselected.clientId) ?? null);
         setLines((prev) => (isBlankDraft(prev) ? [createDraftLine(preselected.label)] : prev));
       }
+    } else if (clientId) {
+      setClient(getClientById(clientId) ?? null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editId, duplicateFromId, fromDevisId, interventionId]);
+  }, [editId, duplicateFromId, fromDevisId, interventionId, clientId]);
 
   const handleSelectIntervention = (selected: PhotoIntervention) => {
     setIntervention(selected);
@@ -128,12 +134,11 @@ export default function NewFactureScreen() {
   const { subtotal, vat, total } = computeTotals(lines, vatRate);
   const lineCount = lines.filter((l) => l.label.trim().length > 0).length || lines.length;
 
-  const buildFacture = (): Facture => {
+  const buildFactureInput = (): FactureInput => {
     const finalLines: DocumentLine[] = lines
       .filter((l) => l.label.trim().length > 0)
       .map((l) => ({ id: l.id, label: l.label.trim(), amount: computeLineAmount(l) }));
     return {
-      id: editingFacture?.id ?? `fa-draft-${Date.now()}`,
       number: editingFacture?.number ?? `FA-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
       clientId: client!.id,
       clientName: client!.name,
@@ -148,19 +153,32 @@ export default function NewFactureScreen() {
     };
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
+    if (submitting) return;
     if (!client) {
       Alert.alert('Client requis', 'Choisissez un client pour créer la facture.');
       return;
     }
-    if (isEditing) {
-      Alert.alert('Modifications enregistrées', `La facture ${editingFacture!.number} a bien été mise à jour.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+    const input = buildFactureInput();
+    if (!input.lines || input.lines.length === 0) {
+      Alert.alert('Lignes manquantes', 'Ajoutez au moins une ligne à la facture avant de la créer.');
       return;
     }
-    setCreatedFacture(buildFacture());
-    setConfirmationVisible(true);
+    setSubmitting(true);
+    try {
+      if (isEditing && editingFacture) {
+        await updateFacture(editingFacture.id, input);
+        Alert.alert('Modifications enregistrées', `La facture ${editingFacture.number} a bien été mise à jour.`, [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+        return;
+      }
+      const created = await createFacture(input);
+      setCreatedFacture(created);
+      setConfirmationVisible(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSharePdf = async () => {
@@ -214,7 +232,11 @@ export default function NewFactureScreen() {
                 return (
                   <Pressable
                     key={preset.days}
-                    onPress={() => setDueDays(preset.days)}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setDueDays(preset.days);
+                    }}
+                    hitSlop={{ top: 5, bottom: 5 }}
                     style={[styles.duePill, active ? styles.duePillActive : null]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}>
@@ -250,7 +272,11 @@ export default function NewFactureScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <StickyFormFooter label={isEditing ? 'Enregistrer les modifications' : 'Créer la facture'} onPress={handleCreate} />
+      <StickyFormFooter
+        label={isEditing ? 'Enregistrer les modifications' : 'Créer la facture'}
+        onPress={handleCreate}
+        loading={submitting}
+      />
 
       <ClientPickerSheet
         visible={clientPickerOpen}

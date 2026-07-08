@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
@@ -14,22 +14,30 @@ export function StickyFormFooter({
   label,
   onPress,
   disabled = false,
+  loading = false,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Shows a spinner and blocks re-entry while the submit handler is in flight — prevents a double-tap from creating a duplicate. */
+  loading?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const inactive = disabled || loading;
 
   return (
     <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
       <PressableScale
-        onPress={disabled ? undefined : onPress}
-        disabled={disabled}
+        onPress={inactive ? undefined : onPress}
+        disabled={inactive}
         to={0.97}
-        style={[styles.button, disabled && styles.buttonDisabled]}
+        style={[styles.button, inactive && styles.buttonDisabled]}
         accessibilityLabel={label}>
-        <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
+        {loading ? (
+          <ActivityIndicator color={Palette.textTertiary} />
+        ) : (
+          <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
+        )}
       </PressableScale>
     </View>
   );

@@ -7,18 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
-import { Photo, PhotoCategory } from './types';
-
-const CATEGORY_LABEL: Record<PhotoCategory, string> = {
-  avant: 'Avant',
-  pendant: 'Pendant',
-  apres: 'Après',
-  document: 'Document',
-};
+import { InterventionPhoto, PHOTO_CATEGORY_LABEL } from '@/services/documents/photos';
 
 type Props = {
   visible: boolean;
-  photos: Photo[];
+  photos: InterventionPhoto[];
   onClose: () => void;
   onAddPhoto: () => void;
 };
@@ -27,7 +20,7 @@ const COLUMNS = 3;
 const GAP = 8;
 
 export function PhotoGalleryModal({ visible, photos, onClose, onAddPhoto }: Props) {
-  const [expanded, setExpanded] = useState<Photo | null>(null);
+  const [expanded, setExpanded] = useState<InterventionPhoto | null>(null);
   const { width } = useWindowDimensions();
   const tileSize = (width - Spacing.screen * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
 
@@ -49,7 +42,7 @@ export function PhotoGalleryModal({ visible, photos, onClose, onAddPhoto }: Prop
 
           {expanded ? (
             <View style={styles.previewWrapper}>
-              <Image source={expanded.source} style={styles.preview} contentFit="contain" />
+              <Image source={{ uri: expanded.uri }} style={styles.preview} contentFit="contain" />
               <Pressable style={styles.backToGrid} onPress={() => setExpanded(null)} hitSlop={8}>
                 <Feather name="chevron-left" size={18} color={Palette.textPrimary} />
                 <Text style={styles.backToGridText}>Retour à la grille</Text>
@@ -64,12 +57,10 @@ export function PhotoGalleryModal({ visible, photos, onClose, onAddPhoto }: Prop
                   to={0.96}
                   style={[styles.tile, { width: tileSize, height: tileSize }]}
                   accessibilityLabel="Agrandir la photo">
-                  <Image source={photo.source} style={styles.tileImage} contentFit="cover" />
-                  {photo.category ? (
-                    <View style={styles.chip}>
-                      <Text style={styles.chipText}>{CATEGORY_LABEL[photo.category]}</Text>
-                    </View>
-                  ) : null}
+                  <Image source={{ uri: photo.uri }} style={styles.tileImage} contentFit="cover" />
+                  <View style={styles.chip}>
+                    <Text style={styles.chipText}>{PHOTO_CATEGORY_LABEL[photo.category]}</Text>
+                  </View>
                 </PressableScale>
               ))}
             </ScrollView>

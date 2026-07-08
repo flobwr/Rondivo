@@ -13,14 +13,14 @@ export function FactureHero({ facture, onOpenClient }: { facture: Facture; onOpe
     <View style={styles.card}>
       <View style={styles.topRow}>
         <PressableScale onPress={onOpenClient} to={0.98} accessibilityLabel={`Ouvrir la fiche de ${facture.clientName}`}>
-          <Text style={styles.client} numberOfLines={1}>
+          <Text style={styles.client} numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {facture.clientName}
           </Text>
         </PressableScale>
         <StatusPill label={meta.label} color={meta.color} soft={meta.soft} />
       </View>
 
-      <Text style={styles.amount}>{formatAmount(facture.amount)}</Text>
+      <Text style={styles.amount} maxFontSizeMultiplier={1.3}>{formatAmount(facture.amount)}</Text>
 
       <View style={styles.datesRow}>
         <View style={styles.dateBlock}>

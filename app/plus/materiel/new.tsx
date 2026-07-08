@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
@@ -10,9 +10,10 @@ import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/St
 import { formatIsoToFr, parseFrDateToIso } from '@/components/plus/resource/date-input';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
 import { Palette, Spacing } from '@/constants/design';
+import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createMateriel,
-  getMaterielById,
+  getMateriel,
   MATERIEL_CATEGORY_LABEL,
   MATERIEL_CATEGORY_ORDER,
   MATERIEL_CONDITION_META,
@@ -20,7 +21,7 @@ import {
   type MaterielCategory,
   type MaterielCondition,
   updateMateriel,
-} from '@/data/plus/materiel';
+} from '@/services/plus/materiel';
 
 const CATEGORY_ICON: Record<MaterielCategory, PickerOption['icon']> = {
   'outillage-electroportatif': 'tool',
@@ -45,19 +46,36 @@ const CONDITION_OPTIONS: PickerOption[] = MATERIEL_CONDITION_ORDER.map((conditio
 export default function NewMaterielScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getMaterielById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [name, setName] = useState(editing?.name ?? '');
-  const [category, setCategory] = useState<MaterielCategory>(editing?.category ?? 'outillage-electroportatif');
-  const [condition, setCondition] = useState<MaterielCondition>(editing?.condition ?? 'bon-etat');
-  const [location, setLocation] = useState(editing?.location ?? '');
-  const [purchaseDate, setPurchaseDate] = useState(editing?.purchaseDate ? formatIsoToFr(editing.purchaseDate) : '');
-  const [serialNumber, setSerialNumber] = useState(editing?.serialNumber ?? '');
+  const fetchEditing = useCallback(() => (editId ? getMateriel(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = name.trim().length > 0 && location.trim().length > 0;
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<MaterielCategory>('outillage-electroportatif');
+  const [condition, setCondition] = useState<MaterielCondition>('bon-etat');
+  const [location, setLocation] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (editing && !initialized) {
+      setName(editing.name);
+      setCategory(editing.category);
+      setCondition(editing.condition);
+      setLocation(editing.location);
+      setPurchaseDate(editing.purchaseDate ? formatIsoToFr(editing.purchaseDate) : '');
+      setSerialNumber(editing.serialNumber ?? '');
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const [submitting, setSubmitting] = useState(false);
+  const canSubmit = name.trim().length > 0 && location.trim().length > 0 && !submitting;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
     const input = {
       name: name.trim(),
@@ -67,12 +85,19 @@ export default function NewMaterielScreen() {
       purchaseDate: parseFrDateToIso(purchaseDate) ?? undefined,
       serialNumber: serialNumber.trim() || undefined,
     };
-    if (isEditing) {
-      updateMateriel(editing!.id, input);
-      router.back();
-    } else {
-      const created = createMateriel(input);
-      router.replace(`/plus/materiel/${created.id}` as never);
+    setSubmitting(true);
+    try {
+      if (isEditing && editing) {
+        await updateMateriel(editing.id, input);
+        router.back();
+      } else {
+        const created = await createMateriel(input);
+        router.replace(`/plus/materiel/${created.id}` as never);
+      }
+    } catch {
+      Alert.alert('Échec de l’enregistrement', 'Veuillez réessayer.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -87,32 +112,35 @@ export default function NewMaterielScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            <FormSection title="Matériel" icon="tool">
-              <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. Perceuse Bosch GSB 18V" />
-              <PickerField label="Catégorie" value={CATEGORY_OPTIONS.find((o) => o.key === category)} options={CATEGORY_OPTIONS} onSelect={(k) => setCategory(k as MaterielCategory)} />
-              <PickerField label="État" value={CONDITION_OPTIONS.find((o) => o.key === condition)} options={CONDITION_OPTIONS} onSelect={(k) => setCondition(k as MaterielCondition)} />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled">
+              <FormSection title="Matériel" icon="tool">
+                <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. Perceuse Bosch GSB 18V" />
+                <PickerField label="Catégorie" value={CATEGORY_OPTIONS.find((o) => o.key === category)} options={CATEGORY_OPTIONS} onSelect={(k) => setCategory(k as MaterielCategory)} />
+                <PickerField label="État" value={CONDITION_OPTIONS.find((o) => o.key === condition)} options={CONDITION_OPTIONS} onSelect={(k) => setCondition(k as MaterielCondition)} />
+              </FormSection>
 
-            <FormSection title="Suivi" icon="map-pin">
-              <FormField label="Emplacement" value={location} onChangeText={setLocation} placeholder="Ex. Atelier, ou nom de l’employé" />
-              <FormField label="Date d’achat" value={purchaseDate} onChangeText={setPurchaseDate} placeholder="JJ/MM/AAAA" />
-              <FormField label="N° de série" value={serialNumber} onChangeText={setSerialNumber} placeholder="Facultatif" />
-            </FormSection>
+              <FormSection title="Suivi" icon="map-pin">
+                <FormField label="Emplacement" value={location} onChangeText={setLocation} placeholder="Ex. Atelier, ou nom de l’employé" />
+                <FormField label="Date d’achat" value={purchaseDate} onChangeText={setPurchaseDate} placeholder="JJ/MM/AAAA" />
+                <FormField label="N° de série" value={serialNumber} onChangeText={setSerialNumber} placeholder="Facultatif" />
+              </FormSection>
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Ajouter le matériel'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={submitting}
       />
     </View>
   );

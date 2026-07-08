@@ -1,48 +1,72 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Appointment, AppointmentCard } from '@/components/home/appointment-card';
+import { AppointmentCard } from '@/components/home/appointment-card';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
+import { Intervention } from '@/components/intervention/types';
 import { ScreenFadeInDuration } from '@/constants/animation';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Radius, Spacing, type PaletteShape } from '@/constants/design';
+import { useTheme } from '@/contexts/theme';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getAccount } from '@/services/plus/company';
+import { HomeSchedule, getHomeSchedule } from '@/services/home-schedule';
+import { getIntervention } from '@/services/interventions';
+import { getUnreadNotificationCount } from '@/services/notifications';
+import { getNextReminderTitle } from '@/services/reminders';
 
-// ── Mock data — replace with real data source ─────────────────────────────────
+type HomeBundle = {
+  schedule: HomeSchedule;
+  accountName: string;
+  accountRole: string;
+  accountInitials: string;
+  unreadCount: number;
+  nextReminder: string | null;
+  nextIntervention?: Intervention;
+};
 
-const HAS_NEXT_INTERVENTION = true;
+async function fetchHomeBundle(): Promise<HomeBundle> {
+  const schedule = await getHomeSchedule();
+  const [account, unreadCount, nextReminder, nextIntervention] = await Promise.all([
+    getAccount(),
+    getUnreadNotificationCount(),
+    getNextReminderTitle(),
+    schedule.hasNextIntervention ? getIntervention(schedule.nextInterventionId) : Promise.resolve(undefined),
+  ]);
 
-const REMAINING_APPOINTMENTS: Appointment[] = [
-  {
-    id: '1',
-    time: '13:00',
-    client: 'Sophie Bernard',
-    type: 'Pose de radiateur',
-    address: '8 rue Molière, 69003 Lyon',
-    status: 'Confirmé',
-  },
-  {
-    id: '2',
-    time: '15:30',
-    client: 'Marc Petit',
-    type: 'Dépannage urgence',
-    address: '42 cours Vitton, 69006 Lyon',
-    status: 'Confirmé',
-  },
-];
+  return {
+    schedule,
+    accountName: account.name,
+    accountRole: account.role,
+    accountInitials: account.initials,
+    unreadCount,
+    nextReminder,
+    nextIntervention,
+  };
+}
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function HomeSkeleton() {
   return (
     <>
-      <SkeletonBlock height={168} radius={28} />
+      <View style={skStyles.headerRow}>
+        <SkeletonBlock height={48} radius={24} style={{ width: 48 }} />
+        <View style={{ flex: 1, gap: 6 }}>
+          <SkeletonBlock height={16} radius={6} style={{ width: '55%' }} />
+          <SkeletonBlock height={13} radius={6} style={{ width: '35%' }} />
+        </View>
+      </View>
+
+      <SkeletonBlock height={168} radius={28} style={{ marginTop: Spacing.section }} />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
@@ -67,6 +91,11 @@ function HomeSkeleton() {
 }
 
 const skStyles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   quickRow: {
     flexDirection: 'row',
     gap: 10,
@@ -82,21 +111,25 @@ const skStyles = StyleSheet.create({
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
-  const [isLoading, setIsLoading] = useState(true);
   const fadeIn = useRef(new Animated.Value(0)).current;
   const creationMenu = useDocumentCreationMenu();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
+  const fetchHome = useCallback(() => fetchHomeBundle(), []);
+  const { data: home, status, refresh } = useAsyncItem(fetchHome);
+  const isLoading = status === 'loading';
+  const isError = status === 'error';
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setIsLoading(false);
+    if (status === 'success') {
       Animated.timing(fadeIn, {
         toValue: 1,
         duration: ScreenFadeInDuration,
         useNativeDriver: true,
       }).start();
-    }, 1200);
-    return () => clearTimeout(t);
-  }, [fadeIn]);
+    }
+  }, [status, fadeIn]);
 
   return (
     <View style={styles.root}>
@@ -104,33 +137,49 @@ export default function HomeScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}>
-          <Header />
-
-          {isLoading ? (
+          {isError ? (
+            <EmptyState
+              icon="alert-circle"
+              title="Impossible de charger l’accueil"
+              subtitle="Vérifiez votre connexion et réessayez."
+              actionLabel="Réessayer"
+              onAction={refresh}
+              palette={palette}
+            />
+          ) : isLoading || !home ? (
             <View style={styles.section}>
               <HomeSkeleton />
             </View>
           ) : (
             <Animated.View style={{ opacity: fadeIn }}>
+              <Header
+                name={home.accountName}
+                role={home.accountRole}
+                initials={home.accountInitials}
+                unreadNotificationCount={home.unreadCount}
+                interventionsTodayCount={home.schedule.interventionsTodayCount}
+                palette={palette}
+              />
+
               <View style={styles.section}>
-                <HeroCard isEmpty={!HAS_NEXT_INTERVENTION} />
+                <HeroCard isEmpty={!home.schedule.hasNextIntervention} intervention={home.nextIntervention} />
               </View>
 
               <View style={styles.section}>
-                <QuickActions onNewDocument={creationMenu.open} />
+                <QuickActions onNewDocument={creationMenu.open} palette={palette} />
               </View>
 
               <View style={styles.section}>
-                <RemindersCard />
+                <RemindersCard nextReminder={home.nextReminder} palette={palette} />
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Le reste de la journée</Text>
 
-                {REMAINING_APPOINTMENTS.length > 0 ? (
+                {home.schedule.remainingAppointments.length > 0 ? (
                   <View style={styles.appointmentList}>
-                    {REMAINING_APPOINTMENTS.map((apt) => (
-                      <AppointmentCard key={apt.id} appointment={apt} />
+                    {home.schedule.remainingAppointments.map((apt) => (
+                      <AppointmentCard key={apt.id} appointment={apt} palette={palette} />
                     ))}
                   </View>
                 ) : (
@@ -144,7 +193,7 @@ export default function HomeScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={0} />
+      <BottomNav activeIndex={0} palette={palette} />
 
       <ActionSheetMenu
         visible={creationMenu.visible}
@@ -156,43 +205,45 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Palette.screen,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.section,
-  },
-  section: {
-    marginTop: Spacing.section,
-  },
-  sectionTitle: {
-    fontSize: FontSize.section,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-    marginBottom: 12,
-  },
-  appointmentList: {
-    gap: 10,
-  },
-  emptyDay: {
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 22,
-    paddingHorizontal: 18,
-    alignItems: 'center',
-  },
-  emptyDayTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Palette.textSecondary,
-    letterSpacing: -0.2,
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: Palette.screen,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: Spacing.screen,
+      paddingTop: Spacing.lg,
+      paddingBottom: Spacing.section,
+    },
+    section: {
+      marginTop: Spacing.section,
+    },
+    sectionTitle: {
+      fontSize: FontSize.section,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.4,
+      marginBottom: 12,
+    },
+    appointmentList: {
+      gap: 10,
+    },
+    emptyDay: {
+      backgroundColor: Palette.card,
+      borderRadius: Radius.card,
+      paddingVertical: 22,
+      paddingHorizontal: 18,
+      alignItems: 'center',
+    },
+    emptyDayTitle: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: Palette.textSecondary,
+      letterSpacing: -0.2,
+    },
+  });
+}

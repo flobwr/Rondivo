@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { HistoryCard } from '@/components/documents/shared/HistoryCard';
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
@@ -26,6 +27,7 @@ import {
   Payment,
   PaymentMethod,
 } from '@/data/documents/factures';
+import { addPayment, deleteFacture, updateFacture } from '@/services/documents/factures';
 
 type Composer = 'send' | 'relance' | null;
 
@@ -48,7 +50,7 @@ export default function FactureDetailScreen() {
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
           <DetailHeader title="Facture" onBack={() => router.back()} />
-          <Text style={styles.notFound}>Facture introuvable.</Text>
+          <EmptyState icon="alert-circle" title="Facture introuvable" subtitle="Cette facture n’existe pas ou a été supprimée." />
         </SafeAreaView>
       </View>
     );
@@ -70,20 +72,24 @@ export default function FactureDetailScreen() {
     await shareDocumentPdf(uri, `Facture ${facture.number} — ${facture.clientName} — ${formatAmount(facture.amount)}`);
   };
 
-  const handleMarkPaid = () => {
+  const handleMarkPaid = async () => {
+    const nextPayments =
+      remaining > 0
+        ? [...payments, { id: `pay-${payments.length + 1}`, date: new Date().toISOString(), amount: remaining, method: 'virement' as PaymentMethod }]
+        : payments;
     setStatus('payee');
-    if (remaining > 0) {
-      setPayments((prev) => [
-        ...prev,
-        { id: `pay-${prev.length + 1}`, date: new Date().toISOString(), amount: remaining, method: 'virement' },
-      ]);
-    }
+    setPayments(nextPayments);
+    await updateFacture(facture.id, { status: 'payee', payments: nextPayments });
   };
 
-  const handleRecordPayment = (amount: number, method: PaymentMethod) => {
-    setPayments((prev) => [...prev, { id: `pay-${prev.length + 1}`, date: new Date().toISOString(), amount, method }]);
-    if (paidAmount + amount >= facture.amount) setStatus('payee');
+  const handleRecordPayment = async (amount: number, method: PaymentMethod) => {
+    const payment: Payment = { id: `pay-${payments.length + 1}`, date: new Date().toISOString(), amount, method };
+    const nextStatus = paidAmount + amount >= facture.amount ? 'payee' : status;
+    setPayments((prev) => [...prev, payment]);
+    if (nextStatus !== status) setStatus(nextStatus);
     setPaymentSheetOpen(false);
+    await addPayment(facture.id, payment);
+    if (nextStatus !== status) await updateFacture(facture.id, { status: nextStatus });
   };
 
   const handleArchive = () => {
@@ -96,7 +102,14 @@ export default function FactureDetailScreen() {
   const handleDelete = () => {
     Alert.alert('Supprimer la facture', `Supprimer définitivement ${facture.number} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => router.back() },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteFacture(facture.id);
+          router.back();
+        },
+      },
     ]);
   };
 
@@ -265,11 +278,5 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.1,
     lineHeight: 19,
-  },
-  notFound: {
-    textAlign: 'center',
-    marginTop: 40,
-    color: Palette.textSecondary,
-    fontSize: 15,
   },
 });

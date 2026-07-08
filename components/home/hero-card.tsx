@@ -5,21 +5,30 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Intervention } from '@/components/intervention/types';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { floatingButtonShadow, heroShadow } from '@/constants/shadow';
 import { openMapsTo } from '@/utils/openMaps';
 
 type HeroCardProps = {
   isEmpty?: boolean;
+  intervention?: Intervention;
 };
 
 const GPS = 48;
 
-// Matches INTERVENTIONS['next'] in components/intervention/mock-data.ts.
-const NEXT_INTERVENTION_ID = 'next';
-const NEXT_INTERVENTION_ADDRESS = '24 Av. Félix Faure, 69003 Lyon';
+function subtractMinutes(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const wrapped = ((h * 60 + m - minutes) % 1440 + 1440) % 1440;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, '0')}:${String(wrapped % 60).padStart(2, '0')}`;
+}
 
-export function HeroCard({ isEmpty = false }: HeroCardProps) {
+function streetOnly(address: string): string {
+  return address.split(',')[0]?.trim() ?? address;
+}
+
+export function HeroCard({ isEmpty = false, intervention }: HeroCardProps) {
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
   const gpsScale = useRef(new Animated.Value(1)).current;
@@ -59,14 +68,15 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         tension: 150,
       }),
     ]).start();
-    openMapsTo(NEXT_INTERVENTION_ADDRESS);
+    if (intervention) openMapsTo(intervention.address);
   };
 
   const onCardPress = () => {
-    router.push({ pathname: '/intervention/[id]', params: { id: NEXT_INTERVENTION_ID } });
+    if (!intervention) return;
+    router.push({ pathname: '/intervention/[id]', params: { id: intervention.id } });
   };
 
-  if (isEmpty) {
+  if (isEmpty || !intervention) {
     return (
       <LinearGradient
         colors={['#C2CBD8', '#B8C4D2']}
@@ -78,13 +88,15 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         <Text style={[styles.metaText, { marginTop: 8, opacity: 0.6 }]}>
           Aucune intervention prévue aujourd&apos;hui
         </Text>
-        <Pressable style={styles.emptyAction} hitSlop={8} onPress={() => router.push('/appointment/new')}>
+        <PressableScale style={styles.emptyAction} onPress={() => router.push('/appointment/new')}>
           <Text style={styles.emptyActionText}>Créer une intervention</Text>
           <Feather name="plus" size={14} color={Palette.white} />
-        </Pressable>
+        </PressableScale>
       </LinearGradient>
     );
   }
+
+  const departureTime = subtractMinutes(intervention.startTime, intervention.travelMinutes);
 
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onCardPress}>
@@ -95,11 +107,11 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
           end={{ x: 1, y: 1 }}
           style={styles.card}>
           <Text style={styles.eyebrow}>PROCHAINE INTERVENTION</Text>
-          <Text style={styles.client}>Martin Dupont</Text>
+          <Text style={styles.client}>{intervention.client}</Text>
 
           <View style={styles.metaRow}>
             <Ionicons name="time-outline" size={17} color={Palette.white} />
-            <Text style={styles.metaText}>10:30 {'•'} Entretien chaudière</Text>
+            <Text style={styles.metaText}>{intervention.startTime} {'•'} {intervention.type}</Text>
           </View>
 
           <View style={styles.footer}>
@@ -111,7 +123,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.9}>
-                  10:12
+                  {departureTime}
                 </Text>
               </View>
 
@@ -124,19 +136,19 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.85}>
-                  18 min {'•'} 7,4 km
+                  {intervention.travelMinutes} min {'•'} {intervention.travelKm.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km
                 </Text>
                 <Text
                   style={styles.footerSub}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.85}>
-                  via Av. Félix Faure
+                  via {streetOnly(intervention.address)}
                 </Text>
               </View>
             </View>
 
-            <Pressable onPress={onGpsPress} hitSlop={8}>
+            <Pressable onPress={onGpsPress} hitSlop={8} accessibilityRole="button" accessibilityLabel="Itinéraire vers l’intervention">
               <Animated.View style={[styles.gpsButton, { transform: [{ scale: gpsScale }] }]}>
                 <Feather name="navigation" size={22} color={Palette.blue} />
               </Animated.View>

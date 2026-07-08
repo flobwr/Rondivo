@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { formatEuroShort, type ClientDetail } from '@/data/client-details';
+import { formatEuroShort, type ClientDetail } from '@/services/client-details';
 import { SectionCard } from './primitives';
 
 type Props = {

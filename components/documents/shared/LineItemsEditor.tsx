@@ -63,6 +63,8 @@ function LineRow({
   onDuplicate,
   removable,
   onReorder,
+  isFirst,
+  isLast,
 }: {
   line: DraftLine;
   index: number;
@@ -71,6 +73,8 @@ function LineRow({
   onDuplicate: () => void;
   removable: boolean;
   onReorder: (fromIndex: number, offsetRows: number) => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const amount = computeLineAmount(line);
   const translateY = useSharedValue(0);
@@ -113,10 +117,32 @@ function LineRow({
     <Reanimated.View style={[styles.lineCard, cardAnimatedStyle]} layout={LinearTransition.duration(220)}>
       <View style={styles.lineTopRow}>
         <GestureDetector gesture={panGesture}>
-          <Reanimated.View style={styles.dragHandle} accessibilityLabel="Réordonner la ligne">
+          <Reanimated.View style={styles.dragHandle} accessibilityLabel="Réordonner la ligne (glisser)">
             <Feather name="menu" size={16} color={Palette.textTertiary} />
           </Reanimated.View>
         </GestureDetector>
+        {/* Drag needs a precise pan gesture — hard with gloves. These give the
+            same reorder a plain tap, at a real 44px target each. */}
+        <View style={styles.reorderButtons}>
+          <Pressable
+            onPress={() => onReorder(index, -1)}
+            disabled={isFirst}
+            hitSlop={{ top: 6, bottom: 2, left: 10, right: 10 }}
+            style={[styles.reorderButton, isFirst && styles.reorderButtonDisabled]}
+            accessibilityRole="button"
+            accessibilityLabel="Monter la ligne">
+            <Feather name="chevron-up" size={16} color={isFirst ? Palette.border : Palette.textSecondary} />
+          </Pressable>
+          <Pressable
+            onPress={() => onReorder(index, 1)}
+            disabled={isLast}
+            hitSlop={{ top: 2, bottom: 6, left: 10, right: 10 }}
+            style={[styles.reorderButton, isLast && styles.reorderButtonDisabled]}
+            accessibilityRole="button"
+            accessibilityLabel="Descendre la ligne">
+            <Feather name="chevron-down" size={16} color={isLast ? Palette.border : Palette.textSecondary} />
+          </Pressable>
+        </View>
         <TextInput
           value={line.label}
           onChangeText={(label) => onChange({ label })}
@@ -225,6 +251,8 @@ export function LineItemsEditor({
             onDuplicate={() => duplicateLine(line.id)}
             removable={lines.length > 1}
             onReorder={handleReorder}
+            isFirst={index === 0}
+            isLast={index === lines.length - 1}
           />
         ))}
       </View>
@@ -302,6 +330,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.cardMuted,
+  },
+  reorderButtons: {
+    gap: 1,
+  },
+  reorderButton: {
+    width: 24,
+    height: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reorderButtonDisabled: {
+    opacity: 0.5,
   },
   labelInput: {
     flex: 1,

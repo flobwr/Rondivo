@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { ChecklistCard } from '@/components/documents/rapports/ChecklistCard';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, KeyValueRow, PressableScale, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
@@ -17,6 +18,7 @@ import { formatLongDate } from '@/data/documents/date-utils';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { MOCK_RAPPORTS, RAPPORT_STATUS_META } from '@/data/documents/rapports';
 import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
+import { deleteRapport, updateRapport } from '@/services/documents/rapports';
 
 function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -41,7 +43,7 @@ export default function RapportDetailScreen() {
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
           <DetailHeader title="Rapport" onBack={() => router.back()} />
-          <Text style={styles.notFound}>Rapport introuvable.</Text>
+          <EmptyState icon="alert-circle" title="Rapport introuvable" subtitle="Ce rapport n’existe pas ou a été supprimé." />
         </SafeAreaView>
       </View>
     );
@@ -53,16 +55,20 @@ export default function RapportDetailScreen() {
   const photosCount = photoIntervention?.photos.length ?? rapport.photosCount;
 
   const toggleChecklistItem = (itemId: string) => {
-    setChecklist((prev) => prev.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)));
+    const next = checklist.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i));
+    setChecklist(next);
+    updateRapport(rapport.id, { checklist: next });
   };
 
   const handleCollectSignature = () => {
     Alert.alert('Signature recueillie', 'La signature du client a été enregistrée.');
     setSigned(true);
+    updateRapport(rapport.id, { signed: true });
   };
 
   const handleGeneratePdf = async () => {
     setStatus('pdfGenere');
+    await updateRapport(rapport.id, { status: 'pdfGenere' });
     const uri = await generateDocumentPdf('rapport', rapport, rapport.clientName);
     await shareDocumentPdf(uri, `Rapport ${rapport.number} — ${rapport.interventionLabel} — ${rapport.clientName}`);
   };
@@ -72,12 +78,22 @@ export default function RapportDetailScreen() {
     await shareDocumentPdf(uri, `Rapport ${rapport.number} — ${rapport.interventionLabel} — ${rapport.clientName}`);
   };
 
-  const handleMarkDone = () => setStatus('termine');
+  const handleMarkDone = () => {
+    setStatus('termine');
+    updateRapport(rapport.id, { status: 'termine' });
+  };
 
   const handleDelete = () => {
     Alert.alert('Supprimer le rapport', `Supprimer définitivement ${rapport.number} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => router.back() },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteRapport(rapport.id);
+          router.back();
+        },
+      },
     ]);
   };
 
@@ -300,11 +316,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Palette.blue,
     letterSpacing: -0.1,
-  },
-  notFound: {
-    textAlign: 'center',
-    marginTop: 40,
-    color: Palette.textSecondary,
-    fontSize: 15,
   },
 });

@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
+import { PressableScale } from '@/components/ui/PressableScale';
 import {
   SORT_META,
   SORT_ORDER,
@@ -53,7 +54,9 @@ function StatusChip({
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
+      hitSlop={{ top: 7, bottom: 7 }}
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ selected: active }}
       style={[
         styles.chip,
@@ -179,8 +182,9 @@ export function ClientFilterSheet({
             </View>
           </ScrollView>
 
-          <Pressable
+          <PressableScale
             style={styles.applyButton}
+            haptic={false}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               onClose();
@@ -188,7 +192,7 @@ export function ClientFilterSheet({
             <Text style={styles.applyText}>
               Afficher {resultCount} client{resultCount > 1 ? 's' : ''}
             </Text>
-          </Pressable>
+          </PressableScale>
         </Animated.View>
       </View>
     </Modal>

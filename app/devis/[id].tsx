@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,32 +7,79 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { HistoryCard } from '@/components/documents/shared/HistoryCard';
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { CardSeparator, KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { type Client } from '@/components/clients/types';
 import { Palette, Spacing } from '@/constants/design';
-import { getClientById } from '@/data/clients';
+import { useAsyncItem } from '@/hooks/use-async-item';
+import { getClientById } from '@/services/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
 import { buildRelaunchMessage, buildSendMessage } from '@/data/documents/messaging';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
-import { DEVIS_STATUS_META, MOCK_DEVIS } from '@/data/documents/devis';
+import { DEVIS_STATUS_META, DevisStatus, deleteDevis, getDevis, updateDevis } from '@/services/documents/devis';
 
 type Composer = 'send' | 'relance' | null;
 
 export default function DevisDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const source = useMemo(() => MOCK_DEVIS.find((d) => d.id === id), [id]);
 
-  const [status, setStatus] = useState(source?.status);
+  const fetchDevis = useCallback(() => getDevis(id), [id]);
+  const { data: source, status: fetchStatus, refresh } = useAsyncItem(fetchDevis);
+
+  const [statusOverride, setStatusOverride] = useState<DevisStatus | undefined>(undefined);
   const [menuOpen, setMenuOpen] = useState(false);
   const [relaunched, setRelaunched] = useState(false);
   const [sent, setSent] = useState(false);
   const [composer, setComposer] = useState<Composer>(null);
+  const [client, setClient] = useState<Client | null>(null);
 
-  if (!source || !status) {
+  useEffect(() => {
+    setStatusOverride(undefined);
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (source) {
+      const c = getClientById(source.clientId);
+      if (!cancelled) setClient(c ?? null);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [source]);
+
+  if (fetchStatus === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Devis" onBack={() => router.back()} />
+          <View style={styles.content}>
+            <SkeletonBlock height={160} radius={24} />
+            <SkeletonBlock height={120} radius={24} style={{ marginTop: Spacing.md }} />
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (fetchStatus === 'error') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Devis" onBack={() => router.back()} />
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!source) {
     return (
       <View style={styles.root}>
         <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -43,14 +90,20 @@ export default function DevisDetailScreen() {
     );
   }
 
+  const status = statusOverride ?? source.status;
   const devis = { ...source, status };
   const meta = DEVIS_STATUS_META[status];
-  const client = getClientById(devis.clientId);
 
   const handleSign = () => {
     Alert.alert('Marquer comme accepté', `Confirmer la signature de ${devis.clientName} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Confirmer', onPress: () => setStatus('accepte') },
+      {
+        text: 'Confirmer',
+        onPress: async () => {
+          setStatusOverride('accepte');
+          await updateDevis(devis.id, { status: 'accepte' });
+        },
+      },
     ]);
   };
 
@@ -64,7 +117,14 @@ export default function DevisDetailScreen() {
   const handleDelete = () => {
     Alert.alert('Supprimer le devis', `Supprimer définitivement ${devis.number} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => router.back() },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteDevis(devis.id);
+          router.back();
+        },
+      },
     ]);
   };
 
@@ -201,10 +261,13 @@ export default function DevisDetailScreen() {
         body={composedMessage.body}
         note={composer === 'send' ? 'Le PDF du devis est disponible via "Partager" — le mail ne peut pas le joindre automatiquement.' : undefined}
         onClose={() => setComposer(null)}
-        onSent={() => {
+        onSent={async () => {
           if (composer === 'send') {
             setSent(true);
-            if (status === 'brouillon') setStatus('envoye');
+            if (status === 'brouillon') {
+              setStatusOverride('envoye');
+              await updateDevis(devis.id, { status: 'envoye' });
+            }
           } else if (composer === 'relance') {
             setRelaunched(true);
           }

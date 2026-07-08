@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 
-import { Palette } from '@/constants/design';
+import { Palette, StatusInk } from '@/constants/design';
 
 export type ClientStatus = 'action-required' | 'follow-up' | 'up-to-date' | 'new';
 
@@ -66,14 +66,16 @@ export const STATUS_META: Record<
   },
   'follow-up': {
     label: 'À relancer',
-    color: Palette.orange,
+    // This badge renders `color` as text, so it must come from StatusInk
+    // (Palette.orange itself is icon/dot-safe only, ~2.1:1 on orangeSoft).
+    color: StatusInk.orange,
     soft: Palette.orangeSoft,
     accent: '#F5BC5A',
     icon: 'clock',
   },
   'up-to-date': {
     label: 'Tout est à jour',
-    color: Palette.green,
+    color: StatusInk.green,
     soft: Palette.greenSoft,
     accent: '#48C79E',
     icon: 'check-circle',
@@ -110,10 +112,12 @@ export const SORT_ORDER: SortKey[] = [
 
 export const STATUS_ORDER: ClientStatus[] = ['action-required', 'follow-up', 'up-to-date', 'new'];
 
+// `color` here is rendered as text in several consumers (e.g. ClientAvatar
+// initials), so it comes from StatusInk rather than raw Palette accents.
 export const TINT_COLORS: Record<Tint, { color: string; soft: string }> = {
-  blue: { color: Palette.blue, soft: Palette.blueSoft },
-  orange: { color: Palette.orange, soft: Palette.orangeSoft },
-  purple: { color: Palette.purple, soft: Palette.purpleSoft },
-  green: { color: Palette.green, soft: Palette.greenSoft },
-  red: { color: Palette.red, soft: Palette.redSoft },
+  blue: { color: StatusInk.blue, soft: Palette.blueSoft },
+  orange: { color: StatusInk.orange, soft: Palette.orangeSoft },
+  purple: { color: StatusInk.purple, soft: Palette.purpleSoft },
+  green: { color: StatusInk.green, soft: Palette.greenSoft },
+  red: { color: StatusInk.red, soft: Palette.redSoft },
 };

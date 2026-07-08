@@ -1,9 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 import { DocumentsTone } from './palette';
 import { DocumentModule } from './types';
@@ -14,13 +14,17 @@ export function ModuleCard({
   module,
   index,
   onPress,
+  palette = Palette,
 }: {
   module: DocumentModule;
   index: number;
   onPress?: () => void;
+  /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
+  palette?: PaletteShape;
 }) {
   const enter = useRef(new Animated.Value(0)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   useEffect(() => {
     Animated.spring(enter, {
@@ -41,13 +45,17 @@ export function ModuleCard({
   };
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
+  // A module carrying a real "red" alert (unpaid invoice, overdue…) should
+  // outweigh one with no alert at all — same card shape, a touch more
+  // visual weight instead of an identical footprint for every module.
+  const critical = module.stats?.some((s) => s.tone === 'red') ?? false;
 
   return (
     <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
-        <Animated.View style={[styles.card, { transform: [{ scale: pressScale }] }]}>
+        <Animated.View style={[styles.card, critical && styles.cardCritical, { transform: [{ scale: pressScale }] }]}>
           <View style={styles.iconTile}>
-            <Feather name={module.icon} size={16} color={Palette.blue} />
+            <Feather name={module.icon} size={16} color={palette.blue} />
           </View>
 
           <View style={styles.content}>
@@ -77,72 +85,79 @@ export function ModuleCard({
             ) : null}
           </View>
 
-          <Feather name="chevron-right" size={16} color={Palette.textTertiary} style={styles.chevron} />
+          <Feather name="chevron-right" size={16} color={palette.textTertiary} style={styles.chevron} />
         </Animated.View>
       </Pressable>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.card,
-    borderRadius: Radius.card,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    ...actionShadow,
-  },
-  iconTile: {
-    width: TILE,
-    height: TILE,
-    borderRadius: Radius.tile - 4,
-    backgroundColor: Palette.blueSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  content: {
-    flex: 1,
-    marginLeft: Spacing.sm + 2,
-    marginRight: Spacing.sm,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-  },
-  statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 2,
-  },
-  statRowFirst: {
-    marginTop: 3,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    flexShrink: 0,
-  },
-  statText: {
-    fontSize: FontSize.small,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-  },
-  count: {
-    fontSize: FontSize.small,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-    marginTop: 3,
-  },
-  chevron: {
-    opacity: 0.7,
-  },
-});
+function createStyles(Palette: PaletteShape) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Palette.card,
+      borderRadius: Radius.card,
+      paddingVertical: 11,
+      paddingHorizontal: 14,
+      borderWidth: 1,
+      borderColor: 'transparent',
+      ...actionShadow,
+    },
+    cardCritical: {
+      borderColor: DocumentsTone.red.color,
+    },
+    iconTile: {
+      width: TILE,
+      height: TILE,
+      borderRadius: Radius.tile - 4,
+      backgroundColor: Palette.blueSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    content: {
+      flex: 1,
+      marginLeft: Spacing.sm + 2,
+      marginRight: Spacing.sm,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: Palette.textPrimary,
+      letterSpacing: -0.4,
+    },
+    statRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      marginTop: 2,
+    },
+    statRowFirst: {
+      marginTop: 3,
+    },
+    dot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      flexShrink: 0,
+    },
+    statText: {
+      fontSize: FontSize.small,
+      fontWeight: '400',
+      color: Palette.textTertiary,
+      letterSpacing: -0.1,
+    },
+    count: {
+      fontSize: FontSize.small,
+      fontWeight: '400',
+      color: Palette.textTertiary,
+      letterSpacing: -0.1,
+      marginTop: 3,
+    },
+    chevron: {
+      opacity: 0.7,
+    },
+  });
+}

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
@@ -9,14 +9,15 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
 import { Palette, Spacing } from '@/constants/design';
+import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createSupplier,
-  getSupplierById,
+  getSupplier,
   SUPPLIER_CATEGORY_LABEL,
   SUPPLIER_CATEGORY_ORDER,
   type SupplierCategory,
   updateSupplier,
-} from '@/data/plus/suppliers';
+} from '@/services/plus/suppliers';
 
 const CATEGORY_OPTIONS: PickerOption[] = SUPPLIER_CATEGORY_ORDER.map((category) => ({
   key: category,
@@ -27,26 +28,49 @@ const CATEGORY_OPTIONS: PickerOption[] = SUPPLIER_CATEGORY_ORDER.map((category) 
 export default function NewFournisseurScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
-  const editing = editId ? getSupplierById(editId) : undefined;
-  const isEditing = !!editing;
+  const isEditing = !!editId;
 
-  const [name, setName] = useState(editing?.name ?? '');
-  const [category, setCategory] = useState<SupplierCategory>(editing?.category ?? 'materiaux');
-  const [phone, setPhone] = useState(editing?.phone ?? '');
-  const [email, setEmail] = useState(editing?.email ?? '');
-  const [address, setAddress] = useState(editing?.address ?? '');
+  const fetchEditing = useCallback(() => (editId ? getSupplier(editId) : Promise.resolve(undefined)), [editId]);
+  const { data: editing, status: fetchStatus } = useAsyncItem(fetchEditing);
 
-  const canSubmit = name.trim().length > 0;
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<SupplierCategory>('materiaux');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (editing && !initialized) {
+      setName(editing.name);
+      setCategory(editing.category);
+      setPhone(editing.phone);
+      setEmail(editing.email);
+      setAddress(editing.address);
+      setInitialized(true);
+    }
+  }, [editing, initialized]);
+
+  const [submitting, setSubmitting] = useState(false);
+  const canSubmit = name.trim().length > 0 && !submitting;
+  const isLoadingEdit = isEditing && (fetchStatus === 'loading' || !initialized);
+
+  const handleSubmit = async () => {
     if (!canSubmit) return;
     const input = { name: name.trim(), category, phone: phone.trim(), email: email.trim(), address: address.trim() };
-    if (isEditing) {
-      updateSupplier(editing!.id, input);
-      router.back();
-    } else {
-      const created = createSupplier(input);
-      router.replace(`/plus/fournisseur/${created.id}` as never);
+    setSubmitting(true);
+    try {
+      if (isEditing && editing) {
+        await updateSupplier(editing.id, input);
+        router.back();
+      } else {
+        const created = await createSupplier(input);
+        router.replace(`/plus/fournisseur/${created.id}` as never);
+      }
+    } catch {
+      Alert.alert('Échec de l’enregistrement', 'Veuillez réessayer.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -61,28 +85,31 @@ export default function NewFournisseurScreen() {
           <View style={styles.iconBtn} />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <FormSection title="Fournisseur" icon="package">
-              <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. CEDEO Lyon" />
-              <PickerField label="Catégorie" value={CATEGORY_OPTIONS.find((o) => o.key === category)} options={CATEGORY_OPTIONS} onSelect={(k) => setCategory(k as SupplierCategory)} />
-            </FormSection>
+        {isLoadingEdit ? null : (
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <FormSection title="Fournisseur" icon="package">
+                <FormField label="Nom" value={name} onChangeText={setName} placeholder="Ex. CEDEO Lyon" />
+                <PickerField label="Catégorie" value={CATEGORY_OPTIONS.find((o) => o.key === category)} options={CATEGORY_OPTIONS} onSelect={(k) => setCategory(k as SupplierCategory)} />
+              </FormSection>
 
-            <FormSection title="Contact" icon="phone">
-              <FormField label="Téléphone" value={phone} onChangeText={setPhone} placeholder="00 00 00 00 00" keyboardType="phone-pad" />
-              <FormField label="Email" value={email} onChangeText={setEmail} placeholder="contact@fournisseur.fr" keyboardType="email-address" />
-              <FormField label="Adresse" value={address} onChangeText={setAddress} placeholder="Adresse du fournisseur" multiline />
-            </FormSection>
+              <FormSection title="Contact" icon="phone">
+                <FormField label="Téléphone" value={phone} onChangeText={setPhone} placeholder="00 00 00 00 00" keyboardType="phone-pad" />
+                <FormField label="Email" value={email} onChangeText={setEmail} placeholder="contact@fournisseur.fr" keyboardType="email-address" />
+                <FormField label="Adresse" value={address} onChangeText={setAddress} placeholder="Adresse du fournisseur" multiline />
+              </FormSection>
 
-            <View style={{ height: 12 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <View style={{ height: 12 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       <StickyFormFooter
         label={isEditing ? 'Enregistrer les modifications' : 'Créer le fournisseur'}
         onPress={handleSubmit}
         disabled={!canSubmit}
+        loading={submitting}
       />
     </View>
   );

@@ -1,5 +1,4 @@
 import { Feather } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -10,10 +9,12 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { formatTaskDue, Task, TASKS, toggleTaskCompleted } from '@/data/tasks';
+import { useAsyncList } from '@/hooks/use-async-list';
+import { formatTaskDue, listTasks, Task, toggleTaskCompleted } from '@/services/tasks';
 
 function TaskRow({ task, onToggle, onPress }: { task: Task; onToggle: () => void; onPress: () => void }) {
   const priority = PRIORITY_CONFIG[task.priority];
@@ -21,7 +22,12 @@ function TaskRow({ task, onToggle, onPress }: { task: Task; onToggle: () => void
 
   return (
     <PressableScale onPress={onPress} to={0.985} style={styles.row} accessibilityLabel={task.title}>
-      <PressableScale onPress={onToggle} to={0.85} style={styles.toggle} accessibilityLabel={task.completed ? 'Marquer non terminée' : 'Marquer terminée'}>
+      <PressableScale
+        onPress={onToggle}
+        to={0.85}
+        style={styles.toggle}
+        hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }}
+        accessibilityLabel={task.completed ? 'Marquer non terminée' : 'Marquer terminée'}>
         <Feather
           name={task.completed ? 'check-circle' : 'circle'}
           size={22}
@@ -57,17 +63,10 @@ function TaskRow({ task, onToggle, onPress }: { task: Task; onToggle: () => void
 
 export default function TasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>(() => [...TASKS]);
   const [search, setSearch] = useState('');
 
-  // Tasks are created/edited/deleted on a separate pushed screen (task/new),
-  // which stays mounted underneath — refresh our snapshot whenever this list
-  // regains focus so saves are reflected immediately.
-  useFocusEffect(
-    useCallback(() => {
-      setTasks([...TASKS]);
-    }, [])
-  );
+  const fetchTasks = useCallback(() => listTasks(), []);
+  const { data: tasks, status, refresh, setData: setTasks } = useAsyncList<Task>(fetchTasks);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -96,7 +95,14 @@ export default function TasksScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher une tâche…" />
 
-          {pending.length === 0 && completed.length === 0 ? (
+          {status === 'loading' ? (
+            <View style={{ gap: Spacing.lg }}>
+              <SkeletonBlock height={90} radius={24} />
+              <SkeletonBlock height={90} radius={24} />
+            </View>
+          ) : status === 'error' ? (
+            <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+          ) : pending.length === 0 && completed.length === 0 ? (
             <EmptyState
               icon="check-square"
               title={search ? 'Aucun résultat' : 'Aucune tâche'}
@@ -138,7 +144,7 @@ export default function TasksScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={0} />
+      <BottomNav activeIndex={-1} />
     </View>
   );
 }

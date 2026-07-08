@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing, type PaletteShape } from '@/constants/design';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 import { Feather } from '@expo/vector-icons';
@@ -12,12 +12,16 @@ export function EmptyState({
   subtitle,
   actionLabel,
   onAction,
+  palette = Palette,
 }: {
   icon: FeatherIconName;
   title: string;
   subtitle: string;
   actionLabel?: string;
   onAction?: () => void;
+  /** Defaults to the static light palette — pass the live `useTheme().palette`
+   *  on screens that have opted into dark mode. */
+  palette?: PaletteShape;
 }) {
   const enter = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -27,13 +31,13 @@ export function EmptyState({
 
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter, transform: [{ translateY }] }]}>
-      <View style={styles.iconRing}>
-        <Feather name={icon} size={26} color={Palette.blue} />
+      <View style={[styles.iconRing, { backgroundColor: palette.blueSoft }]}>
+        <Feather name={icon} size={26} color={palette.blue} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.title, { color: palette.textPrimary }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: palette.textSecondary }]}>{subtitle}</Text>
       {actionLabel && onAction ? (
-        <PressableScale onPress={onAction} to={0.96} style={styles.button} accessibilityLabel={actionLabel}>
+        <PressableScale onPress={onAction} to={0.96} style={[styles.button, { backgroundColor: palette.blue }]} accessibilityLabel={actionLabel}>
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </PressableScale>
       ) : null}

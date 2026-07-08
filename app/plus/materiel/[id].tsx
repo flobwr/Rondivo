@@ -1,20 +1,23 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
+import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
+import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { FontSize, Palette, Spacing } from '@/constants/design';
 import { formatLongDate } from '@/data/documents/date-utils';
+import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   deleteMateriel,
-  getMaterielById,
+  getMateriel,
   MATERIEL_CATEGORY_LABEL,
   MATERIEL_CONDITION_META,
-} from '@/data/plus/materiel';
+} from '@/services/plus/materiel';
 
 const CATEGORY_ICON = {
   'outillage-electroportatif': 'tool',
@@ -28,7 +31,33 @@ export default function MaterielDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const item = getMaterielById(id);
+
+  const fetchItem = useCallback(() => getMateriel(id), [id]);
+  const { data: item, status, refresh } = useAsyncItem(fetchItem);
+
+  if (status === 'loading') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Matériel" onBack={() => router.back()} />
+          <View style={styles.content}>
+            <SkeletonBlock height={140} radius={24} />
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <DetailHeader title="Matériel" onBack={() => router.back()} />
+          <EmptyState icon="alert-circle" title="Impossible de charger" subtitle="Une erreur est survenue." actionLabel="Réessayer" onAction={refresh} />
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   if (!item) {
     return (
@@ -46,7 +75,7 @@ export default function MaterielDetailScreen() {
   const handleDelete = () => {
     Alert.alert('Supprimer cet élément', `Supprimer définitivement ${item.name} ?`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { deleteMateriel(item.id); router.back(); } },
+      { text: 'Supprimer', style: 'destructive', onPress: async () => { await deleteMateriel(item.id); router.back(); } },
     ]);
   };
 

@@ -3,11 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS } from '@/components/clients/types';
 import { FontSize, Palette, Radius } from '@/constants/design';
-import { INTERVENTION_TEMPLATES, type InterventionTemplate } from '@/data/intervention-templates';
+import { type InterventionTemplate } from '@/services/intervention-templates';
 import { formatDuration } from './appointment-utils';
 import { PressableScale } from './AppointmentUI';
 
 type Props = {
+  templates: InterventionTemplate[];
   selectedId: string | null; // template id or 'custom'
   onSelect: (template: InterventionTemplate) => void;
   onSelectCustom: () => void;
@@ -44,12 +45,12 @@ function TemplateCard({ template, active, onPress }: { template: InterventionTem
   );
 }
 
-export function TemplatePicker({ selectedId, onSelect, onSelectCustom }: Props) {
+export function TemplatePicker({ templates, selectedId, onSelect, onSelectCustom }: Props) {
   const customActive = selectedId === 'custom';
   return (
     <View>
       <View style={styles.grid}>
-        {INTERVENTION_TEMPLATES.map((template) => (
+        {templates.map((template) => (
           <View key={template.id} style={styles.cell}>
             <TemplateCard template={template} active={selectedId === template.id} onPress={() => onSelect(template)} />
           </View>
