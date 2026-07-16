@@ -3,104 +3,243 @@ import { Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
+import { DayStrip } from '@/components/planning/DayStrip';
+import { DaySummary } from '@/components/planning/DaySummary';
 import { EmptyState } from '@/components/planning/EmptyState';
 import { ErrorState } from '@/components/planning/ErrorState';
-import { HorizontalCalendar } from '@/components/planning/HorizontalCalendar';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { CalendarDay, DayItem } from '@/components/planning/types';
+import { CalendarDay, DayItem, DayWeather } from '@/components/planning/types';
 import { Palette } from '@/constants/design';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const CALENDAR_DAYS: CalendarDay[] = [
-  { date: 29, dayLabel: 'LUN', hasAppointments: true, hasUrgent: false },
-  { date: 30, dayLabel: 'MAR', hasAppointments: true, hasUrgent: false },
-  { date: 1, dayLabel: 'MER', hasAppointments: true, hasUrgent: false },
-  { date: 2, dayLabel: 'JEU', hasAppointments: true, hasUrgent: true },
-  { date: 3, dayLabel: 'VEN', hasAppointments: true, hasUrgent: false },
-  { date: 4, dayLabel: 'SAM', hasAppointments: false, hasUrgent: false },
-  { date: 5, dayLabel: 'DIM', hasAppointments: false, hasUrgent: false },
+  { date: 29, dayLabel: 'Lun', count: 2, hasUrgent: false },
+  { date: 30, dayLabel: 'Mar', count: 2, hasUrgent: false },
+  { date: 1, dayLabel: 'Mer', count: 5, hasUrgent: true },
+  { date: 2, dayLabel: 'Jeu', count: 2, hasUrgent: false },
+  { date: 3, dayLabel: 'Ven', count: 1, hasUrgent: false },
+  { date: 4, dayLabel: 'Sam', count: 0, hasUrgent: false },
+  { date: 5, dayLabel: 'Dim', count: 0, hasUrgent: false },
 ];
 
-const SELECTED_DAY_INDEX = 2; // Wednesday the 1st
+const SELECTED_DAY_INDEX = 2; // Wednesday the 1st — "today"
 
 const WEDNESDAY_ITEMS: DayItem[] = [
   {
-    kind: 'appointment',
+    kind: 'intervention',
     data: {
       id: 'apt-1',
-      time: '08:00',
-      duration: '1h00',
+      start: '08:00',
+      end: '09:00',
+      durationMin: 60,
       client: 'Martin Faure',
       type: 'Entretien chaudière',
       address: 'Av. Félix Faure, 69003 Lyon',
       status: 'done',
+      priority: 'normal',
     },
   },
-  { kind: 'travel', data: { id: 'travel-1', minutes: 12, km: 4.2 } },
+  { kind: 'travel', data: { id: 'travel-1', minutes: 12, km: 4.2, traffic: 'fluid' } },
   {
-    kind: 'appointment',
+    kind: 'intervention',
     data: {
       id: 'apt-2',
-      time: '10:30',
-      duration: '1h30',
+      start: '09:15',
+      end: '10:15',
+      durationMin: 60,
+      client: 'Claire Dubois',
+      type: 'Remplacement mitigeur',
+      address: '12 rue de Sèze, 69006 Lyon',
+      status: 'done',
+      priority: 'normal',
+    },
+  },
+  { kind: 'travel', data: { id: 'travel-2', minutes: 8, km: 2.8, traffic: 'fluid' } },
+  { kind: 'now', id: 'now' },
+  {
+    kind: 'intervention',
+    data: {
+      id: 'apt-3',
+      start: '10:30',
+      end: '12:00',
+      durationMin: 90,
       client: 'Sophie Bernard',
       type: 'Fuite sous évier',
       address: '8 rue Molière, 69003 Lyon',
       status: 'inProgress',
+      priority: 'normal',
     },
   },
-  { kind: 'travel', data: { id: 'travel-2', minutes: 18, km: 6.1 } },
+  { kind: 'travel', data: { id: 'travel-3', minutes: 18, km: 6.1, traffic: 'dense' } },
   {
-    kind: 'appointment',
-    data: {
-      id: 'apt-3',
-      time: '13:30',
-      duration: '2h00',
-      client: 'Jean Moreau',
-      type: 'Installation radiateur',
-      address: '23 cours Gambetta, 69004 Lyon',
-      status: 'normal',
-    },
-  },
-  { kind: 'travel', data: { id: 'travel-3', minutes: 7, km: 2.3 } },
-  {
-    kind: 'appointment',
+    kind: 'intervention',
     data: {
       id: 'apt-4',
-      time: '16:00',
-      duration: '1h30',
+      start: '14:00',
+      end: '16:00',
+      durationMin: 120,
       client: 'Marie Lefebvre',
-      type: 'Tableau électrique',
+      type: 'Panne tableau électrique',
       address: '3 place Bellecour, 69002 Lyon',
-      status: 'urgent',
+      status: 'planned',
+      priority: 'urgent',
+    },
+  },
+  { kind: 'travel', data: { id: 'travel-4', minutes: 9, km: 3.4, traffic: 'fluid' } },
+  {
+    kind: 'intervention',
+    data: {
+      id: 'apt-5',
+      start: '16:30',
+      end: '17:30',
+      durationMin: 60,
+      client: 'Jean Moreau',
+      type: 'Pose radiateur',
+      address: '23 cours Gambetta, 69004 Lyon',
+      status: 'planned',
+      priority: 'high',
+    },
+  },
+  {
+    kind: 'intervention',
+    data: {
+      id: 'apt-6',
+      start: '17:45',
+      end: '18:30',
+      durationMin: 45,
+      client: 'Hugo Petit',
+      type: 'Ballon d’eau chaude',
+      address: '5 rue Duguesclin, 69006 Lyon',
+      status: 'postponed',
+      priority: 'normal',
     },
   },
 ];
 
 const DAY_DATA: Record<number, DayItem[]> = {
-  0: [],
-  1: [],
-  2: WEDNESDAY_ITEMS,
-  3: [
+  0: [
     {
-      kind: 'appointment',
+      kind: 'intervention',
       data: {
-        id: 'apt-j1',
-        time: '09:00',
-        duration: '2h00',
-        client: 'Paul Rousseau',
-        type: 'Diagnostic chauffage',
-        address: '14 rue Garibaldi, 69003 Lyon',
-        status: 'normal',
+        id: 'lun-1',
+        start: '09:00',
+        end: '10:30',
+        durationMin: 90,
+        client: 'Louis Garnier',
+        type: 'Détartrage chauffe-eau',
+        address: '18 rue Vendôme, 69006 Lyon',
+        status: 'done',
+        priority: 'normal',
+      },
+    },
+    { kind: 'travel', data: { id: 'lun-t1', minutes: 14, km: 5.0, traffic: 'fluid' } },
+    {
+      kind: 'intervention',
+      data: {
+        id: 'lun-2',
+        start: '11:00',
+        end: '12:00',
+        durationMin: 60,
+        client: 'Emma Riva',
+        type: 'Entretien chaudière',
+        address: '2 quai Claude Bernard, 69007 Lyon',
+        status: 'done',
+        priority: 'normal',
       },
     },
   ],
-  4: [],
+  1: [
+    {
+      kind: 'intervention',
+      data: {
+        id: 'mar-1',
+        start: '08:30',
+        end: '10:00',
+        durationMin: 90,
+        client: 'Nadia Benali',
+        type: 'Recherche de fuite',
+        address: '40 rue de la Charité, 69002 Lyon',
+        status: 'done',
+        priority: 'normal',
+      },
+    },
+    { kind: 'travel', data: { id: 'mar-t1', minutes: 10, km: 3.6, traffic: 'fluid' } },
+    {
+      kind: 'intervention',
+      data: {
+        id: 'mar-2',
+        start: '10:30',
+        end: '11:30',
+        durationMin: 60,
+        client: 'Théo Lambert',
+        type: 'Remplacement thermostat',
+        address: '7 rue des Remparts, 69001 Lyon',
+        status: 'done',
+        priority: 'normal',
+      },
+    },
+  ],
+  2: WEDNESDAY_ITEMS,
+  3: [
+    {
+      kind: 'intervention',
+      data: {
+        id: 'jeu-1',
+        start: '09:00',
+        end: '11:00',
+        durationMin: 120,
+        client: 'Paul Rousseau',
+        type: 'Diagnostic chauffage',
+        address: '14 rue Garibaldi, 69003 Lyon',
+        status: 'arrived',
+        priority: 'normal',
+      },
+    },
+    { kind: 'travel', data: { id: 'jeu-t1', minutes: 16, km: 5.8, traffic: 'dense' } },
+    {
+      kind: 'intervention',
+      data: {
+        id: 'jeu-2',
+        start: '11:30',
+        end: '12:30',
+        durationMin: 60,
+        client: 'Léa Fontaine',
+        type: 'Fuite radiateur',
+        address: '26 rue de Créqui, 69006 Lyon',
+        status: 'planned',
+        priority: 'normal',
+      },
+    },
+  ],
+  4: [
+    {
+      kind: 'intervention',
+      data: {
+        id: 'ven-1',
+        start: '08:30',
+        end: '09:30',
+        durationMin: 60,
+        client: 'Karim Haddad',
+        type: 'Mise en service PAC',
+        address: '31 av. Berthelot, 69008 Lyon',
+        status: 'enRoute',
+        priority: 'normal',
+      },
+    },
+  ],
   5: [],
   6: [],
+};
+
+const DAY_WEATHER: Record<number, DayWeather> = {
+  0: { icon: 'sun', temp: '19°' },
+  1: { icon: 'cloud', temp: '17°' },
+  2: { icon: 'sun', temp: '21°' },
+  3: { icon: 'cloud-rain', temp: '15°' },
+  4: { icon: 'sun', temp: '22°' },
 };
 
 type Status = 'loading' | 'error' | 'loaded';
@@ -134,15 +273,22 @@ export default function PlanningScreen() {
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* Fixed header — title, month, add button, calendar all stay put */}
-          <PlanningHeader monthLabel="JUIN 2025" />
-          <HorizontalCalendar
+          {/* Fixed header — title, month, day strip and summary stay put */}
+          <PlanningHeader monthLabel="Juin 2025" />
+          <DayStrip
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}
             onSelectDay={handleSelectDay}
           />
+          {status === 'loaded' ? (
+            <DaySummary
+              key={`summary-${selectedDay}`}
+              items={currentItems}
+              weather={DAY_WEATHER[selectedDay]}
+            />
+          ) : null}
 
-          {/* Scrollable content, always starts below the fixed header */}
+          {/* Scrollable content, always below the fixed header */}
           <View style={styles.content}>
             {status === 'loading' ? (
               <LoadingState />

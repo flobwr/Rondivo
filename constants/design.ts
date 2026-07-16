@@ -32,6 +32,16 @@ export const Palette = {
   green: '#10B981',
   greenSoft: '#E4F6EE',
 
+  teal: '#0D9488',
+  tealSoft: '#DDF3EF',
+
+  red: '#EF4444',
+  redSoft: '#FDEAE8',
+
+  // In-progress card tint — softer than blueSoft so text keeps full contrast
+  blueTint: '#EFF5FE',
+  blueBorder: '#C6DAFB',
+
   // Hero gradient (blue -> turquoise)
   gradientStart: '#3B7DF0',
   gradientEnd: '#3FC9B0',

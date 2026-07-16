@@ -1,33 +1,77 @@
-import { memo, useCallback, useMemo } from 'react';
-import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/design';
-import { PlanningAppointmentCard } from './PlanningAppointmentCard';
-import { TravelCard } from './TravelCard';
-import { AppointmentStatus, DayItem } from './types';
+import { InterventionCard } from './InterventionCard';
+import { STATUS_META } from './status';
+import { TravelLink } from './TravelLink';
+import { DayItem, InterventionStatus } from './types';
 
 type Props = {
   items: DayItem[];
 };
 
-// Vertical distance from the top of an appointment row to the centre of its dot:
-// paddingTop (14) + time label lineHeight (16) + marginBottom (6) + dot radius (8).
-const DOT_CENTER = 44;
+const GUTTER_WIDTH = 36;
+// Vertical distance from the top of an intervention row to the centre of its
+// dot: card padding (16) + half the start-time line height (10).
+const DOT_CENTER = 26;
 const ROW_GAP = 14;
+const NOW_ROW_HEIGHT = 30;
 
-const TIME_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.textTertiary,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textSecondary,
-};
+// ── Status dots (ref 2) ───────────────────────────────────────────────────────
+// done / active states get a soft-filled circle with an icon, upcoming jobs a
+// small hollow dot, and the in-progress job a pulsing blue beacon. Every dot
+// wears a screen-coloured ring so the rail breaks cleanly around it.
 
-const DOT_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.green,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textTertiary,
-};
+function PulseDot() {
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1400, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.5] });
+  const ringOpacity = pulse.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.3, 0.1, 0] });
+
+  return (
+    <View style={styles.pulseWrapper}>
+      <Animated.View
+        style={[styles.pulseRing, { opacity: ringOpacity, transform: [{ scale: ringScale }] }]}
+      />
+      <View style={styles.pulseCore} />
+    </View>
+  );
+}
+
+function StatusDot({ status }: { status: InterventionStatus }) {
+  const meta = STATUS_META[status];
+
+  if (meta.dot === 'pulse') return <PulseDot />;
+
+  if (meta.dot === 'hollow') {
+    return (
+      <View style={styles.hollowHalo}>
+        <View style={styles.hollowDot} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.iconDot, { backgroundColor: meta.soft }]}>
+      {meta.dotIcon ? <Feather name={meta.dotIcon} size={11} color={meta.color} /> : null}
+    </View>
+  );
+}
+
+// ── Rows ──────────────────────────────────────────────────────────────────────
 
 type LineMode = 'none' | 'full' | 'capTop' | 'capBottom';
 
@@ -38,10 +82,10 @@ type Row = {
   isLastRow: boolean;
 };
 
-// One row of the timeline. Each row paints its own rail segment over its full
-// height (gap included), so the segments join into one continuous line. The
-// first and last appointment rows cap the rail exactly at their dot.
-const TimelineRow = function TimelineRow({ row }: { row: Row }) {
+// Each row paints its own rail segment over its full height (gap included) so
+// the segments join into one continuous line; the first and last dotted rows
+// cap the rail exactly at their dot.
+function TimelineRow({ row }: { row: Row }) {
   const { item, index, lineMode, isLastRow } = row;
 
   let lineStyle: object | null;
@@ -61,56 +105,80 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
 
   const rowStyle = [styles.row, !isLastRow ? { paddingBottom: ROW_GAP } : null];
 
-  if (item.kind === 'travel') {
+  if (item.kind === 'now') {
+    // "Maintenant" marker (ref 1's Now divider), pinned to the rail.
     return (
       <View style={rowStyle}>
-        <View style={styles.gutter}>{lineStyle ? <View style={[styles.line, lineStyle]} /> : null}</View>
-        <View style={styles.content}>
-          <TravelCard travel={item.data} index={index} />
+        <View style={styles.gutter}>
+          {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
+          <View style={styles.nowDotHalo}>
+            <View style={styles.nowDot} />
+          </View>
+        </View>
+        <View style={styles.nowContent}>
+          <Text style={styles.nowLabel}>Maintenant</Text>
+          <View style={styles.nowLine} />
         </View>
       </View>
     );
   }
 
-  const apt = item.data;
+  if (item.kind === 'travel') {
+    return (
+      <View style={rowStyle}>
+        <View style={styles.gutter}>
+          {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
+        </View>
+        <View style={styles.content}>
+          <TravelLink travel={item.data} index={index} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={rowStyle}>
       <View style={styles.gutter}>
         {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
-        <Text style={[styles.timeLabel, { color: TIME_COLOR[apt.status] }]}>{apt.time}</Text>
-        <View style={[styles.dot, { backgroundColor: DOT_COLOR[apt.status] }]} />
+        <View style={styles.dotAnchor}>
+          <StatusDot status={item.data.status} />
+        </View>
       </View>
       <View style={styles.content}>
-        <PlanningAppointmentCard appointment={apt} index={index} />
+        <InterventionCard intervention={item.data} index={index} />
       </View>
     </View>
   );
-};
+}
 
 const MemoRow = memo(TimelineRow);
 
 export function Timeline({ items }: Props) {
   const rows = useMemo<Row[]>(() => {
-    const firstApptIdx = items.findIndex((i) => i.kind === 'appointment');
-    let lastApptIdx = -1;
+    const hasDot = (i: DayItem) => i.kind !== 'travel';
+    const firstDotIdx = items.findIndex(hasDot);
+    let lastDotIdx = -1;
     items.forEach((i, idx) => {
-      if (i.kind === 'appointment') lastApptIdx = idx;
+      if (hasDot(i)) lastDotIdx = idx;
     });
     const lastRow = items.length - 1;
 
     return items.map((item, index) => {
-      const isFirstAppt = index === firstApptIdx;
-      const isLastAppt = index === lastApptIdx;
+      const isFirst = index === firstDotIdx;
+      const isLast = index === lastDotIdx;
       let lineMode: LineMode = 'full';
-      if (isFirstAppt && isLastAppt) lineMode = 'none';
-      else if (isLastAppt) lineMode = 'capBottom';
-      else if (isFirstAppt) lineMode = 'capTop';
+      if (isFirst && isLast) lineMode = 'none';
+      else if (isLast) lineMode = 'capBottom';
+      else if (isFirst) lineMode = 'capTop';
       return { item, index, lineMode, isLastRow: index === lastRow };
     });
   }, [items]);
 
   const renderItem = useCallback(({ item }: ListRenderItemInfo<Row>) => <MemoRow row={item} />, []);
-  const keyExtractor = useCallback((row: Row) => row.item.data.id, []);
+  const keyExtractor = useCallback(
+    (row: Row) => (row.item.kind === 'now' ? row.item.id : row.item.data.id),
+    []
+  );
 
   return (
     <FlatList
@@ -130,39 +198,118 @@ export function Timeline({ items }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
-    paddingBottom: 28,
+    paddingTop: 12,
+    paddingBottom: 32,
   },
   row: {
     flexDirection: 'row',
   },
   gutter: {
-    width: 50,
-    alignItems: 'center',
-    paddingTop: 14,
+    width: GUTTER_WIDTH,
   },
   line: {
     position: 'absolute',
-    left: 24, // (gutter 50 / 2) - (line 2 / 2)
+    left: GUTTER_WIDTH / 2 - 1,
     width: 2,
     borderRadius: 1,
-    backgroundColor: Palette.border,
-  },
-  timeLabel: {
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-    marginBottom: 6,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 3,
-    borderColor: Palette.screen, // halo so the rail breaks cleanly around the dot
+    backgroundColor: '#E3E7ED',
   },
   content: {
     flex: 1,
+  },
+  dotAnchor: {
+    position: 'absolute',
+    top: DOT_CENTER - 13,
+    left: GUTTER_WIDTH / 2 - 13,
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // dots
+  iconDot: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 3,
+    borderColor: Palette.screen,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hollowHalo: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Palette.screen,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hollowDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Palette.card,
+    borderWidth: 2,
+    borderColor: '#CBD3DF',
+  },
+  pulseWrapper: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Palette.blue,
+  },
+  pulseCore: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Palette.blue,
+    borderWidth: 3,
+    borderColor: Palette.screen,
+  },
+
+  // "Maintenant" marker
+  nowDotHalo: {
+    position: 'absolute',
+    top: NOW_ROW_HEIGHT / 2 - 7,
+    left: GUTTER_WIDTH / 2 - 7,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: Palette.screen,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nowDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Palette.blue,
+  },
+  nowContent: {
+    height: NOW_ROW_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  nowLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.blue,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  nowLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Palette.blue,
+    opacity: 0.35,
   },
 });

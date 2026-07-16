@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Spacing } from '@/constants/design';
 
 function Shimmer({ style }: { style?: object }) {
   const shimmer = useRef(new Animated.Value(0)).current;
@@ -19,20 +19,20 @@ function Shimmer({ style }: { style?: object }) {
 
   const backgroundColor = shimmer.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#E8ECF2', '#D6DCE6'],
+    outputRange: ['#E8ECF2', '#DDE2EA'],
   });
 
   return <Animated.View style={[{ backgroundColor }, style]} />;
 }
 
-// Skeleton that mirrors the timeline layout so the load feels seamless.
+// Skeleton that mirrors the timeline geometry (rail + tall cards) so the load
+// feels seamless.
 export function LoadingState() {
   return (
     <View style={styles.container}>
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2].map((i) => (
         <View key={i} style={styles.row}>
           <View style={styles.gutter}>
-            <Shimmer style={styles.timePill} />
             <View style={styles.dot} />
           </View>
           <Shimmer style={styles.card} />
@@ -45,32 +45,26 @@ export function LoadingState() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
+    paddingTop: 12,
   },
   row: {
     flexDirection: 'row',
     marginBottom: 14,
   },
   gutter: {
-    width: 50,
+    width: 36,
+    paddingTop: 16,
     alignItems: 'center',
-    paddingTop: 14,
-  },
-  timePill: {
-    width: 30,
-    height: 11,
-    borderRadius: 6,
-    marginBottom: 8,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Palette.border,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#E3E7ED',
   },
   card: {
     flex: 1,
-    height: 76,
-    borderRadius: Radius.card,
+    height: 118,
+    borderRadius: 22,
   },
 });
