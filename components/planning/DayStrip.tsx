@@ -1,13 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 import { CalendarDay } from './types';
 
-// Tall pill cards, straight from both references: day label on top, big date
-// number, then up to three workload dots so a full day is visible at a glance.
+// Tall pill cards: day label on top, big date number, then up to three
+// workload dots so a full day is visible at a glance. When the timeline
+// scrolls, the strip compacts (dots fold away) to give the day more room.
 const CELL_WIDTH = 56;
 const CELL_GAP = 8;
 
@@ -15,15 +16,19 @@ type Props = {
   days: CalendarDay[];
   selectedIndex: number;
   onSelectDay: (index: number) => void;
+  /** collapses the strip while the timeline is scrolled */
+  compact?: boolean;
 };
 
 function DayCell({
   day,
   selected,
+  compactValue,
   onPress,
 }: {
   day: CalendarDay;
   selected: boolean;
+  compactValue: Animated.Value;
   onPress: () => void;
 }) {
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -65,38 +70,59 @@ function DayCell({
     outputRange: [Palette.textPrimary, Palette.white],
   });
 
+  const padTop = compactValue.interpolate({ inputRange: [0, 1], outputRange: [11, 8] });
+  const padBottom = compactValue.interpolate({ inputRange: [0, 1], outputRange: [9, 8] });
+  const dotsHeight = compactValue.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  const dotsOpacity = compactValue.interpolate({ inputRange: [0, 0.6, 1], outputRange: [1, 0, 0] });
+
   const dots = Math.min(day.count, 3);
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View style={{ transform: [{ scale: pressScale }] }}>
-        <Animated.View style={[styles.cell, { backgroundColor: pillBg, transform: [{ scale: pillScale }] }]}>
+        <Animated.View
+          style={[
+            styles.cell,
+            {
+              backgroundColor: pillBg,
+              paddingTop: padTop,
+              paddingBottom: padBottom,
+              transform: [{ scale: pillScale }],
+            },
+          ]}>
           <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>{day.dayLabel}</Animated.Text>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>{day.date}</Animated.Text>
 
-          <View style={styles.dotRow}>
-            {dots === 0 ? (
-              <View style={styles.dotPlaceholder} />
-            ) : (
-              Array.from({ length: dots }).map((_, i) => {
-                const urgent = day.hasUrgent && i === 0;
-                const dotColor = sel.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [urgent ? Palette.red : Palette.blue, Palette.white],
-                });
-                return <Animated.View key={i} style={[styles.dot, { backgroundColor: dotColor }]} />;
-              })
-            )}
-          </View>
+          <Animated.View style={[styles.dotRow, { height: dotsHeight, opacity: dotsOpacity }]}>
+            {dots > 0
+              ? Array.from({ length: dots }).map((_, i) => {
+                  const dotColor = sel.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Palette.blue, Palette.white],
+                  });
+                  return <Animated.View key={i} style={[styles.dot, { backgroundColor: dotColor }]} />;
+                })
+              : null}
+          </Animated.View>
         </Animated.View>
       </Animated.View>
     </Pressable>
   );
 }
 
-export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
+export function DayStrip({ days, selectedIndex, onSelectDay, compact = false }: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const viewportW = useRef(Dimensions.get('window').width);
+  const compactValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(compactValue, {
+      toValue: compact ? 1 : 0,
+      useNativeDriver: false, // animating layout
+      friction: 9,
+      tension: 120,
+    }).start();
+  }, [compact, compactValue]);
 
   // Keep the selected day centred horizontally on every change.
   useEffect(() => {
@@ -121,6 +147,7 @@ export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
           key={`${day.dayLabel}-${day.date}`}
           day={day}
           selected={index === selectedIndex}
+          compactValue={compactValue}
           onPress={() => onSelectDay(index)}
         />
       ))}
@@ -134,15 +161,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.screen,
-    paddingVertical: 14,
+    paddingTop: 14,
+    paddingBottom: 12,
     gap: CELL_GAP,
   },
   cell: {
     width: CELL_WIDTH,
     borderRadius: 20,
     alignItems: 'center',
-    paddingTop: 11,
-    paddingBottom: 9,
     ...actionShadow,
   },
   dayLabel: {
@@ -160,17 +186,12 @@ const styles = StyleSheet.create({
   dotRow: {
     flexDirection: 'row',
     gap: 3,
-    height: 8,
     alignItems: 'center',
-    marginTop: 4,
+    overflow: 'hidden',
   },
   dot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-  },
-  dotPlaceholder: {
-    width: 4,
-    height: 4,
   },
 });

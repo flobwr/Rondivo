@@ -25,12 +25,18 @@ function Shimmer({ style }: { style?: object }) {
   return <Animated.View style={[{ backgroundColor }, style]} />;
 }
 
-// Skeleton that mirrors the timeline geometry (rail + tall cards) so the load
-// feels seamless.
+// Skeleton that mirrors the loaded layout — hero card first, then cards —
+// so the load feels seamless.
 export function LoadingState() {
   return (
     <View style={styles.container}>
-      {[0, 1, 2].map((i) => (
+      <View style={styles.row}>
+        <View style={styles.gutter}>
+          <View style={styles.dot} />
+        </View>
+        <Shimmer style={styles.hero} />
+      </View>
+      {[0, 1].map((i) => (
         <View key={i} style={styles.row}>
           <View style={styles.gutter}>
             <View style={styles.dot} />
@@ -53,7 +59,7 @@ const styles = StyleSheet.create({
   },
   gutter: {
     width: 36,
-    paddingTop: 16,
+    paddingTop: 18,
     alignItems: 'center',
   },
   dot: {
@@ -62,9 +68,14 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     backgroundColor: '#E3E7ED',
   },
+  hero: {
+    flex: 1,
+    height: 230,
+    borderRadius: 26,
+  },
   card: {
     flex: 1,
-    height: 118,
+    height: 104,
     borderRadius: 22,
   },
 });

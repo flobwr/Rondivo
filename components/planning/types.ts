@@ -1,9 +1,11 @@
 /**
  * Domain model of the Planning screen.
  *
- * The six statuses mirror the real lifecycle of an intervention in the field:
- * planned → enRoute → arrived → inProgress → done, with postponed as the
- * escape hatch when a job is rescheduled.
+ * The seven statuses are strictly operational — they mirror the real lifecycle
+ * of an intervention in the field: planned → enRoute → arrived → inProgress →
+ * done, with postponed and cancelled as the two rescheduling outcomes.
+ * Urgency is deliberately NOT part of this model: a planned job stays planned,
+ * urgent work is handled by its own workflow upstream.
  */
 
 export type InterventionStatus =
@@ -12,9 +14,8 @@ export type InterventionStatus =
   | 'arrived'
   | 'inProgress'
   | 'done'
-  | 'postponed';
-
-export type InterventionPriority = 'normal' | 'high' | 'urgent';
+  | 'postponed'
+  | 'cancelled';
 
 export type Intervention = {
   id: string;
@@ -25,7 +26,6 @@ export type Intervention = {
   type: string;
   address: string;
   status: InterventionStatus;
-  priority: InterventionPriority;
 };
 
 export type TravelLeg = {
@@ -36,19 +36,36 @@ export type TravelLeg = {
   traffic: 'fluid' | 'dense' | 'jammed';
 };
 
+export type BreakSlot = {
+  id: string;
+  start: string;
+  end: string;
+  label: string; // 'Pause déjeuner'
+};
+
 export type DayItem =
   | { kind: 'intervention'; data: Intervention }
   | { kind: 'travel'; data: TravelLeg }
-  | { kind: 'now'; id: string };
+  | { kind: 'break'; data: BreakSlot };
 
 export type CalendarDay = {
   date: number;
   dayLabel: string; // 'Lun', 'Mar', …
   count: number; // number of interventions that day
-  hasUrgent: boolean;
 };
 
 export type DayWeather = {
   icon: 'sun' | 'cloud' | 'cloud-rain' | 'cloud-snow';
   temp: string; // '21°'
+};
+
+/**
+ * One day of planning as the screen consumes it. `nowMin` (minutes since
+ * midnight) is only set on a "live" day — it drives the next-up hero, the
+ * countdowns and the punctuality maths. Past and future days omit it.
+ */
+export type DayScenario = {
+  items: DayItem[];
+  nowMin?: number;
+  weather?: DayWeather;
 };

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 
 import { Palette } from '@/constants/design';
-import { InterventionPriority, InterventionStatus } from './types';
+import { InterventionStatus } from './types';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
 
@@ -12,8 +12,6 @@ export type StatusMeta = {
   /** timeline dot rendering */
   dot: 'hollow' | 'icon' | 'pulse';
   dotIcon?: FeatherName;
-  /** the in-progress chip is filled so the active job owns the screen */
-  chipFilled: boolean;
 };
 
 export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
@@ -22,30 +20,24 @@ export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
     color: Palette.textSecondary,
     soft: '#F1F3F8',
     dot: 'hollow',
-    chipFilled: false,
   },
   enRoute: {
     label: 'En route',
     color: Palette.teal,
     soft: Palette.tealSoft,
-    dot: 'icon',
-    dotIcon: 'truck',
-    chipFilled: false,
+    dot: 'pulse',
   },
   arrived: {
     label: 'Arrivé',
     color: Palette.purple,
     soft: Palette.purpleSoft,
-    dot: 'icon',
-    dotIcon: 'map-pin',
-    chipFilled: false,
+    dot: 'pulse',
   },
   inProgress: {
     label: 'En cours',
     color: Palette.blue,
     soft: Palette.blueSoft,
     dot: 'pulse',
-    chipFilled: true,
   },
   done: {
     label: 'Terminée',
@@ -53,7 +45,6 @@ export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
     soft: Palette.greenSoft,
     dot: 'icon',
     dotIcon: 'check',
-    chipFilled: false,
   },
   postponed: {
     label: 'Reportée',
@@ -61,21 +52,30 @@ export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
     soft: Palette.orangeSoft,
     dot: 'icon',
     dotIcon: 'arrow-right',
-    chipFilled: false,
+  },
+  cancelled: {
+    label: 'Annulée',
+    color: Palette.textTertiary,
+    soft: '#F1F3F8',
+    dot: 'icon',
+    dotIcon: 'x',
   },
 };
 
-export type PriorityMeta = {
-  label: string;
-  color: string;
-  soft: string;
-  icon: FeatherName;
-};
+// ── Time helpers ──────────────────────────────────────────────────────────────
 
-export const PRIORITY_META: Partial<Record<InterventionPriority, PriorityMeta>> = {
-  high: { label: 'Prioritaire', color: Palette.orange, soft: Palette.orangeSoft, icon: 'flag' },
-  urgent: { label: 'Urgent', color: Palette.red, soft: Palette.redSoft, icon: 'zap' },
-};
+/** '14:00' → 840 (minutes since midnight) */
+export function parseTime(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+/** 840 → '14:00' */
+export function formatTime(min: number): string {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 /** 90 → '1h30', 45 → '45 min' */
 export function formatMinutes(min: number): string {
