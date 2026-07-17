@@ -41,7 +41,7 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
-        <Feather name="truck" size={12} color={Palette.textTertiary} />
+        <Feather name="truck" size={13} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min • {kmLabel} km
         </Text>
@@ -55,7 +55,7 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onPress={onNavigate}>
-            <Feather name="navigation" size={13} color={Palette.blue} />
+            <Feather name="navigation" size={14} color={Palette.blue} />
           </Pressable>
         </Animated.View>
       </View>
@@ -74,15 +74,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Palette.cardMuted,
     borderRadius: Radius.pill,
-    paddingVertical: 6,
-    paddingLeft: 11,
-    paddingRight: 5,
-    gap: 7,
+    paddingVertical: 10,
+    paddingLeft: 15,
+    paddingRight: 6,
+    gap: 9,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
   label: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -91,9 +91,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',

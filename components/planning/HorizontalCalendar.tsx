@@ -133,8 +133,8 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingTop: 8,
+    paddingBottom: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Palette.border,
   },
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   cell: {
     width: CELL_WIDTH,
     alignItems: 'center',
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   dayLabel: {
     fontSize: 11,

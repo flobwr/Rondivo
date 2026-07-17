@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius } from '@/constants/design';
 
 function Shimmer({ style }: { style?: object }) {
   const shimmer = useRef(new Animated.Value(0)).current;
@@ -44,12 +44,12 @@ export function LoadingState() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingTop: 28,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 14,
+    marginBottom: 20,
   },
   gutter: {
     width: 50,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    height: 76,
+    height: 70,
     borderRadius: Radius.card,
   },
 });

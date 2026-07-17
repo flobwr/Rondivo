@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
+import { Palette } from '@/constants/design';
 import { PlanningAppointmentCard } from './PlanningAppointmentCard';
 import { TravelCard } from './TravelCard';
 import { AppointmentStatus, DayItem } from './types';
@@ -13,7 +13,8 @@ type Props = {
 // Vertical distance from the top of an appointment row to the centre of its dot:
 // paddingTop (14) + time label lineHeight (16) + marginBottom (6) + dot radius (8).
 const DOT_CENTER = 44;
-const ROW_GAP = 14;
+const ROW_GAP = 20;
+const LIST_PADDING_H = 20;
 
 const TIME_COLOR: Record<AppointmentStatus, string> = {
   done: Palette.textTertiary,
@@ -129,9 +130,9 @@ export function Timeline({ items }: Props) {
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
-    paddingBottom: 28,
+    paddingHorizontal: LIST_PADDING_H,
+    paddingTop: 28,
+    paddingBottom: 32,
   },
   row: {
     flexDirection: 'row',

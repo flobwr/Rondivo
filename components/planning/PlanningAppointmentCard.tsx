@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     backgroundColor: Palette.card,
     borderRadius: Radius.card, // identical corners to the Home cards
-    paddingVertical: 11,
-    paddingHorizontal: 14,
+    paddingVertical: 9.5,
+    paddingHorizontal: 16,
     ...actionShadow,
   },
   cardFocal: {

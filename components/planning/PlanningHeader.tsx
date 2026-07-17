@@ -37,7 +37,7 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <Feather name="plus" size={22} color={Palette.blue} />
+          <Feather name="plus" size={24} color={Palette.blue} />
         </Pressable>
       </Animated.View>
     </View>
@@ -50,27 +50,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
-    paddingTop: 14,
-    paddingBottom: 4,
+    paddingTop: 28,
+    paddingBottom: 22,
   },
   month: {
     fontSize: FontSize.tiny,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Palette.textSecondary,
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 2,
+    marginBottom: 6,
   },
   title: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 40,
+    fontWeight: '800',
     color: Palette.textPrimary,
-    letterSpacing: -0.8,
+    letterSpacing: -1.2,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
