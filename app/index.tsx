@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { AppointmentCard } from '@/components/home/appointment-card';
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -8,6 +9,7 @@ import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
+import { SectionHeader } from '@/components/home/section-header';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
@@ -21,7 +23,7 @@ import { getAccount } from '@/services/plus/company';
 import { HomeSchedule, getHomeSchedule } from '@/services/home-schedule';
 import { getIntervention } from '@/services/interventions';
 import { getUnreadNotificationCount } from '@/services/notifications';
-import { getNextReminderTitle } from '@/services/reminders';
+import { getReminderSummary, type ReminderSummary } from '@/services/reminders';
 
 type HomeBundle = {
   schedule: HomeSchedule;
@@ -29,16 +31,16 @@ type HomeBundle = {
   accountRole: string;
   accountInitials: string;
   unreadCount: number;
-  nextReminder: string | null;
+  reminders: ReminderSummary;
   nextIntervention?: Intervention;
 };
 
 async function fetchHomeBundle(): Promise<HomeBundle> {
   const schedule = await getHomeSchedule();
-  const [account, unreadCount, nextReminder, nextIntervention] = await Promise.all([
+  const [account, unreadCount, reminders, nextIntervention] = await Promise.all([
     getAccount(),
     getUnreadNotificationCount(),
-    getNextReminderTitle(),
+    getReminderSummary(),
     schedule.hasNextIntervention ? getIntervention(schedule.nextInterventionId) : Promise.resolve(undefined),
   ]);
 
@@ -48,9 +50,15 @@ async function fetchHomeBundle(): Promise<HomeBundle> {
     accountRole: account.role,
     accountInitials: account.initials,
     unreadCount,
-    nextReminder,
+    reminders,
     nextIntervention,
   };
+}
+
+/** "ven. 17 juil." — the light inline date next to "Aujourd'hui". Short forms
+ *  so the line never truncates next to the interventions counter on 360px. */
+function todayLabel(): string {
+  return new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -59,33 +67,32 @@ function HomeSkeleton() {
   return (
     <>
       <View style={skStyles.headerRow}>
-        <SkeletonBlock height={48} radius={24} style={{ width: 48 }} />
+        <SkeletonBlock height={46} radius={23} style={{ width: 46 }} />
         <View style={{ flex: 1, gap: 6 }}>
           <SkeletonBlock height={16} radius={6} style={{ width: '55%' }} />
           <SkeletonBlock height={13} radius={6} style={{ width: '35%' }} />
         </View>
+        <SkeletonBlock height={44} radius={22} style={{ width: 44 }} />
       </View>
 
-      <SkeletonBlock height={168} radius={28} style={{ marginTop: Spacing.section }} />
+      <SkeletonBlock height={18} radius={8} style={{ marginTop: Spacing.section, width: '48%' }} />
+      <SkeletonBlock height={236} radius={28} style={{ marginTop: 12 }} />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
-          <View key={i} style={skStyles.quickItem}>
-            <SkeletonBlock height={32} radius={11} style={{ width: 32 }} />
-            <SkeletonBlock height={13} radius={6} style={{ width: '75%' }} />
-            <SkeletonBlock height={13} radius={6} style={{ width: '50%' }} />
-          </View>
+          <SkeletonBlock key={i} height={78} radius={16} style={{ flex: 1 }} />
         ))}
       </View>
 
-      <SkeletonBlock height={64} radius={24} style={{ marginTop: Spacing.section }} />
+      <SkeletonBlock height={64} radius={24} style={{ marginTop: Spacing.lg }} />
 
       <SkeletonBlock
         height={18}
         radius={8}
         style={{ marginTop: Spacing.section, marginBottom: 12, width: '42%' }}
       />
-      <SkeletonBlock height={90} radius={24} />
+      <SkeletonBlock height={92} radius={24} />
+      <SkeletonBlock height={92} radius={24} style={{ marginTop: 10 }} />
     </>
   );
 }
@@ -99,18 +106,14 @@ const skStyles = StyleSheet.create({
   quickRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: Spacing.section,
-  },
-  quickItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 7,
+    marginTop: Spacing.xl,
   },
 });
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const router = useRouter();
   const fadeIn = useRef(new Animated.Value(0)).current;
   const creationMenu = useDocumentCreationMenu();
   const { palette } = useTheme();
@@ -131,6 +134,8 @@ export default function HomeScreen() {
     }
   }, [status, fadeIn]);
 
+  const todayCount = home?.schedule.interventionsTodayCount ?? 0;
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -147,9 +152,7 @@ export default function HomeScreen() {
               palette={palette}
             />
           ) : isLoading || !home ? (
-            <View style={styles.section}>
-              <HomeSkeleton />
-            </View>
+            <HomeSkeleton />
           ) : (
             <Animated.View style={{ opacity: fadeIn }}>
               <Header
@@ -157,24 +160,47 @@ export default function HomeScreen() {
                 role={home.accountRole}
                 initials={home.accountInitials}
                 unreadNotificationCount={home.unreadCount}
-                interventionsTodayCount={home.schedule.interventionsTodayCount}
                 palette={palette}
               />
 
-              <View style={styles.section}>
-                <HeroCard isEmpty={!home.schedule.hasNextIntervention} intervention={home.nextIntervention} />
+              <View style={styles.sectionMain}>
+                <SectionHeader
+                  title="Aujourd’hui"
+                  subtitle={todayLabel()}
+                  meta={
+                    todayCount > 0
+                      ? `${todayCount} intervention${todayCount > 1 ? 's' : ''}`
+                      : undefined
+                  }
+                  onMetaPress={() => router.push('/planning')}
+                  palette={palette}
+                />
+                <HeroCard
+                  isEmpty={!home.schedule.hasNextIntervention}
+                  intervention={home.nextIntervention}
+                  palette={palette}
+                />
               </View>
 
-              <View style={styles.section}>
+              <View style={styles.sectionCompact}>
                 <QuickActions onNewDocument={creationMenu.open} palette={palette} />
               </View>
 
-              <View style={styles.section}>
-                <RemindersCard nextReminder={home.nextReminder} palette={palette} />
+              <View style={styles.sectionTight}>
+                <RemindersCard
+                  nextReminder={home.reminders.nextTitle}
+                  count={home.reminders.count}
+                  palette={palette}
+                />
               </View>
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Le reste de la journée</Text>
+              <View style={styles.sectionMain}>
+                <SectionHeader
+                  title="Le reste de la journée"
+                  meta="Planning"
+                  onMetaPress={() => router.push('/planning')}
+                  palette={palette}
+                />
 
                 {home.schedule.remainingAppointments.length > 0 ? (
                   <View style={styles.appointmentList}>
@@ -219,15 +245,14 @@ function createStyles(Palette: PaletteShape) {
       paddingTop: Spacing.lg,
       paddingBottom: Spacing.section,
     },
-    section: {
+    sectionMain: {
       marginTop: Spacing.section,
     },
-    sectionTitle: {
-      fontSize: FontSize.section,
-      fontWeight: '700',
-      color: Palette.textPrimary,
-      letterSpacing: -0.4,
-      marginBottom: 12,
+    sectionCompact: {
+      marginTop: Spacing.xl,
+    },
+    sectionTight: {
+      marginTop: Spacing.lg,
     },
     appointmentList: {
       gap: 10,
@@ -240,7 +265,7 @@ function createStyles(Palette: PaletteShape) {
       alignItems: 'center',
     },
     emptyDayTitle: {
-      fontSize: 15,
+      fontSize: FontSize.cardLabel,
       fontWeight: '500',
       color: Palette.textSecondary,
       letterSpacing: -0.2,

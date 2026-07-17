@@ -1,71 +1,32 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter, type Href } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { useMemo, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Palette, Radius, type PaletteShape } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 
 type Action = {
   label: string;
+  /** Full action name for screen readers — the visible label is compacted. */
+  accessibilityLabel: string;
   icon: React.ComponentProps<typeof Feather>['name'];
   color: string;
   background: string;
-  /** Omitted only for "Nouveau document", which opens the shared creation menu instead of navigating. */
+  /** Omitted only for "Document", which opens the shared creation menu instead of navigating. */
   route?: Href;
 };
 
+// Labels are single words so the row stays one line tall on every screen —
+// the "+" baked into the first two icons carries the "nouveau" meaning.
 function buildActions(palette: PaletteShape): Action[] {
   return [
-    { label: 'Nouveau document', icon: 'file-plus', color: palette.blue, background: palette.blueSoft },
-    { label: 'Nouveau client', icon: 'user-plus', color: palette.orange, background: palette.orangeSoft, route: '/client/new' },
-    { label: 'Notes', icon: 'message-square', color: palette.purple, background: palette.purpleSoft, route: '/notes' },
-    { label: 'Tâches', icon: 'check-square', color: palette.green, background: palette.greenSoft, route: '/tasks' },
+    { label: 'Document', accessibilityLabel: 'Nouveau document', icon: 'file-plus', color: palette.blue, background: palette.blueSoft },
+    { label: 'Client', accessibilityLabel: 'Nouveau client', icon: 'user-plus', color: palette.orange, background: palette.orangeSoft, route: '/client/new' },
+    { label: 'Notes', accessibilityLabel: 'Notes', icon: 'message-square', color: palette.purple, background: palette.purpleSoft, route: '/notes' },
+    { label: 'Tâches', accessibilityLabel: 'Tâches', icon: 'check-square', color: palette.green, background: palette.greenSoft, route: '/tasks' },
   ];
-}
-
-type ActionCardProps = Action & { onNewDocument: () => void; styles: ReturnType<typeof createStyles> };
-
-function ActionCard({ label, icon, color, background, route, onNewDocument, styles }: ActionCardProps) {
-  const router = useRouter();
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      friction: 5,
-      tension: 300,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 4,
-      tension: 100,
-    }).start();
-  };
-
-  return (
-    <Pressable
-      style={styles.wrapper}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      onPress={() => (route ? router.push(route) : onNewDocument())}>
-      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
-        <View style={[styles.iconTile, { backgroundColor: background }]}>
-          <Feather name={icon} size={ICON_SIZE} color={color} />
-        </View>
-        <Text style={styles.label} numberOfLines={2}>
-          {label}
-        </Text>
-      </Animated.View>
-    </Pressable>
-  );
 }
 
 export function QuickActions({
@@ -76,21 +37,35 @@ export function QuickActions({
   /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
   palette?: PaletteShape;
 }) {
+  const router = useRouter();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const actions = useMemo(() => buildActions(palette), [palette]);
 
   return (
     <View style={styles.row}>
       {actions.map((action) => (
-        <ActionCard key={action.label} {...action} onNewDocument={onNewDocument} styles={styles} />
+        <View key={action.label} style={styles.slot}>
+          <PressableScale
+            style={styles.card}
+            to={0.95}
+            onPress={() => (action.route ? router.push(action.route) : onNewDocument())}
+            accessibilityLabel={action.accessibilityLabel}>
+            <View style={[styles.iconTile, { backgroundColor: action.background }]}>
+              <Feather name={action.icon} size={ICON_SIZE} color={action.color} />
+            </View>
+            <Text style={styles.label} numberOfLines={1}>
+              {action.label}
+            </Text>
+          </PressableScale>
+        </View>
       ))}
     </View>
   );
 }
 
-const TILE = 36;
-const TILE_RADIUS = 12;
-const ICON_SIZE = 17;
+const TILE = 34;
+const TILE_RADIUS = 11;
+const ICON_SIZE = 16;
 
 function createStyles(Palette: PaletteShape) {
   return StyleSheet.create({
@@ -98,7 +73,7 @@ function createStyles(Palette: PaletteShape) {
       flexDirection: 'row',
       gap: 10,
     },
-    wrapper: {
+    slot: {
       flex: 1,
     },
     card: {
@@ -106,10 +81,10 @@ function createStyles(Palette: PaletteShape) {
       borderRadius: Radius.tile,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: Palette.border,
-      paddingVertical: 12,
+      paddingVertical: 11,
       paddingHorizontal: 4,
       alignItems: 'center',
-      gap: 7,
+      gap: 6,
       ...actionShadow,
     },
     iconTile: {
@@ -120,12 +95,10 @@ function createStyles(Palette: PaletteShape) {
       justifyContent: 'center',
     },
     label: {
-      fontSize: 13,
-      fontWeight: '500',
+      fontSize: 12.5,
+      fontWeight: '600',
       color: Palette.textPrimary,
       letterSpacing: -0.1,
-      lineHeight: 17,
-      textAlign: 'center',
     },
   });
 }

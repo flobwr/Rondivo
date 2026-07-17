@@ -112,3 +112,15 @@ export function getNextReminderTitle(): string | null {
   }
   return null;
 }
+
+export type ReminderSummary = {
+  count: number;
+  nextTitle: string | null;
+};
+
+export function getReminderSummary(): ReminderSummary {
+  return {
+    count: REMINDER_SECTIONS.reduce((total, section) => total + section.items.length, 0),
+    nextTitle: getNextReminderTitle(),
+  };
+}

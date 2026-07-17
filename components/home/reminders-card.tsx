@@ -11,46 +11,50 @@ const TILE = 38;
 
 export function RemindersCard({
   nextReminder,
+  count = 0,
   palette = Palette,
 }: {
   nextReminder: string | null;
+  /** Total pending reminders — shown as a small counter next to the eyebrow. */
+  count?: number;
   /** Defaults to the static light palette — pass `useTheme().palette` from screens that opted into dark mode. */
   palette?: PaletteShape;
 }) {
   const router = useRouter();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
-  if (!nextReminder) {
-    return (
-      <View style={styles.emptyCard}>
-        <Text style={styles.emptyText}>Aucun rappel.</Text>
-      </View>
-    );
-  }
+  const isEmpty = !nextReminder;
 
   return (
     <PressableScale
       onPress={() => router.push('/rappels')}
       to={0.98}
       style={styles.card}
-      accessibilityLabel="Rappels">
-      <View style={styles.iconTile}>
-        <Ionicons name="notifications" size={19} color={palette.purple} />
+      accessibilityLabel={isEmpty ? 'Rappels, aucun rappel' : `Rappels, ${count} en attente`}>
+      <View style={[styles.iconTile, isEmpty ? styles.iconTileEmpty : null]}>
+        <Ionicons
+          name={isEmpty ? 'notifications-outline' : 'notifications'}
+          size={19}
+          color={isEmpty ? palette.textTertiary : palette.purple}
+        />
       </View>
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.eyebrow}>RAPPELS</Text>
-          <View style={styles.seeAll}>
-            <Text style={styles.seeAllText}>Voir tout</Text>
-            <Feather name="chevron-right" size={13} color={palette.blue} />
-          </View>
+          {count > 1 ? (
+            <View style={styles.countPill}>
+              <Text style={styles.countText}>{count}</Text>
+            </View>
+          ) : null}
         </View>
 
-        <Text style={styles.reminder} numberOfLines={1} ellipsizeMode="tail">
-          {nextReminder}
+        <Text style={[styles.reminder, isEmpty ? styles.reminderEmpty : null]} numberOfLines={1} ellipsizeMode="tail">
+          {nextReminder ?? 'Aucun rappel en attente'}
         </Text>
       </View>
+
+      <Feather name="chevron-right" size={18} color={palette.textTertiary} style={styles.chevron} />
     </PressableScale>
   );
 }
@@ -63,7 +67,7 @@ function createStyles(Palette: PaletteShape) {
       backgroundColor: Palette.card,
       borderRadius: Radius.card,
       paddingVertical: 13,
-      paddingHorizontal: 18,
+      paddingHorizontal: 16,
       ...cardShadow,
     },
     iconTile: {
@@ -75,6 +79,9 @@ function createStyles(Palette: PaletteShape) {
       justifyContent: 'center',
       flexShrink: 0,
     },
+    iconTileEmpty: {
+      backgroundColor: Palette.iconButtonBg,
+    },
     content: {
       flex: 1,
       marginLeft: Spacing.md,
@@ -82,7 +89,7 @@ function createStyles(Palette: PaletteShape) {
     headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: 7,
     },
     eyebrow: {
       fontSize: FontSize.tiny,
@@ -90,36 +97,35 @@ function createStyles(Palette: PaletteShape) {
       letterSpacing: 0.8,
       color: Palette.purple,
     },
-    seeAll: {
-      flexDirection: 'row',
+    countPill: {
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: Palette.purpleSoft,
       alignItems: 'center',
-      gap: 2,
-      opacity: 0.7,
+      justifyContent: 'center',
+      paddingHorizontal: 5,
     },
-    seeAllText: {
-      fontSize: 12,
-      fontWeight: '500',
-      color: Palette.blue,
+    countText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: Palette.purple,
+      fontVariant: ['tabular-nums'],
     },
     reminder: {
       fontSize: FontSize.label,
       fontWeight: '500',
       color: Palette.textPrimary,
-      marginTop: 4,
+      marginTop: 3,
       letterSpacing: -0.1,
     },
-    emptyCard: {
-      backgroundColor: Palette.card,
-      borderRadius: Radius.card,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      ...cardShadow,
-    },
-    emptyText: {
-      fontSize: FontSize.label,
+    reminderEmpty: {
       fontWeight: '400',
       color: Palette.textTertiary,
-      letterSpacing: -0.1,
+    },
+    chevron: {
+      marginLeft: Spacing.sm,
+      opacity: 0.7,
     },
   });
 }

@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { useMemo, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Palette, Radius, Spacing, getStatusInk, type PaletteShape } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
 
 export type Appointment = {
@@ -22,65 +22,62 @@ type AppointmentCardProps = {
   palette?: PaletteShape;
 };
 
+/** Maps the free-form status label to a tone — greens for confirmed/done,
+ *  neutral grey for cancelled/postponed outcomes, blue for everything else. */
+function statusTone(status: string, palette: PaletteShape): { ink: string; soft: string } {
+  const statusInk = getStatusInk(palette);
+  const normalized = status.toLowerCase();
+  if (normalized.startsWith('confirm') || normalized.startsWith('termin')) {
+    return { ink: statusInk.green, soft: palette.greenSoft };
+  }
+  if (normalized.startsWith('annul') || normalized.startsWith('report')) {
+    return { ink: palette.textSecondary, soft: palette.iconButtonBg };
+  }
+  return { ink: statusInk.blue, soft: palette.blueSoft };
+}
+
 export function AppointmentCard({ appointment, palette = Palette }: AppointmentCardProps) {
   const router = useRouter();
-  const scale = useRef(new Animated.Value(1)).current;
   const styles = useMemo(() => createStyles(palette), [palette]);
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, {
-      toValue: 0.98,
-      useNativeDriver: true,
-      friction: 6,
-      tension: 300,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 4,
-      tension: 120,
-    }).start();
-  };
+  const tone = appointment.status ? statusTone(appointment.status, palette) : null;
 
   return (
-    <Pressable
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      onPress={() => router.push({ pathname: '/intervention/[id]', params: { id: appointment.id } })}>
-      <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
-        <View style={styles.timeColumn}>
-          <Text style={styles.time}>{appointment.time}</Text>
-          <View style={styles.dot} />
-        </View>
+    <PressableScale
+      to={0.98}
+      onPress={() => router.push({ pathname: '/intervention/[id]', params: { id: appointment.id } })}
+      accessibilityLabel={`${appointment.time}, ${appointment.client}, ${appointment.type}`}
+      style={styles.card}>
+      <View style={styles.timeColumn}>
+        <Text style={styles.time}>{appointment.time}</Text>
+        <View style={styles.dot} />
+      </View>
 
-        <View style={styles.info}>
+      <View style={styles.info}>
+        <View style={styles.titleRow}>
           <Text style={styles.client} numberOfLines={1}>
             {appointment.client}
           </Text>
-          <Text style={styles.type} numberOfLines={1} ellipsizeMode="tail">
-            {appointment.type}
-          </Text>
-          <View style={styles.addressRow}>
-            <Feather name="map" size={12} color={palette.textTertiary} style={styles.mapIcon} />
-            <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
-              {appointment.address}
-            </Text>
-          </View>
+          {appointment.status && tone ? (
+            <View style={[styles.statusPill, { backgroundColor: tone.soft }]}>
+              <Text style={[styles.statusText, { color: tone.ink }]} numberOfLines={1}>
+                {appointment.status}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
-        {appointment.status ? (
-          <View style={styles.statusPill}>
-            <Text style={styles.statusText} numberOfLines={1}>
-              {appointment.status}
-            </Text>
-          </View>
-        ) : null}
-      </Animated.View>
-    </Pressable>
+        <Text style={styles.type} numberOfLines={1} ellipsizeMode="tail">
+          {appointment.type}
+        </Text>
+
+        <View style={styles.addressRow}>
+          <Feather name="map-pin" size={11} color={palette.textTertiary} />
+          <Text style={styles.address} numberOfLines={1} ellipsizeMode="tail">
+            {appointment.address}
+          </Text>
+        </View>
+      </View>
+    </PressableScale>
   );
 }
 
@@ -91,76 +88,76 @@ function createStyles(Palette: PaletteShape) {
       alignItems: 'flex-start',
       backgroundColor: Palette.card,
       borderRadius: Radius.card,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
       ...cardShadow,
     },
     timeColumn: {
       alignItems: 'center',
-      width: 42,
+      width: 44,
+      paddingTop: 1,
     },
     time: {
-      fontSize: FontSize.body,
+      fontSize: 15.5,
       fontWeight: '700',
       color: Palette.textPrimary,
       letterSpacing: -0.3,
+      fontVariant: ['tabular-nums'],
     },
     dot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
       backgroundColor: Palette.blue,
-      marginTop: 10,
-      opacity: 0.85,
+      marginTop: 8,
+      opacity: 0.8,
     },
     info: {
       flex: 1,
       marginLeft: Spacing.md,
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     client: {
-      fontSize: 17,
+      flex: 1,
+      fontSize: 16.5,
       fontWeight: '700',
       color: Palette.textPrimary,
       letterSpacing: -0.3,
     },
     type: {
-      fontSize: 13,
-      fontWeight: '400',
+      fontSize: 13.5,
+      fontWeight: '500',
       color: Palette.textSecondary,
       marginTop: 3,
       letterSpacing: -0.1,
     },
     addressRow: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginTop: 6,
+      alignItems: 'center',
+      marginTop: 5,
       gap: 5,
-    },
-    mapIcon: {
-      marginTop: 1,
-      opacity: 0.7,
     },
     address: {
       flex: 1,
-      fontSize: 11,
+      fontSize: 12.5,
       fontWeight: '400',
       color: Palette.textTertiary,
       letterSpacing: 0,
     },
     statusPill: {
-      backgroundColor: Palette.blueSoft,
       borderRadius: Radius.pill,
       paddingHorizontal: 9,
       paddingVertical: 3,
-      marginLeft: Spacing.sm,
-      alignSelf: 'flex-start',
-      marginTop: 2,
+      flexShrink: 0,
     },
     statusText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: Palette.blue,
-      letterSpacing: 0,
+      fontSize: 11.5,
+      fontWeight: '700',
+      letterSpacing: -0.1,
     },
   });
 }
