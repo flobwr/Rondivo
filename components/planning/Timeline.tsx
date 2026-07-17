@@ -20,7 +20,7 @@ const NOW_ROW_HEIGHT = 30;
 
 // Vertical distance from the top of a row to the centre of its rail dot.
 const DOT_CENTER: Record<string, number> = {
-  card: 28,
+  card: 24,
   break: 17,
   now: NOW_ROW_HEIGHT / 2,
 };
@@ -260,7 +260,7 @@ export function Timeline({ items, nowMin }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 4,
+    paddingTop: 18,
     paddingBottom: 32,
   },
   row: {

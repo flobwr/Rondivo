@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     ...actionShadow,
   },
   cardActive: {
@@ -163,11 +163,11 @@ const styles = StyleSheet.create({
     borderColor: '#F0D9AC',
   },
   timeCol: {
-    width: 52,
+    width: 48,
     alignItems: 'flex-start',
   },
   clockIcon: {
-    marginBottom: 8,
+    marginBottom: 5,
   },
   startTime: {
     fontSize: 15,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   timeConnector: {
     gap: 3,
-    marginVertical: 6,
+    marginVertical: 4,
     marginLeft: 2,
   },
   connectorDot: {
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   main: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 12,
   },
   titleRow: {
     flexDirection: 'row',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 8,
+    marginTop: 6,
   },
   address: {
     flex: 1,

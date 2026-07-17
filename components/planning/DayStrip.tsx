@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.screen,
     paddingTop: 6,
-    paddingBottom: 16,
+    paddingBottom: 26,
     gap: CELL_GAP,
   },
   cell: {

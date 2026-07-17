@@ -35,7 +35,7 @@ export function PlanningHeader({ onAdd }: Props) {
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <MaterialCommunityIcons name="calendar-plus" size={22} color={Palette.textPrimary} />
+          <MaterialCommunityIcons name="calendar-plus" size={24} color={Palette.textPrimary} />
         </Pressable>
       </Animated.View>
     </View>
@@ -44,25 +44,25 @@ export function PlanningHeader({ onAdd }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
+    height: 92,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: Spacing.screen,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: '800',
     color: Palette.textPrimary,
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
   buttonWrap: {
     position: 'absolute',
     right: Spacing.screen,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 18,
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
