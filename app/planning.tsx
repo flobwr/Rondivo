@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomNav } from '@/components/home/bottom-nav';
@@ -298,6 +300,10 @@ export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
   const [status, setStatus] = useState<Status>('loading');
   const fadeIn = useRef(new Animated.Value(0)).current;
+  // Directional day transition: the day's content slides in from the side the
+  // navigation came from, so switching days reads like flipping pages.
+  const transition = useRef(new Animated.Value(1)).current;
+  const directionRef = useRef(0);
 
   useEffect(() => {
     const t = setTimeout(() => setStatus('loaded'), 850);
@@ -305,15 +311,49 @@ export default function PlanningScreen() {
     return () => clearTimeout(t);
   }, [fadeIn]);
 
-  const handleSelectDay = useCallback((index: number) => {
-    setSelectedDay(index);
-  }, []);
+  const handleSelectDay = useCallback(
+    (index: number) => {
+      if (index === selectedDay || index < 0 || index >= CALENDAR_DAYS.length) return;
+      directionRef.current = index > selectedDay ? 1 : -1;
+      transition.setValue(0);
+      Animated.spring(transition, { toValue: 1, useNativeDriver: true, friction: 10, tension: 90 }).start();
+      setSelectedDay(index);
+    },
+    [selectedDay, transition]
+  );
 
   const handleRetry = useCallback(() => {
     setStatus('loading');
     const t = setTimeout(() => setStatus('loaded'), 700);
     return () => clearTimeout(t);
   }, []);
+
+  // Horizontal swipe anywhere on the day's content flips to the previous/next
+  // day; the offsets keep it from ever fighting the vertical scroll.
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .activeOffsetX([-24, 24])
+        .failOffsetY([-14, 14])
+        .onEnd((e) => {
+          const goNext = e.translationX <= -56 || e.velocityX <= -800;
+          const goPrev = e.translationX >= 56 || e.velocityX >= 800;
+          if (goNext && selectedDay < CALENDAR_DAYS.length - 1) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            handleSelectDay(selectedDay + 1);
+          } else if (goPrev && selectedDay > 0) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            handleSelectDay(selectedDay - 1);
+          }
+        }),
+    [selectedDay, handleSelectDay]
+  );
+
+  const slideX = transition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [directionRef.current * 40, 0],
+  });
 
   const scenario = DAY_DATA[selectedDay] ?? { items: [] };
 
@@ -329,18 +369,22 @@ export default function PlanningScreen() {
             onSelectDay={handleSelectDay}
           />
 
-          {/* Scrollable content, always below the fixed header */}
-          <View style={styles.content}>
-            {status === 'loading' ? (
-              <LoadingState />
-            ) : status === 'error' ? (
-              <ErrorState onRetry={handleRetry} />
-            ) : scenario.items.length > 0 ? (
-              <Timeline key={selectedDay} items={scenario.items} nowMin={scenario.nowMin} />
-            ) : (
-              <EmptyState key={`empty-${selectedDay}`} />
-            )}
-          </View>
+          {/* Scrollable content, always below the fixed header. Swipeable
+              left/right to flip between days. */}
+          <GestureDetector gesture={swipeGesture}>
+            <Animated.View
+              style={[styles.content, { opacity: transition, transform: [{ translateX: slideX }] }]}>
+              {status === 'loading' ? (
+                <LoadingState />
+              ) : status === 'error' ? (
+                <ErrorState onRetry={handleRetry} />
+              ) : scenario.items.length > 0 ? (
+                <Timeline key={selectedDay} items={scenario.items} nowMin={scenario.nowMin} />
+              ) : (
+                <EmptyState key={`empty-${selectedDay}`} />
+              )}
+            </Animated.View>
+          </GestureDetector>
         </Animated.View>
       </SafeAreaView>
 

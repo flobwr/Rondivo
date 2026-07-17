@@ -77,10 +77,3 @@ export function formatTime(min: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-/** 90 → '1h30', 45 → '45 min' */
-export function formatMinutes(min: number): string {
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m === 0 ? `${h}h00` : `${h}h${String(m).padStart(2, '0')}`;
-}
