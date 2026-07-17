@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Palette, type PaletteShape } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { actionShadow } from '@/constants/shadow';
 
 type Action = {
   label: string;
@@ -80,14 +80,18 @@ function createStyles(Palette: PaletteShape) {
       gap: 6,
       width: 72,
     },
+    // White discs floating on the paper — the blue lives only in the glyph,
+    // so four actions don't read as four blue tiles.
     circle: {
       width: CIRCLE,
       height: CIRCLE,
       borderRadius: CIRCLE / 2,
-      backgroundColor: Palette.blueSoft,
+      backgroundColor: Palette.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
       alignItems: 'center',
       justifyContent: 'center',
-      ...iconButtonShadow,
+      ...actionShadow,
     },
     label: {
       fontSize: 12,

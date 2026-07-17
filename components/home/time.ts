@@ -42,6 +42,9 @@ export type DepartureState = {
   label: string;
   /** true once it's time to leave (or later) — the countdown pill turns solid. */
   urgent: boolean;
+  /** Which state colour the departure board should wear:
+   *  countdown = blue (actif), leave = orange (attention), late = red (erreur). */
+  phase: 'countdown' | 'leave' | 'late';
 };
 
 /**
@@ -54,9 +57,9 @@ export function getDepartureState(departureMin: number, startMin: number, nowMin
   if (diff > 60) {
     const h = Math.floor(diff / 60);
     const m = diff % 60;
-    return { label: m > 0 ? `dans ${h} h ${String(m).padStart(2, '0')}` : `dans ${h} h`, urgent: false };
+    return { label: m > 0 ? `dans ${h} h ${String(m).padStart(2, '0')}` : `dans ${h} h`, urgent: false, phase: 'countdown' };
   }
-  if (diff > 0) return { label: `dans ${diff} min`, urgent: false };
-  if (nowMin < startMin) return { label: 'Partez maintenant', urgent: true };
-  return { label: 'Départ dépassé', urgent: true };
+  if (diff > 0) return { label: `dans ${diff} min`, urgent: false, phase: 'countdown' };
+  if (nowMin < startMin) return { label: 'Partez maintenant', urgent: true, phase: 'leave' };
+  return { label: 'Départ dépassé', urgent: true, phase: 'late' };
 }

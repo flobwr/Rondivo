@@ -76,7 +76,7 @@ function createStyles(Palette: PaletteShape) {
       marginRight: 12,
     },
     avatarText: {
-      color: Palette.white,
+      color: Palette.onAccent,
       fontSize: 16,
       fontWeight: '700',
       letterSpacing: 0.5,
@@ -98,11 +98,15 @@ function createStyles(Palette: PaletteShape) {
       marginTop: 1,
       letterSpacing: -0.1,
     },
+    // White disc on the paper (same family as the Quick Actions) rather than a
+    // grey fill — the header stays airy.
     roundButton: {
       width: BUTTON,
       height: BUTTON,
       borderRadius: BUTTON / 2,
-      backgroundColor: Palette.iconButtonBg,
+      backgroundColor: Palette.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
       alignItems: 'center',
       justifyContent: 'center',
       ...iconButtonShadow,
@@ -119,7 +123,9 @@ function createStyles(Palette: PaletteShape) {
       justifyContent: 'center',
       paddingHorizontal: 4,
       borderWidth: 2,
-      borderColor: Palette.screen,
+      // Ring matches the (now white) bell button, so the badge reads as a
+      // cut-out rather than a sticker.
+      borderColor: Palette.card,
     },
     notificationText: {
       color: Palette.white,

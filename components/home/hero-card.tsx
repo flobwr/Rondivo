@@ -1,7 +1,6 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -26,6 +25,14 @@ function compactAddress(address: string): string {
   return address.replace(/,\s*\d{4,5}\s+/g, ', ');
 }
 
+/**
+ * The Rondivo hero: a white card, not a gradient poster. Ink typography does
+ * the talking; the only saturated surface is the full-width blue CTA, so the
+ * eye lands on "Itinéraire" without anything shouting. The departure board is
+ * the live element — it changes colour with the situation (blue = on time,
+ * orange = leave now, red = late), which makes it the one thing worth
+ * glancing at all morning.
+ */
 export function HeroCard({ isEmpty = false, intervention, palette = Palette }: HeroCardProps) {
   const router = useRouter();
   const scale = useRef(new Animated.Value(1)).current;
@@ -34,7 +41,7 @@ export function HeroCard({ isEmpty = false, intervention, palette = Palette }: H
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.982, useNativeDriver: true, ...PressSpring.in }).start();
+    Animated.spring(scale, { toValue: 0.985, useNativeDriver: true, ...PressSpring.in }).start();
   };
   const onPressOut = () => {
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, ...PressSpring.out }).start();
@@ -52,7 +59,7 @@ export function HeroCard({ isEmpty = false, intervention, palette = Palette }: H
           style={styles.emptyAction}
           onPress={() => router.push('/appointment/new')}
           accessibilityLabel="Planifier une intervention">
-          <Feather name="plus" size={16} color={palette.white} />
+          <Feather name="plus" size={16} color={palette.onAccent} />
           <Text style={styles.emptyActionText}>Planifier une intervention</Text>
         </PressableScale>
       </View>
@@ -70,67 +77,71 @@ export function HeroCard({ isEmpty = false, intervention, palette = Palette }: H
     maximumFractionDigits: 1,
   });
 
+  // The departure board wears the state colour system: blue while the
+  // countdown runs, orange when it's time to go, red once the slot is missed.
+  const board =
+    departure.phase === 'late'
+      ? { bg: palette.redSoft, ink: palette.redInk }
+      : departure.phase === 'leave'
+        ? { bg: palette.orangeSoft, ink: palette.orangeInk }
+        : { bg: palette.blueTint, ink: palette.blue };
+
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <LinearGradient
-        colors={[palette.gradientStart, palette.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}>
-        {/* The info area opens the intervention detail; the Itinéraire button is
-            a sibling (never nested) so the two presses can't fight each other. */}
-        <Pressable
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          onPress={() => router.push({ pathname: '/intervention/[id]', params: { id: intervention.id } })}
-          accessibilityRole="button"
-          accessibilityLabel={`Prochaine intervention, ${intervention.client}, ${intervention.startTime}`}>
-          <View style={styles.eyebrowRow}>
-            <Text style={styles.eyebrow}>PROCHAINE INTERVENTION</Text>
-            <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.75)" />
-          </View>
+    <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+      {/* The info area opens the intervention detail; the Itinéraire button is
+          a sibling (never nested) so the two presses can't fight each other. */}
+      <Pressable
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        onPress={() => router.push({ pathname: '/intervention/[id]', params: { id: intervention.id } })}
+        accessibilityRole="button"
+        accessibilityLabel={`Prochaine intervention, ${intervention.client}, ${intervention.startTime}`}>
+        <View style={styles.eyebrowRow}>
+          <Text style={styles.eyebrow}>PROCHAINE INTERVENTION</Text>
+          <Feather name="chevron-right" size={17} color={palette.textTertiary} />
+        </View>
 
-          <Text style={styles.client} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
-            {intervention.client}
+        <Text style={styles.client} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
+          {intervention.client}
+        </Text>
+
+        <Text style={styles.metaText} numberOfLines={1}>
+          <Text style={styles.metaTime}>{intervention.startTime}</Text>
+          <Text style={styles.metaDot}>{'   ·   '}</Text>
+          {intervention.type}
+        </Text>
+
+        <View style={styles.addressRow}>
+          <Feather name="map-pin" size={13} color={palette.textTertiary} style={styles.addressIcon} />
+          <Text style={styles.address} numberOfLines={1}>
+            {compactAddress(intervention.address)}
           </Text>
+        </View>
 
-          <View style={styles.metaRow}>
-            <Ionicons name="time-outline" size={15} color={Palette.white} style={styles.metaIcon} />
-            <Text style={styles.metaText} numberOfLines={1}>
-              <Text style={styles.metaTime}>{intervention.startTime}</Text>
-              {'  ·  '}
-              {intervention.type}
-            </Text>
-          </View>
+        {/* Departure board: the LIVE information ("when do I leave") is the
+            headline; the static advice and travel maths are one quiet line. */}
+        <View style={[styles.board, { backgroundColor: board.bg }]}>
+          <Text
+            style={[styles.boardHeadline, { color: board.ink }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}>
+            {departure.urgent ? departure.label : `Départ ${departure.label}`}
+          </Text>
+          <Text style={styles.boardSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+            Conseillé à {departureTime} · Trajet {intervention.travelMinutes} min · {km} km
+          </Text>
+        </View>
+      </Pressable>
 
-          <View style={styles.metaRow}>
-            <Feather name="map-pin" size={14} color={Palette.white} style={styles.metaIcon} />
-            <Text style={[styles.metaText, styles.metaAddress]} numberOfLines={1}>
-              {compactAddress(intervention.address)}
-            </Text>
-          </View>
-
-          {/* Departure board: the LIVE information ("when do I leave") is the
-              headline; the static advice and travel maths are one quiet line. */}
-          <View style={styles.glassStrip}>
-            <Text style={styles.stripHeadline} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-              {departure.urgent ? departure.label : `Départ ${departure.label}`}
-            </Text>
-            <Text style={styles.stripSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-              Conseillé à {departureTime} · Trajet {intervention.travelMinutes} min · {km} km
-            </Text>
-          </View>
-        </Pressable>
-
-        <PressableScale
-          style={styles.navButton}
-          to={0.97}
-          onPress={() => openMapsTo(intervention.address)}
-          accessibilityLabel="Lancer l’itinéraire vers l’intervention">
-          <Feather name="navigation" size={17} color={Palette.blue} />
-          <Text style={styles.navButtonText}>Itinéraire</Text>
-        </PressableScale>
-      </LinearGradient>
+      <PressableScale
+        style={styles.navButton}
+        to={0.97}
+        onPress={() => openMapsTo(intervention.address)}
+        accessibilityLabel="Lancer l’itinéraire vers l’intervention">
+        <Feather name="navigation" size={17} color={palette.onAccent} />
+        <Text style={styles.navButtonText}>Itinéraire</Text>
+      </PressableScale>
     </Animated.View>
   );
 }
@@ -138,9 +149,12 @@ export function HeroCard({ isEmpty = false, intervention, palette = Palette }: H
 function createStyles(palette: PaletteShape) {
   return StyleSheet.create({
     card: {
+      backgroundColor: palette.card,
       borderRadius: Radius.hero,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
       paddingHorizontal: Spacing.cardPadding,
-      paddingTop: 16,
+      paddingTop: 18,
       paddingBottom: Spacing.cardPadding,
       ...heroShadow,
     },
@@ -150,64 +164,66 @@ function createStyles(palette: PaletteShape) {
       justifyContent: 'space-between',
     },
     eyebrow: {
-      color: Palette.white,
-      opacity: 0.78,
+      color: palette.blue,
       fontSize: 11,
       fontWeight: '700',
-      letterSpacing: 1.4,
+      letterSpacing: 1.3,
     },
     client: {
-      color: Palette.white,
-      fontSize: 30,
-      fontWeight: '800',
-      marginTop: 4,
-      letterSpacing: -0.8,
-    },
-    metaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      color: palette.textPrimary,
+      fontSize: 28,
+      fontWeight: '700',
       marginTop: 6,
-      gap: 7,
-    },
-    metaIcon: {
-      opacity: 0.9,
+      letterSpacing: -0.7,
     },
     metaText: {
-      flex: 1,
-      color: Palette.white,
+      color: palette.textSecondary,
       fontSize: 15,
       fontWeight: '500',
-      opacity: 0.95,
+      marginTop: 7,
       letterSpacing: -0.1,
     },
     metaTime: {
+      color: palette.textPrimary,
       fontWeight: '700',
       fontVariant: ['tabular-nums'],
     },
-    metaAddress: {
-      opacity: 0.85,
-      fontSize: 14,
+    metaDot: {
+      color: palette.textTertiary,
     },
-    glassStrip: {
-      backgroundColor: 'rgba(255,255,255,0.16)',
-      borderRadius: 18,
+    addressRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 5,
+      gap: 6,
+    },
+    addressIcon: {
+      marginTop: 1,
+    },
+    address: {
+      flex: 1,
+      color: palette.textSecondary,
+      fontSize: 14,
+      fontWeight: '400',
+      letterSpacing: -0.1,
+    },
+    board: {
+      borderRadius: Radius.tile,
       paddingVertical: 13,
       paddingHorizontal: 16,
       marginTop: 16,
     },
-    stripHeadline: {
-      color: Palette.white,
-      fontSize: 21,
+    boardHeadline: {
+      fontSize: 20,
       fontWeight: '800',
       letterSpacing: -0.4,
       fontVariant: ['tabular-nums'],
     },
-    stripSub: {
-      color: Palette.white,
-      opacity: 0.82,
+    boardSub: {
+      color: palette.textSecondary,
       fontSize: FontSize.small,
       fontWeight: '500',
-      marginTop: 4,
+      marginTop: 3,
       letterSpacing: -0.1,
       fontVariant: ['tabular-nums'],
     },
@@ -216,13 +232,13 @@ function createStyles(palette: PaletteShape) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      minHeight: 48,
-      backgroundColor: Palette.white,
+      minHeight: 52,
+      backgroundColor: palette.blue,
       borderRadius: Radius.tile,
       marginTop: 12,
     },
     navButtonText: {
-      color: Palette.blue,
+      color: palette.onAccent,
       fontSize: FontSize.body,
       fontWeight: '700',
       letterSpacing: -0.2,
@@ -232,6 +248,8 @@ function createStyles(palette: PaletteShape) {
     emptyCard: {
       backgroundColor: palette.card,
       borderRadius: Radius.hero,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
       paddingVertical: 28,
       paddingHorizontal: Spacing.cardPadding,
       alignItems: 'center',
@@ -273,7 +291,7 @@ function createStyles(palette: PaletteShape) {
       paddingHorizontal: 18,
     },
     emptyActionText: {
-      color: Palette.white,
+      color: palette.onAccent,
       fontSize: 15,
       fontWeight: '600',
       letterSpacing: -0.2,

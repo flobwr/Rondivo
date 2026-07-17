@@ -35,7 +35,7 @@ export function RemindersCard({
         <Ionicons
           name={isEmpty ? 'notifications-outline' : 'notifications'}
           size={19}
-          color={isEmpty ? palette.textTertiary : palette.purple}
+          color={isEmpty ? palette.textTertiary : palette.blue}
         />
       </View>
 
@@ -66,7 +66,9 @@ function createStyles(Palette: PaletteShape) {
       alignItems: 'center',
       backgroundColor: Palette.card,
       borderRadius: Radius.card,
-      paddingVertical: 13,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
+      paddingVertical: 14,
       paddingHorizontal: 16,
       ...cardShadow,
     },
@@ -74,7 +76,7 @@ function createStyles(Palette: PaletteShape) {
       width: TILE,
       height: TILE,
       borderRadius: 12,
-      backgroundColor: Palette.purpleSoft,
+      backgroundColor: Palette.blueSoft,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
@@ -101,7 +103,7 @@ function createStyles(Palette: PaletteShape) {
       minWidth: 18,
       height: 18,
       borderRadius: 9,
-      backgroundColor: Palette.purpleSoft,
+      backgroundColor: Palette.blueSoft,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 5,
@@ -109,7 +111,7 @@ function createStyles(Palette: PaletteShape) {
     countText: {
       fontSize: 11,
       fontWeight: '700',
-      color: Palette.purple,
+      color: Palette.blue,
       fontVariant: ['tabular-nums'],
     },
     reminder: {

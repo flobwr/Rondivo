@@ -51,6 +51,8 @@ export function AppointmentCard({ appointment, palette = Palette }: AppointmentC
         <Text style={styles.time}>{appointment.time}</Text>
       </View>
 
+      <View style={styles.timeRule} />
+
       <View style={styles.info}>
         <View style={styles.titleRow}>
           <Text style={styles.client} numberOfLines={1}>
@@ -87,6 +89,8 @@ function createStyles(Palette: PaletteShape) {
       alignItems: 'flex-start',
       backgroundColor: Palette.card,
       borderRadius: Radius.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
       paddingVertical: 14,
       paddingHorizontal: 16,
       ...cardShadow,
@@ -101,6 +105,15 @@ function createStyles(Palette: PaletteShape) {
       color: Palette.textPrimary,
       letterSpacing: -0.3,
       fontVariant: ['tabular-nums'],
+    },
+    // Thin vertical rule after the time — the "timetable" signature that ties
+    // these rows to the Planning screen's timeline.
+    timeRule: {
+      width: StyleSheet.hairlineWidth,
+      alignSelf: 'stretch',
+      backgroundColor: Palette.border,
+      marginVertical: 2,
+      marginLeft: 2,
     },
     info: {
       flex: 1,
@@ -143,6 +156,9 @@ function createStyles(Palette: PaletteShape) {
       paddingHorizontal: 9,
       paddingVertical: 3,
       flexShrink: 0,
+      // A verbose status ("À confirmer par le client") truncates itself rather
+      // than eating the client's name.
+      maxWidth: '45%',
     },
     statusText: {
       fontSize: 11.5,

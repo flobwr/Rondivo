@@ -76,7 +76,7 @@ function HomeSkeleton() {
       </View>
 
       <SkeletonBlock height={18} radius={8} style={{ marginTop: Spacing.section, width: '48%' }} />
-      <SkeletonBlock height={224} radius={28} style={{ marginTop: 12 }} />
+      <SkeletonBlock height={248} radius={28} style={{ marginTop: 12 }} />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
@@ -268,6 +268,8 @@ function createStyles(Palette: PaletteShape) {
     emptyDay: {
       backgroundColor: Palette.card,
       borderRadius: Radius.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Palette.border,
       paddingVertical: 22,
       paddingHorizontal: 18,
       alignItems: 'center',
