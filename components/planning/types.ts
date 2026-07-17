@@ -51,21 +51,14 @@ export type DayItem =
 export type CalendarDay = {
   date: number;
   dayLabel: string; // 'Lun', 'Mar', …
-  count: number; // number of interventions that day
-};
-
-export type DayWeather = {
-  icon: 'sun' | 'cloud' | 'cloud-rain' | 'cloud-snow';
-  temp: string; // '21°'
 };
 
 /**
  * One day of planning as the screen consumes it. `nowMin` (minutes since
- * midnight) is only set on a "live" day — it drives the next-up hero, the
- * countdowns and the punctuality maths. Past and future days omit it.
+ * midnight) is only set on a "live" day — it places the "Maintenant" marker.
+ * Past and future days omit it.
  */
 export type DayScenario = {
   items: DayItem[];
   nowMin?: number;
-  weather?: DayWeather;
 };

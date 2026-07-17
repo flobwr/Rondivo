@@ -1,48 +1,35 @@
 import { Feather } from '@expo/vector-icons';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  Animated,
-  FlatList,
-  ListRenderItemInfo,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/design';
-import { BreakRow, CompactRow, PastGroup } from './CompactRows';
-import { DayAnalysis } from './dayMath';
 import { InterventionCard } from './InterventionCard';
-import { NextUpCard } from './NextUpCard';
 import { STATUS_META, formatTime } from './status';
 import { TravelLink } from './TravelLink';
 import { BreakSlot, DayItem, Intervention, InterventionStatus, TravelLeg } from './types';
 
 type Props = {
   items: DayItem[];
-  analysis: DayAnalysis;
+  /** minutes since midnight on a live day — places the "Maintenant" marker */
   nowMin?: number;
-  onScrollY?: (y: number) => void;
 };
 
 const GUTTER_WIDTH = 36;
-const ROW_GAP = 14;
+const ROW_GAP = 16;
 const NOW_ROW_HEIGHT = 30;
 
-// Vertical distance from the top of a row to the centre of its rail dot,
-// per row kind.
+// Vertical distance from the top of a row to the centre of its rail dot.
 const DOT_CENTER: Record<string, number> = {
-  hero: 30,
-  card: 26,
-  compact: 19,
-  group: 19,
+  card: 28,
   break: 17,
   now: NOW_ROW_HEIGHT / 2,
 };
 
+const ACTIVE_STATUSES: InterventionStatus[] = ['enRoute', 'arrived', 'inProgress'];
+
 // ── Status dots ───────────────────────────────────────────────────────────────
+// The rail is the day's progress made visible: soft filled circles behind you,
+// a pulsing beacon on the active job, hollow dots ahead.
 
 function PulseDot({ color }: { color: string }) {
   const pulse = useRef(new Animated.Value(0)).current;
@@ -97,87 +84,37 @@ function StatusDot({ status }: { status: InterventionStatus }) {
 // ── Row model ─────────────────────────────────────────────────────────────────
 
 type Row =
-  | { key: string; kind: 'group'; items: DayItem[] }
-  | { key: string; kind: 'now'; timeLabel: string }
-  | { key: string; kind: 'hero'; intervention: Intervention; travel: TravelLeg | null; nowMin: number }
   | { key: string; kind: 'card'; intervention: Intervention; index: number }
-  | { key: string; kind: 'compact'; intervention: Intervention }
   | { key: string; kind: 'travel'; travel: TravelLeg; index: number }
-  | { key: string; kind: 'break'; brk: BreakSlot };
+  | { key: string; kind: 'break'; brk: BreakSlot }
+  | { key: string; kind: 'now'; timeLabel: string };
 
 type PositionedRow = Row & { lineMode: 'none' | 'full' | 'capTop' | 'capBottom'; isLastRow: boolean };
 
-function mapPlainItem(item: DayItem, index: number): Row {
-  if (item.kind === 'travel') {
-    return { key: item.data.id, kind: 'travel', travel: item.data, index };
-  }
-  if (item.kind === 'break') {
-    return { key: item.data.id, kind: 'break', brk: item.data };
-  }
-  return item.data.status === 'planned'
-    ? { key: item.data.id, kind: 'card', intervention: item.data, index }
-    : { key: item.data.id, kind: 'compact', intervention: item.data };
+/** The intervention "now" points at: the active one, else the next planned. */
+function findNowIndex(items: DayItem[]): number {
+  const active = items.findIndex(
+    (i) => i.kind === 'intervention' && ACTIVE_STATUSES.includes(i.data.status)
+  );
+  if (active !== -1) return active;
+  return items.findIndex((i) => i.kind === 'intervention' && i.data.status === 'planned');
 }
 
-// A travel capsule only earns its row while the leg still has to be driven —
-// once the day has moved past it, it's noise.
-function isUpcomingLeg(items: DayItem[], index: number): boolean {
-  const next = items
-    .slice(index + 1)
-    .find((i): i is Extract<DayItem, { kind: 'intervention' }> => i.kind === 'intervention');
-  return next != null && (next.data.status === 'planned' || next.data.status === 'enRoute');
-}
-
-/**
- * Turns the chronological day into display rows. On a live day, everything
- * already behind the artisan collapses into one group so the screen always
- * opens on the next action (the hero); the leg feeding the hero is absorbed
- * into the hero card.
- */
-function buildRows(items: DayItem[], analysis: DayAnalysis, nowMin?: number): Row[] {
-  const { heroIndex, heroTravelIndex } = analysis;
-
-  if (nowMin == null || heroIndex < 0) {
-    return items
-      .filter((item, i) => item.kind !== 'travel' || isUpcomingLeg(items, i))
-      .map(mapPlainItem);
-  }
-
+function buildRows(items: DayItem[], nowMin?: number): Row[] {
+  const nowIndex = nowMin != null ? findNowIndex(items) : -1;
   const rows: Row[] = [];
 
-  const pastItems = items.slice(0, heroIndex).filter((item, i) => i !== heroTravelIndex);
-  const pastRenderable = pastItems.filter((i) => i.kind !== 'travel');
-  const hasPastInterventions = pastRenderable.some((i) => i.kind === 'intervention');
-  if (hasPastInterventions) {
-    rows.push({ key: 'past-group', kind: 'group', items: pastRenderable });
-  } else {
-    // no interventions to fold away — keep breaks visible chronologically
-    pastRenderable.forEach((item, i) => rows.push(mapPlainItem(item, i)));
-  }
-
-  const heroItem = items[heroIndex] as Extract<DayItem, { kind: 'intervention' }>;
-  const heroTravel =
-    heroTravelIndex >= 0
-      ? (items[heroTravelIndex] as Extract<DayItem, { kind: 'travel' }>).data
-      : null;
-
-  // The now marker anchors the hero in time — only while waiting to leave;
-  // once en route / on site / working, the hero itself is "now".
-  if (heroItem.data.status === 'planned') {
-    rows.push({ key: 'now', kind: 'now', timeLabel: formatTime(nowMin) });
-  }
-
-  rows.push({
-    key: heroItem.data.id,
-    kind: 'hero',
-    intervention: heroItem.data,
-    travel: heroTravel,
-    nowMin,
-  });
-
-  items.slice(heroIndex + 1).forEach((item, i) => {
-    if (item.kind === 'travel' && !isUpcomingLeg(items, heroIndex + 1 + i)) return;
-    rows.push(mapPlainItem(item, i + 1));
+  items.forEach((item, index) => {
+    if (index === nowIndex) {
+      rows.push({ key: 'now', kind: 'now', timeLabel: formatTime(nowMin as number) });
+    }
+    if (item.kind === 'intervention') {
+      rows.push({ key: item.data.id, kind: 'card', intervention: item.data, index });
+    } else if (item.kind === 'travel') {
+      rows.push({ key: item.data.id, kind: 'travel', travel: item.data, index });
+    } else {
+      rows.push({ key: item.data.id, kind: 'break', brk: item.data });
+    }
   });
 
   return rows;
@@ -186,11 +123,11 @@ function buildRows(items: DayItem[], analysis: DayAnalysis, nowMin?: number): Ro
 // ── Rows rendering ────────────────────────────────────────────────────────────
 
 // Each row paints its own rail segment over its full height (gap included) so
-// the segments join into one continuous line; the first and last dotted rows
-// cap the rail exactly at their dot.
+// the segments join into one continuous line running the whole day; the first
+// and last dotted rows cap the rail exactly at their dot.
 function TimelineRow({ row }: { row: PositionedRow }) {
   let lineStyle: object | null;
-  const dotCenter = DOT_CENTER[row.kind] ?? 26;
+  const dotCenter = DOT_CENTER[row.kind] ?? 28;
   switch (row.lineMode) {
     case 'none':
       lineStyle = null;
@@ -213,23 +150,6 @@ function TimelineRow({ row }: { row: PositionedRow }) {
   );
 
   switch (row.kind) {
-    case 'group':
-      return (
-        <View style={rowStyle}>
-          <View style={styles.gutter}>
-            {line}
-            {dotAnchor(
-              <View style={[styles.iconDot, { backgroundColor: Palette.greenSoft }]}>
-                <Feather name="check" size={10} color={Palette.green} />
-              </View>
-            )}
-          </View>
-          <View style={styles.content}>
-            <PastGroup items={row.items} />
-          </View>
-        </View>
-      );
-
     case 'now':
       return (
         <View style={rowStyle}>
@@ -249,19 +169,6 @@ function TimelineRow({ row }: { row: PositionedRow }) {
         </View>
       );
 
-    case 'hero':
-      return (
-        <View style={rowStyle}>
-          <View style={styles.gutter}>
-            {line}
-            {dotAnchor(<StatusDot status={row.intervention.status === 'planned' ? 'inProgress' : row.intervention.status} />)}
-          </View>
-          <View style={styles.content}>
-            <NextUpCard intervention={row.intervention} travel={row.travel} nowMin={row.nowMin} />
-          </View>
-        </View>
-      );
-
     case 'card':
       return (
         <View style={rowStyle}>
@@ -275,32 +182,22 @@ function TimelineRow({ row }: { row: PositionedRow }) {
         </View>
       );
 
-    case 'compact':
-      return (
-        <View style={rowStyle}>
-          <View style={styles.gutter}>
-            {line}
-            {dotAnchor(<StatusDot status={row.intervention.status} />)}
-          </View>
-          <View style={styles.content}>
-            <CompactRow intervention={row.intervention} />
-          </View>
-        </View>
-      );
-
     case 'break':
       return (
         <View style={rowStyle}>
           <View style={styles.gutter}>
             {line}
             {dotAnchor(
-              <View style={styles.iconDotSmall}>
+              <View style={styles.breakDot}>
                 <Feather name="coffee" size={9} color={Palette.textSecondary} />
               </View>
             )}
           </View>
-          <View style={styles.content}>
-            <BreakRow brk={row.brk} />
+          <View style={styles.breakContent}>
+            <Text style={styles.breakLabel}>{row.brk.label}</Text>
+            <Text style={styles.breakTime}>
+              {row.brk.start} – {row.brk.end}
+            </Text>
           </View>
         </View>
       );
@@ -319,9 +216,9 @@ function TimelineRow({ row }: { row: PositionedRow }) {
 
 const MemoRow = memo(TimelineRow);
 
-export function Timeline({ items, analysis, nowMin, onScrollY }: Props) {
+export function Timeline({ items, nowMin }: Props) {
   const rows = useMemo<PositionedRow[]>(() => {
-    const base = buildRows(items, analysis, nowMin);
+    const base = buildRows(items, nowMin);
     const hasDot = (r: Row) => r.kind !== 'travel';
     const firstDotIdx = base.findIndex(hasDot);
     let lastDotIdx = -1;
@@ -338,20 +235,13 @@ export function Timeline({ items, analysis, nowMin, onScrollY }: Props) {
       else if (isFirst) lineMode = 'capTop';
       return { ...row, lineMode, isLastRow: index === base.length - 1 };
     });
-  }, [items, analysis, nowMin]);
+  }, [items, nowMin]);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<PositionedRow>) => <MemoRow row={item} />,
     []
   );
   const keyExtractor = useCallback((row: PositionedRow) => row.key, []);
-
-  const handleScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollY?.(e.nativeEvent.contentOffset.y);
-    },
-    [onScrollY]
-  );
 
   return (
     <FlatList
@@ -360,8 +250,6 @@ export function Timeline({ items, analysis, nowMin, onScrollY }: Props) {
       keyExtractor={keyExtractor}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
-      onScroll={handleScroll}
-      scrollEventThrottle={32}
       initialNumToRender={8}
       maxToRenderPerBatch={8}
       windowSize={7}
@@ -372,7 +260,7 @@ export function Timeline({ items, analysis, nowMin, onScrollY }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 12,
+    paddingTop: 4,
     paddingBottom: 32,
   },
   row: {
@@ -410,16 +298,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconDotSmall: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Palette.screen,
-    backgroundColor: '#F1F3F8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   hollowHalo: {
     width: 18,
     height: 18,
@@ -454,6 +332,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 3,
     borderColor: Palette.screen,
+  },
+  breakDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: Palette.screen,
+    backgroundColor: '#F1F3F8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // "Maintenant" marker
@@ -496,6 +384,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.blue,
     letterSpacing: -0.1,
+    fontVariant: ['tabular-nums'],
+  },
+
+  // break row
+  breakContent: {
+    flex: 1,
+    minHeight: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  breakLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Palette.textSecondary,
+    letterSpacing: -0.2,
+  },
+  breakTime: {
+    fontSize: 12.5,
+    fontWeight: '500',
+    color: Palette.textTertiary,
+    letterSpacing: -0.2,
     fontVariant: ['tabular-nums'],
   },
 });

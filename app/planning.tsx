@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -6,35 +6,32 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { DayStrip } from '@/components/planning/DayStrip';
 import { EmptyState } from '@/components/planning/EmptyState';
 import { ErrorState } from '@/components/planning/ErrorState';
-import { JourneyBar } from '@/components/planning/JourneyBar';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { analyzeDay } from '@/components/planning/dayMath';
 import { parseTime } from '@/components/planning/status';
 import { CalendarDay, DayScenario } from '@/components/planning/types';
 import { Palette } from '@/constants/design';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
-// Each day is a self-consistent scenario: `nowMin` makes it "live" and drives
-// the next-up hero, the countdowns and the punctuality maths.
+// Each day is a self-consistent scenario: `nowMin` makes it "live" and places
+// the "Maintenant" marker in the timeline.
 
 const CALENDAR_DAYS: CalendarDay[] = [
-  { date: 29, dayLabel: 'Lun', count: 2 },
-  { date: 30, dayLabel: 'Mar', count: 3 },
-  { date: 1, dayLabel: 'Mer', count: 5 },
-  { date: 2, dayLabel: 'Jeu', count: 3 },
-  { date: 3, dayLabel: 'Ven', count: 1 },
-  { date: 4, dayLabel: 'Sam', count: 0 },
-  { date: 5, dayLabel: 'Dim', count: 0 },
+  { date: 29, dayLabel: 'Lun' },
+  { date: 30, dayLabel: 'Mar' },
+  { date: 1, dayLabel: 'Mer' },
+  { date: 2, dayLabel: 'Jeu' },
+  { date: 3, dayLabel: 'Ven' },
+  { date: 4, dayLabel: 'Sam' },
+  { date: 5, dayLabel: 'Dim' },
 ];
 
 const SELECTED_DAY_INDEX = 2; // Wednesday the 1st — "today"
 
-// Wednesday, 13:32 — morning done, lunch over, next departure at 13:46.
+// Wednesday, 13:32 — morning done, lunch over, afternoon ahead.
 const WEDNESDAY: DayScenario = {
   nowMin: parseTime('13:32'),
-  weather: { icon: 'sun', temp: '21°' },
   items: [
     {
       kind: 'intervention',
@@ -138,7 +135,6 @@ const WEDNESDAY: DayScenario = {
 // Thursday, 09:25 — first job started at 08:30, still in progress.
 const THURSDAY: DayScenario = {
   nowMin: parseTime('09:25'),
-  weather: { icon: 'cloud-rain', temp: '15°' },
   items: [
     {
       kind: 'intervention',
@@ -185,10 +181,9 @@ const THURSDAY: DayScenario = {
   ],
 };
 
-// Friday, 08:35 — on the road since 08:30, ETA 08:52.
+// Friday, 08:35 — on the road towards the first job.
 const FRIDAY: DayScenario = {
   nowMin: parseTime('08:35'),
-  weather: { icon: 'sun', temp: '22°' },
   items: [
     { kind: 'travel', data: { id: 'ven-t1', minutes: 17, km: 8.3, traffic: 'fluid' } },
     {
@@ -208,7 +203,6 @@ const FRIDAY: DayScenario = {
 };
 
 const MONDAY: DayScenario = {
-  weather: { icon: 'sun', temp: '19°' },
   items: [
     {
       kind: 'intervention',
@@ -241,7 +235,6 @@ const MONDAY: DayScenario = {
 };
 
 const TUESDAY: DayScenario = {
-  weather: { icon: 'cloud', temp: '17°' },
   items: [
     {
       kind: 'intervention',
@@ -304,7 +297,6 @@ type Status = 'loading' | 'error' | 'loaded';
 export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
   const [status, setStatus] = useState<Status>('loading');
-  const [stripCompact, setStripCompact] = useState(false);
   const fadeIn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -315,7 +307,6 @@ export default function PlanningScreen() {
 
   const handleSelectDay = useCallback((index: number) => {
     setSelectedDay(index);
-    setStripCompact(false);
   }, []);
 
   const handleRetry = useCallback(() => {
@@ -324,33 +315,19 @@ export default function PlanningScreen() {
     return () => clearTimeout(t);
   }, []);
 
-  // Large-title style collapse: compact past a threshold, expand back near the
-  // top — hysteresis avoids flapping around the boundary.
-  const handleScrollY = useCallback((y: number) => {
-    setStripCompact((prev) => (prev ? y > 12 : y > 48));
-  }, []);
-
   const scenario = DAY_DATA[selectedDay] ?? { items: [] };
-  const analysis = useMemo(
-    () => analyzeDay(scenario.items, scenario.nowMin),
-    [scenario.items, scenario.nowMin]
-  );
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* Fixed header — title, month, day strip and journey bar stay put */}
-          <PlanningHeader monthLabel="Juin 2025" />
+          {/* Fixed header — title, add button and day strip stay put */}
+          <PlanningHeader />
           <DayStrip
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}
             onSelectDay={handleSelectDay}
-            compact={stripCompact}
           />
-          {status === 'loaded' ? (
-            <JourneyBar key={`journey-${selectedDay}`} analysis={analysis} weather={scenario.weather} />
-          ) : null}
 
           {/* Scrollable content, always below the fixed header */}
           <View style={styles.content}>
@@ -359,13 +336,7 @@ export default function PlanningScreen() {
             ) : status === 'error' ? (
               <ErrorState onRetry={handleRetry} />
             ) : scenario.items.length > 0 ? (
-              <Timeline
-                key={selectedDay}
-                items={scenario.items}
-                analysis={analysis}
-                nowMin={scenario.nowMin}
-                onScrollY={handleScrollY}
-              />
+              <Timeline key={selectedDay} items={scenario.items} nowMin={scenario.nowMin} />
             ) : (
               <EmptyState key={`empty-${selectedDay}`} />
             )}

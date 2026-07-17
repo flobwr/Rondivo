@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
@@ -15,15 +15,19 @@ type Props = {
   onPress?: () => void;
 };
 
-// Upcoming-job card: time column (start → dotted connector → end), then just
-// the essentials — client, job, address. No chip for a planned job: its
-// position in the timeline already says everything. The chevron opens the
-// future intervention sheet (photos, notes, checklist, rapport, signature).
+// Card anatomy from the reference: a small clock, the time range stacked with
+// a dotted connector (no side hour column anywhere), then the job — client,
+// type, address. Status colours follow the existing Rondivo logic: done is
+// greyed out, in-progress is tinted, upcoming stays white.
 function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
 
   const meta = STATUS_META[intervention.status];
+  const isActive = intervention.status === 'inProgress';
+  const isDone = intervention.status === 'done';
+  const isPostponed = intervention.status === 'postponed';
+  const isCancelled = intervention.status === 'cancelled';
   const showChip = intervention.status !== 'planned';
 
   useEffect(() => {
@@ -47,13 +51,29 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
   const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] });
   const scale = Animated.multiply(pressScale, enterScale);
+  const opacity = isDone
+    ? Animated.multiply(enter, 0.66)
+    : isCancelled
+      ? Animated.multiply(enter, 0.6)
+      : isPostponed
+        ? Animated.multiply(enter, 0.85)
+        : enter;
 
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
-      <Animated.View style={[styles.card, { opacity: enter, transform: [{ translateY }, { scale }] }]}>
-        {/* Time column */}
+      <Animated.View
+        style={[
+          styles.card,
+          isActive ? styles.cardActive : null,
+          isPostponed ? styles.cardPostponed : null,
+          { opacity, transform: [{ translateY }, { scale }] },
+        ]}>
+        {/* Time range — part of the card, stacked like the reference */}
         <View style={styles.timeCol}>
-          <Text style={styles.startTime}>{intervention.start}</Text>
+          <Feather name="clock" size={13} color={Palette.textTertiary} style={styles.clockIcon} />
+          <Text style={[styles.startTime, isDone || isCancelled ? styles.timeMuted : null]}>
+            {intervention.start}
+          </Text>
           <View style={styles.timeConnector}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.connectorDot} />
@@ -65,28 +85,42 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
         {/* Job */}
         <View style={styles.main}>
           <View style={styles.titleRow}>
-            <Text style={styles.client} numberOfLines={1}>
+            <Text
+              style={[
+                styles.client,
+                isDone ? styles.clientMuted : null,
+                isCancelled ? styles.clientCancelled : null,
+              ]}
+              numberOfLines={1}>
               {intervention.client}
             </Text>
             {showChip ? (
-              <View style={[styles.chip, { backgroundColor: meta.soft }]}>
-                <Text style={[styles.chipLabel, { color: meta.color }]}>{meta.label}</Text>
+              <View
+                style={[
+                  styles.chip,
+                  { backgroundColor: meta.dot === 'pulse' && isActive ? meta.color : meta.soft },
+                ]}>
+                <Text
+                  style={[
+                    styles.chipLabel,
+                    { color: isActive ? Palette.white : meta.color },
+                  ]}>
+                  {meta.label}
+                </Text>
               </View>
             ) : null}
           </View>
+
           <Text style={styles.type} numberOfLines={1}>
             {intervention.type}
           </Text>
+
           <View style={styles.addressRow}>
             <Feather name="map-pin" size={11} color={Palette.textTertiary} />
             <Text style={styles.address} numberOfLines={1}>
               {intervention.address}
             </Text>
           </View>
-        </View>
-
-        <View style={styles.chevronCol}>
-          <Feather name="chevron-right" size={16} color="#C4CBD6" />
         </View>
       </Animated.View>
     </Pressable>
@@ -95,19 +129,45 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
 
 export const InterventionCard = memo(InterventionCardBase);
 
+// The in-progress card carries a slightly stronger, brand-tinted lift; every
+// other card keeps the barely-there shadow so the eye lands on the active job.
+const activeShadow = Platform.select({
+  ios: {
+    shadowColor: Palette.blue,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+  },
+  android: { elevation: 5 },
+  default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
+});
+
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: Palette.card,
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: Palette.border,
-    padding: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     ...actionShadow,
   },
+  cardActive: {
+    backgroundColor: Palette.blueTint,
+    borderColor: Palette.blueBorder,
+    ...activeShadow,
+  },
+  cardPostponed: {
+    borderStyle: 'dashed',
+    borderColor: '#F0D9AC',
+  },
   timeCol: {
-    width: 46,
+    width: 52,
     alignItems: 'flex-start',
+  },
+  clockIcon: {
+    marginBottom: 8,
   },
   startTime: {
     fontSize: 15,
@@ -116,6 +176,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
     lineHeight: 20,
     fontVariant: ['tabular-nums'],
+  },
+  timeMuted: {
+    color: Palette.textSecondary,
   },
   timeConnector: {
     gap: 3,
@@ -137,7 +200,7 @@ const styles = StyleSheet.create({
   },
   main: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
   },
   titleRow: {
     flexDirection: 'row',
@@ -146,10 +209,17 @@ const styles = StyleSheet.create({
   },
   client: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 16.5,
     fontWeight: '700',
     color: Palette.textPrimary,
     letterSpacing: -0.4,
+  },
+  clientMuted: {
+    color: Palette.textSecondary,
+  },
+  clientCancelled: {
+    color: Palette.textTertiary,
+    textDecorationLine: 'line-through',
   },
   chip: {
     borderRadius: 999,
@@ -166,22 +236,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.2,
-    marginTop: 3,
+    marginTop: 4,
   },
   addressRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 6,
+    marginTop: 8,
   },
   address: {
     flex: 1,
     fontSize: 12.5,
     color: Palette.textTertiary,
     letterSpacing: -0.1,
-  },
-  chevronCol: {
-    justifyContent: 'center',
-    marginLeft: 6,
   },
 });
