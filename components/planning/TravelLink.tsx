@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius } from '@/constants/design';
+import { Palette } from '@/constants/design';
 import { TravelLeg } from './types';
 
 type Props = {
@@ -12,10 +12,16 @@ type Props = {
   onNavigate?: () => void;
 };
 
-// A travel leg is a *connector*, not a card: lighter fill, no shadow, slim.
-// It belongs to the timeline and makes the day read as
-// intervention → trajet → intervention.
-function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
+const TRAFFIC_COLOR: Record<TravelLeg['traffic'], string> = {
+  fluid: Palette.green,
+  dense: Palette.orange,
+  jammed: Palette.red,
+};
+
+// A travel leg is a *connector*, not a card: slim capsule, no shadow. The tiny
+// coloured dot is the live-traffic hook; the round button will open GPS
+// navigation.
+function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
@@ -32,7 +38,7 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
 
   const onPressIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(pressScale, { toValue: 0.9, useNativeDriver: true, friction: 6, tension: 300 }).start();
+    Animated.spring(pressScale, { toValue: 0.88, useNativeDriver: true, friction: 6, tension: 300 }).start();
   };
   const onPressOut = () => {
     Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
@@ -41,9 +47,10 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
-        <Feather name="truck" size={12} color={Palette.textTertiary} />
+        <View style={[styles.trafficDot, { backgroundColor: TRAFFIC_COLOR[travel.traffic] }]} />
+        <Feather name="truck" size={13} color={Palette.textTertiary} />
         <Text style={styles.label}>
-          {travel.minutes} min • {kmLabel} km
+          {travel.minutes} min · {kmLabel} km
         </Text>
 
         <View style={styles.spacer} />
@@ -51,12 +58,10 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
         <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
             hitSlop={10}
-            style={styles.navBtn}
+            style={styles.navButton}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            onPress={onNavigate}
-            accessibilityRole="button"
-            accessibilityLabel="Itinéraire vers la prochaine intervention">
+            onPress={onNavigate}>
             <Feather name="navigation" size={13} color={Palette.blue} />
           </Pressable>
         </Animated.View>
@@ -65,26 +70,34 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
   );
 }
 
-export const TravelCard = memo(TravelCardBase);
+export const TravelLink = memo(TravelLinkBase);
 
 const styles = StyleSheet.create({
   wrapper: {
     justifyContent: 'center',
+    paddingVertical: 2,
   },
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    minWidth: '66%',
     backgroundColor: Palette.cardMuted,
-    borderRadius: Radius.pill,
-    paddingVertical: 6,
-    paddingLeft: 11,
-    paddingRight: 5,
-    gap: 7,
+    borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
+    paddingVertical: 9,
+    paddingLeft: 15,
+    paddingRight: 6,
+    gap: 9,
+  },
+  trafficDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   label: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -92,10 +105,10 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
-  navBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  navButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',

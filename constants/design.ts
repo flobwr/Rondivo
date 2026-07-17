@@ -48,6 +48,13 @@ export const LightPalette = {
   // (logout, delete) that shouldn't compete visually with real error states.
   danger: '#D97570',
 
+  teal: '#0D9488', // "en route" accent (Planning)
+  tealSoft: '#DDF3EF',
+
+  // In-progress card tint — softer than blueSoft so text keeps full contrast
+  blueTint: '#EFF5FE',
+  blueBorder: '#C6DAFB',
+
   // Hero gradient (blue -> turquoise)
   gradientStart: '#3B7DF0',
   gradientEnd: '#3FC9B0',
@@ -101,6 +108,12 @@ export const DarkPalette: Record<keyof typeof LightPalette, string> = {
   red: '#F87171',
   redSoft: '#331A1A',
   danger: '#E0918A',
+
+  teal: '#2DD4BF',
+  tealSoft: '#0F2E2B',
+
+  blueTint: '#18233A',
+  blueBorder: '#2B4066',
 
   gradientStart: '#4C86F0',
   gradientEnd: '#3FC9B0',
