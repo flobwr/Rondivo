@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
+import { Palette } from '@/constants/design';
 import { InterventionCard } from './InterventionCard';
 import { STATUS_META, formatTime } from './status';
 import { TravelLink } from './TravelLink';
@@ -15,12 +15,13 @@ type Props = {
 };
 
 const GUTTER_WIDTH = 36;
-const ROW_GAP = 16;
+const ROW_GAP = 20;
 const NOW_ROW_HEIGHT = 30;
+const LIST_PADDING_H = 20;
 
 // Vertical distance from the top of a row to the centre of its rail dot.
 const DOT_CENTER: Record<string, number> = {
-  card: 24,
+  card: 22,
   break: 17,
   now: NOW_ROW_HEIGHT / 2,
 };
@@ -259,8 +260,8 @@ export function Timeline({ items, nowMin }: Props) {
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 18,
+    paddingHorizontal: LIST_PADDING_H,
+    paddingTop: 28,
     paddingBottom: 32,
   },
   row: {

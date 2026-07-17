@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/design';
-
 function Shimmer({ style }: { style?: object }) {
   const shimmer = useRef(new Animated.Value(0)).current;
 
@@ -44,16 +42,16 @@ export function LoadingState() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingTop: 28,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   gutter: {
     width: 36,
-    paddingTop: 19,
+    paddingTop: 17,
     alignItems: 'center',
   },
   dot: {
@@ -64,7 +62,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    height: 118,
+    height: 100,
     borderRadius: 24,
   },
 });

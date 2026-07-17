@@ -28,14 +28,14 @@ export function PlanningHeader({ onAdd }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>Planning</Text>
 
-      <Animated.View style={[styles.buttonWrap, { transform: [{ scale }] }]}>
+      <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
           style={styles.addButton}
           hitSlop={8}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <MaterialCommunityIcons name="calendar-plus" size={24} color={Palette.textPrimary} />
+          <MaterialCommunityIcons name="calendar-plus" size={26} color={Palette.textPrimary} />
         </Pressable>
       </Animated.View>
     </View>
@@ -44,24 +44,22 @@ export function PlanningHeader({ onAdd }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 92,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
+    paddingTop: 26,
+    paddingBottom: 22,
   },
   title: {
-    fontSize: 30,
+    fontSize: 38,
     fontWeight: '800',
     color: Palette.textPrimary,
-    letterSpacing: -0.8,
-  },
-  buttonWrap: {
-    position: 'absolute',
-    right: Spacing.screen,
+    letterSpacing: -1.1,
   },
   addButton: {
-    width: 50,
-    height: 50,
+    width: 54,
+    height: 54,
     borderRadius: 18,
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,

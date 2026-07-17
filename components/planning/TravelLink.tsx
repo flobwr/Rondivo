@@ -48,7 +48,7 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
         <View style={[styles.trafficDot, { backgroundColor: TRAFFIC_COLOR[travel.traffic] }]} />
-        <Feather name="truck" size={12} color={Palette.textTertiary} />
+        <Feather name="truck" size={13} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min · {kmLabel} km
         </Text>
@@ -62,7 +62,7 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onPress={onNavigate}>
-            <Feather name="navigation" size={12} color={Palette.blue} />
+            <Feather name="navigation" size={13} color={Palette.blue} />
           </Pressable>
         </Animated.View>
       </View>
@@ -81,23 +81,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    minWidth: '62%',
+    minWidth: '66%',
     backgroundColor: Palette.cardMuted,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
-    paddingVertical: 5,
-    paddingLeft: 12,
-    paddingRight: 5,
-    gap: 7,
+    paddingVertical: 9,
+    paddingLeft: 15,
+    paddingRight: 6,
+    gap: 9,
   },
   trafficDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   label: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navButton: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',

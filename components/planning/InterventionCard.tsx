@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: Palette.border,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     ...actionShadow,
   },
