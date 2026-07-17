@@ -8,7 +8,7 @@ import { CalendarDay } from './types';
 
 // Tall pill cards straight from the reference: day name on top, big date
 // number below, selected day filled with the brand blue.
-const CELL_WIDTH = 62;
+const CELL_WIDTH = 66;
 const CELL_GAP = 10;
 
 type Props = {
@@ -118,26 +118,26 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 14,
+    paddingTop: 16,
     paddingBottom: 28,
     gap: CELL_GAP,
   },
   cell: {
     width: CELL_WIDTH,
-    borderRadius: 18,
+    borderRadius: 20,
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: 15,
     ...actionShadow,
   },
   dayLabel: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '500',
     letterSpacing: -0.1,
   },
   dateNumber: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.4,
-    marginTop: 3,
+    marginTop: 4,
   },
 });

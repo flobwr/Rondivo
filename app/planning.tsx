@@ -362,7 +362,7 @@ export default function PlanningScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
           {/* Fixed header — title, add button and day strip stay put */}
-          <PlanningHeader />
+          <PlanningHeader monthLabel="JUIN 2025" />
           <DayStrip
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}

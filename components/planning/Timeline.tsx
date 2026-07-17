@@ -261,7 +261,7 @@ export function Timeline({ items, nowMin }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: LIST_PADDING_H,
-    paddingTop: 28,
+    paddingTop: 32,
     paddingBottom: 32,
   },
   row: {

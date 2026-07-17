@@ -43,7 +43,7 @@ export function LoadingState() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 28,
+    paddingTop: 32,
   },
   row: {
     flexDirection: 'row',
