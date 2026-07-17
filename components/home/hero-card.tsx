@@ -110,32 +110,15 @@ export function HeroCard({ isEmpty = false, intervention, palette = Palette }: H
             </Text>
           </View>
 
+          {/* Departure board: the LIVE information ("when do I leave") is the
+              headline; the static advice and travel maths are one quiet line. */}
           <View style={styles.glassStrip}>
-            <View style={styles.departColumn}>
-              <Text style={styles.stripLabel}>DÉPART CONSEILLÉ</Text>
-              <Text style={styles.departValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-                {departureTime}
-              </Text>
-              <View style={[styles.countdownPill, departure.urgent ? styles.countdownPillUrgent : null]}>
-                <Text
-                  style={[styles.countdownText, departure.urgent ? styles.countdownTextUrgent : null]}
-                  numberOfLines={1}>
-                  {departure.label}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.stripDivider} />
-
-            <View style={styles.travelColumn}>
-              <Text style={styles.stripLabel}>TRAJET</Text>
-              <Text style={styles.travelValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-                {intervention.travelMinutes} min
-              </Text>
-              <Text style={styles.travelSub} numberOfLines={1}>
-                {km} km
-              </Text>
-            </View>
+            <Text style={styles.stripHeadline} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {departure.urgent ? departure.label : `Départ ${departure.label}`}
+            </Text>
+            <Text style={styles.stripSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+              Conseillé à {departureTime} · Trajet {intervention.travelMinutes} min · {km} km
+            </Text>
           </View>
         </Pressable>
 
@@ -206,78 +189,26 @@ function createStyles(palette: PaletteShape) {
       fontSize: 14,
     },
     glassStrip: {
-      flexDirection: 'row',
-      alignItems: 'stretch',
       backgroundColor: 'rgba(255,255,255,0.16)',
       borderRadius: 18,
-      paddingVertical: 12,
-      paddingHorizontal: 14,
+      paddingVertical: 13,
+      paddingHorizontal: 16,
       marginTop: 16,
     },
-    departColumn: {
-      flex: 1.4,
-      minWidth: 0,
-    },
-    stripLabel: {
+    stripHeadline: {
       color: Palette.white,
-      opacity: 0.72,
-      fontSize: 10,
-      fontWeight: '700',
-      letterSpacing: 1.0,
-    },
-    departValue: {
-      color: Palette.white,
-      fontSize: 26,
+      fontSize: 21,
       fontWeight: '800',
-      marginTop: 3,
-      letterSpacing: -0.5,
+      letterSpacing: -0.4,
       fontVariant: ['tabular-nums'],
     },
-    countdownPill: {
-      alignSelf: 'flex-start',
-      backgroundColor: 'rgba(255,255,255,0.20)',
-      borderRadius: Radius.pill,
-      paddingHorizontal: 9,
-      paddingVertical: 3,
-      marginTop: 6,
-    },
-    countdownPillUrgent: {
-      backgroundColor: Palette.white,
-    },
-    countdownText: {
+    stripSub: {
       color: Palette.white,
-      fontSize: FontSize.tiny,
-      fontWeight: '700',
-      letterSpacing: -0.1,
-    },
-    // The pill/button surfaces stay white in both themes, so their ink keeps
-    // the light-mode blue — the dark palette's lighter blue would wash out.
-    countdownTextUrgent: {
-      color: Palette.blue,
-    },
-    stripDivider: {
-      width: 1,
-      backgroundColor: 'rgba(255,255,255,0.30)',
-      marginHorizontal: 14,
-    },
-    travelColumn: {
-      flex: 1,
-      minWidth: 0,
-    },
-    travelValue: {
-      color: Palette.white,
-      fontSize: 19,
-      fontWeight: '700',
-      marginTop: 5,
-      letterSpacing: -0.3,
-      fontVariant: ['tabular-nums'],
-    },
-    travelSub: {
-      color: Palette.white,
-      opacity: 0.78,
+      opacity: 0.82,
       fontSize: FontSize.small,
       fontWeight: '500',
       marginTop: 4,
+      letterSpacing: -0.1,
       fontVariant: ['tabular-nums'],
     },
     navButton: {

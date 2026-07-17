@@ -4,31 +4,33 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Palette, Radius, type PaletteShape } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { Palette, type PaletteShape } from '@/constants/design';
+import { iconButtonShadow } from '@/constants/shadow';
 
 type Action = {
   label: string;
   /** Full action name for screen readers — the visible label is compacted. */
   accessibilityLabel: string;
   icon: React.ComponentProps<typeof Feather>['name'];
-  color: string;
-  background: string;
   /** Omitted only for "Document", which opens the shared creation menu instead of navigating. */
   route?: Href;
 };
 
 // Labels are single words so the row stays one line tall on every screen —
 // the "+" baked into the first two icons carries the "nouveau" meaning.
-function buildActions(palette: PaletteShape): Action[] {
-  return [
-    { label: 'Document', accessibilityLabel: 'Nouveau document', icon: 'file-plus', color: palette.blue, background: palette.blueSoft },
-    { label: 'Client', accessibilityLabel: 'Nouveau client', icon: 'user-plus', color: palette.orange, background: palette.orangeSoft, route: '/client/new' },
-    { label: 'Notes', accessibilityLabel: 'Notes', icon: 'message-square', color: palette.purple, background: palette.purpleSoft, route: '/notes' },
-    { label: 'Tâches', accessibilityLabel: 'Tâches', icon: 'check-square', color: palette.green, background: palette.greenSoft, route: '/tasks' },
-  ];
-}
+const ACTIONS: Action[] = [
+  { label: 'Document', accessibilityLabel: 'Nouveau document', icon: 'file-plus' },
+  { label: 'Client', accessibilityLabel: 'Nouveau client', icon: 'user-plus', route: '/client/new' },
+  { label: 'Notes', accessibilityLabel: 'Notes', icon: 'message-square', route: '/notes' },
+  { label: 'Tâches', accessibilityLabel: 'Tâches', icon: 'check-square', route: '/tasks' },
+];
 
+/**
+ * Same round, label-under, iOS-Contacts-style action row as the Clients detail
+ * and Documents modules — the one shape for "primary, one-tap" actions
+ * everywhere in Rondivo. Single accent color: these are all just "actions",
+ * they don't need four hues to tell apart.
+ */
 export function QuickActions({
   onNewDocument,
   palette = Palette,
@@ -39,66 +41,60 @@ export function QuickActions({
 }) {
   const router = useRouter();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const actions = useMemo(() => buildActions(palette), [palette]);
 
   return (
     <View style={styles.row}>
-      {actions.map((action) => (
-        <View key={action.label} style={styles.slot}>
-          <PressableScale
-            style={styles.card}
-            to={0.95}
-            onPress={() => (action.route ? router.push(action.route) : onNewDocument())}
-            accessibilityLabel={action.accessibilityLabel}>
-            <View style={[styles.iconTile, { backgroundColor: action.background }]}>
-              <Feather name={action.icon} size={ICON_SIZE} color={action.color} />
+      {ACTIONS.map((action) => (
+        <PressableScale
+          key={action.label}
+          to={0.9}
+          onPress={() => (action.route ? router.push(action.route) : onNewDocument())}
+          accessibilityLabel={action.accessibilityLabel}>
+          <View style={styles.column}>
+            <View style={styles.circle}>
+              <Feather name={action.icon} size={ICON_SIZE} color={palette.blue} />
             </View>
             <Text style={styles.label} numberOfLines={1}>
               {action.label}
             </Text>
-          </PressableScale>
-        </View>
+          </View>
+        </PressableScale>
       ))}
     </View>
   );
 }
 
-const TILE = 34;
-const TILE_RADIUS = 11;
-const ICON_SIZE = 16;
+const CIRCLE = 54;
+const ICON_SIZE = 20;
 
 function createStyles(Palette: PaletteShape) {
   return StyleSheet.create({
     row: {
       flexDirection: 'row',
-      gap: 10,
-    },
-    slot: {
-      flex: 1,
-    },
-    card: {
-      backgroundColor: Palette.cardMuted,
-      borderRadius: Radius.tile,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: Palette.border,
-      paddingVertical: 11,
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
       paddingHorizontal: 4,
+    },
+    column: {
       alignItems: 'center',
       gap: 6,
-      ...actionShadow,
+      width: 72,
     },
-    iconTile: {
-      width: TILE,
-      height: TILE,
-      borderRadius: TILE_RADIUS,
+    circle: {
+      width: CIRCLE,
+      height: CIRCLE,
+      borderRadius: CIRCLE / 2,
+      backgroundColor: Palette.blueSoft,
       alignItems: 'center',
       justifyContent: 'center',
+      ...iconButtonShadow,
     },
     label: {
-      fontSize: 12.5,
+      fontSize: 12,
       fontWeight: '600',
-      color: Palette.textPrimary,
+      color: Palette.textSecondary,
       letterSpacing: -0.1,
+      textAlign: 'center',
     },
   });
 }

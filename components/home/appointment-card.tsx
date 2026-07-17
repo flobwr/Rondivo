@@ -49,7 +49,6 @@ export function AppointmentCard({ appointment, palette = Palette }: AppointmentC
       style={styles.card}>
       <View style={styles.timeColumn}>
         <Text style={styles.time}>{appointment.time}</Text>
-        <View style={styles.dot} />
       </View>
 
       <View style={styles.info}>
@@ -93,7 +92,6 @@ function createStyles(Palette: PaletteShape) {
       ...cardShadow,
     },
     timeColumn: {
-      alignItems: 'center',
       width: 44,
       paddingTop: 1,
     },
@@ -103,14 +101,6 @@ function createStyles(Palette: PaletteShape) {
       color: Palette.textPrimary,
       letterSpacing: -0.3,
       fontVariant: ['tabular-nums'],
-    },
-    dot: {
-      width: 7,
-      height: 7,
-      borderRadius: 4,
-      backgroundColor: Palette.blue,
-      marginTop: 8,
-      opacity: 0.8,
     },
     info: {
       flex: 1,

@@ -41,7 +41,7 @@ export function RemindersCard({
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
-          <Text style={styles.eyebrow}>RAPPELS</Text>
+          <Text style={styles.title}>Rappels</Text>
           {count > 1 ? (
             <View style={styles.countPill}>
               <Text style={styles.countText}>{count}</Text>
@@ -91,11 +91,11 @@ function createStyles(Palette: PaletteShape) {
       alignItems: 'center',
       gap: 7,
     },
-    eyebrow: {
-      fontSize: FontSize.tiny,
-      fontWeight: '700',
-      letterSpacing: 0.8,
-      color: Palette.purple,
+    title: {
+      fontSize: FontSize.cardLabel,
+      fontWeight: '600',
+      color: Palette.textPrimary,
+      letterSpacing: -0.2,
     },
     countPill: {
       minWidth: 18,

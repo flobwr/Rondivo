@@ -76,11 +76,14 @@ function HomeSkeleton() {
       </View>
 
       <SkeletonBlock height={18} radius={8} style={{ marginTop: Spacing.section, width: '48%' }} />
-      <SkeletonBlock height={236} radius={28} style={{ marginTop: 12 }} />
+      <SkeletonBlock height={224} radius={28} style={{ marginTop: 12 }} />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
-          <SkeletonBlock key={i} height={78} radius={16} style={{ flex: 1 }} />
+          <View key={i} style={skStyles.quickItem}>
+            <SkeletonBlock height={54} radius={27} style={{ width: 54 }} />
+            <SkeletonBlock height={12} radius={6} style={{ width: 48 }} />
+          </View>
         ))}
       </View>
 
@@ -105,8 +108,13 @@ const skStyles = StyleSheet.create({
   },
   quickRow: {
     flexDirection: 'row',
-    gap: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
     marginTop: Spacing.xl,
+  },
+  quickItem: {
+    alignItems: 'center',
+    gap: 6,
   },
 });
 
