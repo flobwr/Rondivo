@@ -21,3 +21,4 @@ export { SearchField } from './SearchField';
 export { SegmentedTabs } from './SegmentedTabs';
 export { SkeletonBlock } from './Shimmer';
 export { LargeTitleBar } from './LargeTitleBar';
+export { ChipRow, type ChipItem } from './ChipRow';
