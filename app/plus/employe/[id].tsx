@@ -4,7 +4,7 @@ import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TINT_COLORS } from '@/components/clients/types';
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -112,7 +112,7 @@ export default function EmployeDetailScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
 
       <ActionSheetMenu visible={menuOpen} title={employee.name} items={menuItems} onClose={() => setMenuOpen(false)} />
     </View>

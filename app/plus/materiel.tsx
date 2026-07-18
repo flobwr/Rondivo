@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
@@ -135,7 +135,7 @@ export default function MaterielScreen() {
         )}
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

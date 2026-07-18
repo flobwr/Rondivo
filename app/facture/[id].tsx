@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -223,7 +223,7 @@ export default function FactureDetailScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} />
+      <BottomDock activeIndex={3} />
 
       <ActionSheetMenu visible={menuOpen} title={facture.number} items={menuItems} onClose={() => setMenuOpen(false)} />
 

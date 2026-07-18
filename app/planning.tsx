@@ -5,7 +5,7 @@ import { Animated, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DayStrip } from '@/components/planning/DayStrip';
 import { EmptyState } from '@/components/planning/EmptyState';
 import { ErrorState } from '@/components/planning/ErrorState';
@@ -116,7 +116,7 @@ export default function PlanningScreen() {
         </Animated.View>
       </SafeAreaView>
 
-      <BottomNav activeIndex={1} />
+      <BottomDock activeIndex={1} />
     </View>
   );
 }

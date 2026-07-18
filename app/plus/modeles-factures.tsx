@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
 import { Palette, Spacing } from '@/theme';
@@ -36,7 +36,7 @@ export default function ModelesFacturesScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

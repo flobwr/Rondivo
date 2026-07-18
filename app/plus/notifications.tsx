@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
@@ -47,7 +47,7 @@ export default function NotificationsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { LegalSections, type LegalSection } from '@/components/plus/resource/LegalSections';
 import { Palette, Spacing } from '@/theme';
@@ -47,7 +47,7 @@ export default function CguScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

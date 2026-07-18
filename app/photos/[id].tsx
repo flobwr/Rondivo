@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -189,7 +189,7 @@ export default function PhotoInterventionScreen() {
         </PressableScale>
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} />
+      <BottomDock activeIndex={3} />
 
       <ActionSheetMenu
         visible={categoryMenuOpen}

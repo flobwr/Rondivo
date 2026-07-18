@@ -3,7 +3,7 @@ import { Alert, Animated, ScrollView, StyleSheet, Text, View } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { CompanyCard } from '@/components/plus/CompanyCard';
 import { LogoutButton } from '@/components/plus/LogoutButton';
 import { PLUS_ABOUT_ITEMS, PLUS_ITEMS, PLUS_SECTIONS, PlusItemId } from '@/components/plus/registry';
@@ -136,7 +136,7 @@ export default function PlusScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} palette={palette} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

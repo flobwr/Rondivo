@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { AppointmentCard } from '@/components/home/appointment-card';
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
@@ -226,7 +226,7 @@ export default function HomeScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={0} palette={palette} />
+      <BottomDock activeIndex={0} />
 
       <ActionSheetMenu
         visible={creationMenu.visible}

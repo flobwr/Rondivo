@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { ActionRequiredCard } from '@/components/documents/ActionRequiredCard';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -226,7 +226,7 @@ export default function DocumentsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} palette={palette} />
+      <BottomDock activeIndex={3} />
 
       <ActionSheetMenu
         visible={creationMenu.visible}

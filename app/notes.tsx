@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale, IconTile } from '@/components/documents/shared/primitives';
@@ -84,7 +84,7 @@ export default function NotesScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={-1} />
+      <BottomDock activeIndex={-1} />
     </View>
   );
 }

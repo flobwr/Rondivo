@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Alert, Animated, FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
@@ -230,7 +230,7 @@ export default function DocumentsImportesScreen() {
         </Animated.View>
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} />
+      <BottomDock activeIndex={3} />
 
       <PreviewModal file={preview} onClose={() => setPreview(null)} />
 

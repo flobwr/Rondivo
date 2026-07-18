@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -156,7 +156,7 @@ export default function DevisListScreen() {
         )}
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} />
+      <BottomDock activeIndex={3} />
 
       <ActionSheetMenu
         visible={sortMenuOpen}

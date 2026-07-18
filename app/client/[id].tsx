@@ -24,7 +24,7 @@ import {
   InterventionsSection,
   NotesSection,
 } from '@/components/clients/detail/TabSections';
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientAlerts, getClientDetail, type ClientAlert, type ClientDetail } from '@/services/client-details';
@@ -235,7 +235,7 @@ export default function ClientDetailScreen() {
           </ScrollView>
         </Animated.View>
 
-        <BottomNav activeIndex={2} />
+        <BottomDock activeIndex={2} />
       </SafeAreaView>
     </View>
   );

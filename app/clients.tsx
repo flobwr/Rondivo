@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ClientCard } from '@/components/clients/ClientCard';
 import { ClientFilterChips } from '@/components/clients/ClientFilterChips';
@@ -217,7 +217,7 @@ export default function ClientsScreen() {
         </View>
       </SafeAreaView>
 
-      <BottomNav activeIndex={2} palette={palette} />
+      <BottomDock activeIndex={2} />
 
       <ClientFilterSheet
         visible={filtersOpen}

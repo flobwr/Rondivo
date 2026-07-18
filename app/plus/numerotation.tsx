@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { Palette, Spacing } from '@/theme';
@@ -48,7 +48,7 @@ export default function NumerotationScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <BottomNav activeIndex={4} />
+      <BottomDock activeIndex={4} />
     </View>
   );
 }

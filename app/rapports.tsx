@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
@@ -98,7 +98,7 @@ export default function RapportsScreen() {
         </Animated.View>
       </SafeAreaView>
 
-      <BottomNav activeIndex={3} />
+      <BottomDock activeIndex={3} />
     </View>
   );
 }
