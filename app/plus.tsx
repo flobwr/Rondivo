@@ -4,11 +4,12 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomDock } from '@/components/ui/BottomDock';
+import { LargeTitleBar } from '@/components/ui/LargeTitleBar';
 import { CompanyCard } from '@/components/plus/CompanyCard';
 import { LogoutButton } from '@/components/plus/LogoutButton';
 import { PLUS_ABOUT_ITEMS, PLUS_ITEMS, PLUS_SECTIONS, PlusItemId } from '@/components/plus/registry';
 import { PlusSectionCard } from '@/components/plus/PlusSectionCard';
-import { FontSize, ScreenFadeInDuration, Spacing, type PaletteShape } from '@/theme';
+import { ScreenFadeInDuration, Spacing, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { ACCOUNT, COMPANY } from '@/data/plus/company';
 import { activeEmployeesCount, EMPLOYEES } from '@/data/plus/employees';
@@ -88,10 +89,7 @@ export default function PlusScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Plus</Text>
-          <Text style={styles.headerSubtitle}>Gérez votre entreprise</Text>
-        </View>
+        <LargeTitleBar title="Plus" subtitle="Gérez votre entreprise" />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           <Animated.View style={{ opacity: fadeIn }}>
@@ -149,24 +147,6 @@ function createStyles(Palette: PaletteShape) {
     },
     safeArea: {
       flex: 1,
-    },
-    header: {
-      paddingHorizontal: Spacing.screen,
-      paddingTop: 14,
-      paddingBottom: 2,
-    },
-    headerTitle: {
-      fontSize: 30,
-      fontWeight: '700',
-      color: Palette.textPrimary,
-      letterSpacing: -0.8,
-    },
-    headerSubtitle: {
-      fontSize: FontSize.small,
-      fontWeight: '400',
-      color: Palette.textSecondary,
-      letterSpacing: -0.1,
-      marginTop: 3,
     },
     content: {
       paddingHorizontal: Spacing.screen,

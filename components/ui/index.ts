@@ -20,3 +20,4 @@ export { PressableScale } from './PressableScale';
 export { SearchField } from './SearchField';
 export { SegmentedTabs } from './SegmentedTabs';
 export { SkeletonBlock } from './Shimmer';
+export { LargeTitleBar } from './LargeTitleBar';
