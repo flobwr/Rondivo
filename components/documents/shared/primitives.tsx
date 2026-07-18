@@ -48,6 +48,15 @@ export const IconTile = memo(function IconTile({
   );
 });
 
+// DS rule: vivid accents are dot fills, not text — text on a wash must use
+// the matching text-safe ink (see theme/palette.ts). Call sites keep passing
+// the vivid value; the pill swaps in the ink for the label itself.
+const TEXT_SAFE_INK: Record<string, string> = {
+  [Palette.green]: Palette.greenInk,
+  [Palette.orange]: Palette.orangeInk,
+  [Palette.red]: Palette.redInk,
+};
+
 export const StatusPill = memo(function StatusPill({
   label,
   color,
@@ -58,10 +67,11 @@ export const StatusPill = memo(function StatusPill({
   soft: string;
 }) {
   const critical = CRITICAL_TONES.includes(color);
+  const ink = TEXT_SAFE_INK[color] ?? color;
   return (
     <View style={[styles.pill, { backgroundColor: soft }, critical && { borderWidth: 1, borderColor: color }]}>
       <View style={[styles.pillDot, { backgroundColor: color }]} />
-      <Text style={[styles.pillText, { color, fontWeight: critical ? '800' : '700' }]} numberOfLines={1}>
+      <Text style={[styles.pillText, { color: ink, fontWeight: critical ? '700' : '600' }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
