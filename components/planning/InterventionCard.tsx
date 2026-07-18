@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   cardPostponed: {
     borderStyle: 'dashed',
-    borderColor: '#F0D9AC',
+    borderColor: Palette.orange + '55',
   },
   timeCol: {
     width: 48,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     width: 2.5,
     height: 2.5,
     borderRadius: 1.25,
-    backgroundColor: '#CBD2DC',
+    backgroundColor: Palette.insetDeep,
   },
   endTime: {
     fontSize: 12.5,

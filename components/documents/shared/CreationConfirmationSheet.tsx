@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D7DCE4',
+    backgroundColor: Palette.insetDeep,
     marginBottom: 18,
   },
   header: {

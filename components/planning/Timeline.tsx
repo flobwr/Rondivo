@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     left: GUTTER_WIDTH / 2 - 1,
     width: 2,
     borderRadius: 1,
-    backgroundColor: '#E3E7ED',
+    backgroundColor: Palette.insetDeep,
   },
   content: {
     flex: 1,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Palette.card,
     borderWidth: 2,
-    borderColor: '#CBD3DF',
+    borderColor: Palette.insetDeep,
   },
   pulseWrapper: {
     width: 26,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     borderWidth: 2,
     borderColor: Palette.screen,
-    backgroundColor: '#F1F3F8',
+    backgroundColor: Palette.inset,
     alignItems: 'center',
     justifyContent: 'center',
   },

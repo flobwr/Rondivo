@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D7DCE4',
+    backgroundColor: Palette.insetDeep,
     marginBottom: 14,
   },
   title: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     backgroundColor: Palette.cardMuted,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E8EF',
+    borderColor: Palette.border,
   },
   methodChipActive: {
     backgroundColor: Palette.blueSoft,

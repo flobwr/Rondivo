@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleProp, ViewStyle } from 'react-native';
 
-import { ShimmerDuration } from '@/theme';
+import { Palette, ShimmerDuration } from '@/theme';
 
-const SHIMMER_COLORS: [string, string] = ['#E8ECF2', '#CED4DE'];
+const SHIMMER_COLORS: [string, string] = [Palette.inset, Palette.insetDeep];
 
 /** The one canonical ambient shimmer used by every skeleton/loading state in the app. */
 export function Shimmer({ style }: { style?: StyleProp<ViewStyle> }) {

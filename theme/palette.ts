@@ -23,6 +23,7 @@ export const LightPalette = {
   cardMuted: '#F7F6F3', // recessed tile inside a card
   float: '#FFFFFF', // reserved: floating chrome (dock, sheets, FAB)
   inset: '#ECEAE4', // pressed-into-the-paper fills: wells, tracks, skeletons
+  insetDeep: '#E0DCD3', // one step deeper: sheet grab-handles, timeline rails, shimmer highlight
 
   // ——— Ink ———
   textPrimary: '#1B1A17', // 15.7:1 on screen
@@ -92,6 +93,7 @@ export const DarkPalette: PaletteShape = {
   cardMuted: '#242219',
   float: '#262420',
   inset: '#2A2823',
+  insetDeep: '#343128',
 
   textPrimary: '#F3F2EE',
   textSecondary: '#B9B5AC',

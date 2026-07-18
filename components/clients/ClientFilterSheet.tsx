@@ -62,7 +62,7 @@ function StatusChip({
         styles.chip,
         active
           ? { backgroundColor: soft, borderColor: color }
-          : { backgroundColor: Palette.cardMuted, borderColor: '#E4E8EF' },
+          : { backgroundColor: Palette.cardMuted, borderColor: Palette.border },
       ]}>
       <View style={[styles.chipDot, { backgroundColor: color }]} />
       <Text style={[styles.chipText, { color: active ? color : Palette.textPrimary }]}>{label}</Text>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D7DCE4',
+    backgroundColor: Palette.insetDeep,
     marginBottom: 14,
   },
   sheetHeader: {
