@@ -2,8 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, Palette, Spacing } from '@/theme';
 import { CalendarDay } from './types';
 
 // Tall pill cards straight from the reference: day name on top, big date

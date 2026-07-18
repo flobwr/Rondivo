@@ -4,8 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 
 const TILE = 38;
 

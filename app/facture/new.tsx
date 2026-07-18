@@ -21,7 +21,7 @@ import {
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { IconTile } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { Facture, FactureInput, MOCK_FACTURES } from '@/data/documents/factures';

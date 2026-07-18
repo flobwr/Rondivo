@@ -3,8 +3,7 @@ import { LayoutAnimation, Platform, StyleSheet, Text, UIManager, View } from 're
 import { useState } from 'react';
 
 import { PressableScale } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);

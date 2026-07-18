@@ -4,8 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { Palette } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { iconButtonShadow, Palette } from '@/theme';
 
 type Action = {
   key: string;

@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing, type PaletteShape } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Spacing, type PaletteShape } from '@/theme';
 import { FeatherIconName } from './types';
 
 type Props = {

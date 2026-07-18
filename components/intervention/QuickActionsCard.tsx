@@ -5,8 +5,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { actionShadow, heroShadow } from '@/constants/shadow';
+import { actionShadow, heroShadow, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 
 type MiniAction = {

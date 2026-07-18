@@ -17,7 +17,7 @@ import { QuickActionsCard } from '@/components/intervention/QuickActionsCard';
 import { ReportCard } from '@/components/intervention/ReportCard';
 import { TimingCard } from '@/components/intervention/TimingCard';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { useAsyncItem } from '@/hooks/use-async-item';

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 

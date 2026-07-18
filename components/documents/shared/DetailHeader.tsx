@@ -1,8 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette } from '@/theme';
 import { PressableScale } from './primitives';
 
 type Props = {

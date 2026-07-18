@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, Palette } from '@/theme';
 import { STATUS_META } from './status';
 import { Intervention } from './types';
 

@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 
-import { Palette, StatusInk } from '@/constants/design';
+import { Palette, StatusInk } from '@/theme';
 
 export type ClientStatus = 'action-required' | 'follow-up' | 'up-to-date' | 'new';
 

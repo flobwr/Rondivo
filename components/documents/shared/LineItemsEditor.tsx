@@ -4,8 +4,7 @@ import { Animated as RNAnimated, Pressable, StyleSheet, Text, TextInput, View } 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatAmount } from '@/data/documents/date-utils';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';

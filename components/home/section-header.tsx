@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { FontSize, Palette, type PaletteShape } from '@/constants/design';
+import { FontSize, Palette, type PaletteShape } from '@/theme';
 
 type SectionHeaderProps = {
   title: string;

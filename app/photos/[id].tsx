@@ -15,8 +15,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { PhotoLightbox } from '@/components/documents/photos/PhotoLightbox';
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
 import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { formatLongDate } from '@/data/documents/date-utils';
 import {
   InterventionPhoto,

@@ -2,8 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { Children, ReactNode, useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { IconTile, PressableScale } from './primitives';
 

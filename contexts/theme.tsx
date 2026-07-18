@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { DarkPalette, LightPalette, getPalette, getStatusInk, type PaletteShape } from '@/constants/design';
+import { DarkPalette, getPalette, getStatusInk, LightPalette, type PaletteShape } from '@/theme';
 import { getSettings, updateSettings, type Appearance } from '@/services/plus/settings';
 
 type ThemeContextValue = {
@@ -19,7 +19,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
  * palette and makes it reactive app-wide — reading `SETTINGS.appearance`
  * directly wouldn't re-render anything, since it's a plain mutated object.
  * Only a handful of "key" screens consume `palette` from `useTheme()` today;
- * everything else still imports the static `Palette` from `constants/design`
+ * everything else still imports the static `Palette` from `@/theme`
  * and stays light regardless of this setting (see that file's comment).
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {

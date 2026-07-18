@@ -40,8 +40,7 @@ import {
   type Recurrence,
   type Reminder,
 } from '@/components/appointment/appointment-utils';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { listInterventionTemplates, type InterventionTemplate } from '@/services/intervention-templates';

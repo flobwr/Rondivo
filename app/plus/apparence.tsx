@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { Appearance } from '@/services/plus/settings';
 

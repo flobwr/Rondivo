@@ -3,8 +3,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 import { PLUS_ITEMS, PlusItemId } from './registry';
 
 function PlusRow({

@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 import { ReportItem } from './types';
 

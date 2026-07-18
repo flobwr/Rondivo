@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { AccordionList, type AccordionItem } from '@/components/plus/resource/AccordionList';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 const TUTORIELS: AccordionItem[] = [
   {

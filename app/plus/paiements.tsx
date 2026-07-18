@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { PAYMENT_METHOD_OPTIONS, SETTINGS, updateSettings } from '@/data/plus/settings';
 
 const OPTIONS: SelectableOption<string>[] = PAYMENT_METHOD_OPTIONS.map((method) => ({ key: method, label: method }));

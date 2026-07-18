@@ -28,7 +28,7 @@ import {
   type SortKey,
   type ViewMode,
 } from '@/components/clients/types';
-import { Palette, Spacing, type PaletteShape } from '@/constants/design';
+import { Palette, Spacing, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { countByStatus } from '@/services/clients';
 import { useClients } from '@/hooks/use-clients';

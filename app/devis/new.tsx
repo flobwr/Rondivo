@@ -22,7 +22,7 @@ import { MessageComposerModal } from '@/components/documents/shared/MessageCompo
 import { IconTile } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';

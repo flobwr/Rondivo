@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Palette, Radius } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius } from '@/theme';
 import { Shimmer } from '@/components/ui/Shimmer';
 
 /** A single skeleton row that mirrors the minimalist {@link ClientCard}. */

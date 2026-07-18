@@ -4,8 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   onEdit?: () => void;

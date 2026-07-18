@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useMemo, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
+import { Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 import { STATUS_META, STATUS_ORDER, type ClientStatus } from '@/components/clients/types';
 
 type ChipDef = {

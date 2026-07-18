@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { type Client } from '@/components/clients/types';
 import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette } from '@/theme';
 import { type ClientDetail } from '@/services/client-details';
 import { CardSeparator, PressableScale, SectionCard } from './primitives';
 

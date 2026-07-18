@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef, type ReactNode } from 'react';
 import { Animated, Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
-import { PressSpring } from '@/constants/animation';
+import { PressSpring } from '@/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 // Default touch-area padding for every PressableScale that doesn't already

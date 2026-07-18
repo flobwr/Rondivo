@@ -2,8 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   icon?: React.ComponentProps<typeof Feather>['name'];

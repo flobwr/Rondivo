@@ -15,7 +15,7 @@ import { QuickActionsRow, type QuickAction } from '@/components/documents/shared
 import { FactureHero } from '@/components/documents/factures/FactureHero';
 import { PaymentsCard } from '@/components/documents/factures/PaymentsCard';
 import { RecordPaymentSheet } from '@/components/documents/factures/RecordPaymentSheet';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
 import { buildRelaunchMessage, buildSendMessage } from '@/data/documents/messaging';

@@ -4,8 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
 import { type Client } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from './primitives';
 
 type Props = {

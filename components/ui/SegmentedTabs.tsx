@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { PressableScale } from './PressableScale';
 
 export type SegmentedTab<T extends string> = {

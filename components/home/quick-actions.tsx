@@ -4,8 +4,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Palette, type PaletteShape } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, Palette, type PaletteShape } from '@/theme';
 
 type Action = {
   label: string;

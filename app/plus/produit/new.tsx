@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { createProduit, deleteProduit, getProduit, updateProduit } from '@/services/plus/produits';
 

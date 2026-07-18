@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { formatShortDate } from '@/data/documents/date-utils';
 import {

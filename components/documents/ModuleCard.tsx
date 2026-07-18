@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 import { DocumentsTone } from './palette';
 import { DocumentModule } from './types';
 

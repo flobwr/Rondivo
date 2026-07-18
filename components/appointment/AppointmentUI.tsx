@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 
 export { PressableScale } from '@/components/ui/PressableScale';

@@ -2,8 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, Palette, Radius, Spacing } from '@/theme';
 
 export type ChipDef = {
   key: string;

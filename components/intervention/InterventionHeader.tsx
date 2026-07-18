@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { PRIORITY_CONFIG } from './priority';
 import { Intervention, InterventionStatus } from './types';
 

@@ -6,8 +6,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
 import { type Client, type ViewMode } from '@/components/clients/types';
-import { Palette, Radius, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius, type PaletteShape } from '@/theme';
 
 type ClientCardProps = {
   client: Client;

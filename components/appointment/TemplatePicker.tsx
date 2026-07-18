@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { type InterventionTemplate } from '@/services/intervention-templates';
 import { formatDuration } from './appointment-utils';
 import { PressableScale } from './AppointmentUI';

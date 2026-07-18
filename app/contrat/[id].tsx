@@ -12,7 +12,7 @@ import { MessageComposerModal } from '@/components/documents/shared/MessageCompo
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { buildSendMessage } from '@/data/documents/messaging';

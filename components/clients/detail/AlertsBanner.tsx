@@ -13,8 +13,7 @@ import {
 } from 'react-native';
 
 import { TINT_COLORS, type Tint } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { type AlertSeverity, type ClientAlert } from '@/services/client-details';
 import { PressableScale } from './primitives';
 

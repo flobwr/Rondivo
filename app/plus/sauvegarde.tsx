@@ -9,8 +9,7 @@ import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { COMPANY, updateCompany } from '@/data/plus/company';
 import { SETTINGS, updateSettings } from '@/data/plus/settings';
 

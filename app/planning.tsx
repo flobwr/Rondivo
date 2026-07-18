@@ -12,8 +12,7 @@ import { ErrorState } from '@/components/planning/ErrorState';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { ScreenFadeInDuration } from '@/constants/animation';
-import { Palette } from '@/constants/design';
+import { Palette, ScreenFadeInDuration } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 

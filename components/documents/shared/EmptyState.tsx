@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Spacing, type PaletteShape } from '@/constants/design';
+import { Palette, Spacing, type PaletteShape } from '@/theme';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 import { Feather } from '@expo/vector-icons';

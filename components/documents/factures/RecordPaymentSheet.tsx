@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { PAYMENT_METHOD_LABEL, PaymentMethod } from '@/data/documents/factures';
 

@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { ContratCard } from '@/components/documents/contrats/ContratCard';
 import { CONTRAT_STATUS_META, CONTRAT_STATUS_ORDER, Contrat, ContratStatus, MOCK_CONTRATS } from '@/data/documents/contrats';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 export default function ContratsScreen() {
   const router = useRouter();

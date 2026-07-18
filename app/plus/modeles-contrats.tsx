@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { DOCUMENT_TEMPLATES, TEMPLATE_STYLE_META, TEMPLATE_STYLE_ORDER, TemplateStyle, updateDocumentTemplate } from '@/data/plus/templates';
 
 const OPTIONS: SelectableOption<TemplateStyle>[] = TEMPLATE_STYLE_ORDER.map((style) => ({

@@ -3,8 +3,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import { PressableScale } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Radius, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, type PaletteShape } from '@/theme';
 
 export function LogoutButton({ onPress, palette = Palette }: { onPress: () => void; palette?: PaletteShape }) {
   const styles = useMemo(() => createStyles(palette), [palette]);

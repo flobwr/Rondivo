@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { PhotoInterventionCard } from '@/components/documents/photos/PhotoInterventionCard';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
 
 export default function PhotosScreen() {

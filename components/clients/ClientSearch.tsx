@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 
 type ClientSearchProps = {
   value: string;

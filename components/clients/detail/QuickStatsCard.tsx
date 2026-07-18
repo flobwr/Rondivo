@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { formatEuroShort, type ClientDetail } from '@/services/client-details';
 import { SectionCard } from './primitives';
 

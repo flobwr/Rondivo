@@ -3,8 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FeatherIconName } from '@/components/documents/types';
 import { IconTile, PressableScale, StatusPill } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 const TILE = 38;
 

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
 import { STATUS_META, formatTime } from './status';

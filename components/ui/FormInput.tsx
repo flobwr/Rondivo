@@ -3,7 +3,7 @@ import { forwardRef, useRef } from 'react';
 import { Animated, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 
 type FormInputProps = Omit<TextInputProps, 'style' | 'placeholderTextColor'> & {
   icon?: FeatherIconName;

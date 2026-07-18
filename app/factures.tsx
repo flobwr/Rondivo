@@ -15,7 +15,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FactureCard } from '@/components/documents/factures/FactureCard';
 import { FACTURE_STATUS_META, FACTURE_STATUS_ORDER, Facture, FactureStatus, MOCK_FACTURES } from '@/data/documents/factures';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'due';
 

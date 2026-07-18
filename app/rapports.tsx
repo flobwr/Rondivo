@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { RapportCard } from '@/components/documents/rapports/RapportCard';
 import { RAPPORT_STATUS_META, RAPPORT_STATUS_ORDER, Rapport, RapportStatus, MOCK_RAPPORTS } from '@/data/documents/rapports';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 export default function RapportsScreen() {
   const router = useRouter();

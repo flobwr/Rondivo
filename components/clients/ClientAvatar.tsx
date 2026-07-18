@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type Client } from '@/components/clients/types';
-import { badgeShadow } from '@/constants/shadow';
+import { badgeShadow } from '@/theme';
 
 type ClientAvatarProps = {
   initials: string;

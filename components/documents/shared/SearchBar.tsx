@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   value: string;

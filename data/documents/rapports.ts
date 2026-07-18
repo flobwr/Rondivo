@@ -1,5 +1,5 @@
 import { DocumentsTone } from '@/components/documents/palette';
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 
 export type RapportStatus = 'aCompleter' | 'enCours' | 'termine' | 'pdfGenere';
 

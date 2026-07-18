@@ -14,8 +14,7 @@ import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips'
 import { FadeInItem, IconTile, PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { IMPORT_TYPE_META, ImportFileType, ImportedFile, MOCK_IMPORTS, formatFileSize } from '@/data/documents/imports';
 import { PhotoIntervention } from '@/data/documents/photos';

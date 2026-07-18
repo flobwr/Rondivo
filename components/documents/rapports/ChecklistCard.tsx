@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { ChecklistItem } from '@/data/documents/rapports';
 

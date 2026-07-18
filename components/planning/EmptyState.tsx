@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   onPlan?: () => void;

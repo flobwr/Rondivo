@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { InterventionStatus } from './types';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];

@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
 import { FACTURE_STATUS_META, Facture } from '@/data/documents/factures';

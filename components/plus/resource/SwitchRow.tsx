@@ -1,6 +1,6 @@
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette } from '@/theme';
 
 /** One labelled on/off row — Notifications, Relances automatiques, Sauvegarde, Signature. */
 export function SwitchRow({

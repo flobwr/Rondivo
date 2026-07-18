@@ -9,7 +9,7 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
 import { Priority } from '@/components/intervention/types';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getIntervention, updateIntervention } from '@/services/interventions';
 

@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FormSection, FormField, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { Company, getCompany, updateCompany } from '@/services/plus/company';
 import { listEmployees } from '@/services/plus/employees';

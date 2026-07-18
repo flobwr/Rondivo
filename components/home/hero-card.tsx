@@ -7,9 +7,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Intervention } from '@/components/intervention/types';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { getDepartureState, parseTimeToMinutes, subtractMinutes, useNowMinutes } from '@/components/home/time';
-import { PressSpring } from '@/constants/animation';
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow, heroShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, heroShadow, Palette, PressSpring, Radius, Spacing, type PaletteShape } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
 
 type HeroCardProps = {

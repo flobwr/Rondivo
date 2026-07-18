@@ -5,7 +5,7 @@ import { formatWithMask, useMaskedInputProps } from 'react-native-mask-input';
 
 import { PressableScale } from '@/components/appointment/AppointmentUI';
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { CountryPickerSheet } from './CountryPickerSheet';
 import { buildPhoneMask, digitsOnly, getCountryOption, getPhonePlaceholder, type CountryCode } from './phone-utils';
 

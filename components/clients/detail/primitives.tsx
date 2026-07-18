@@ -3,8 +3,7 @@ import { memo, type ReactNode } from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 
 /**

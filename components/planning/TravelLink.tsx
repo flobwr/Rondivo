@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { TravelLeg } from './types';
 
 type Props = {

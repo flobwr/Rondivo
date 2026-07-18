@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Alert, Modal, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { PHOTO_CATEGORY_LABEL, PHOTO_CATEGORY_ORDER, InterventionPhoto } from '@/data/documents/photos';
 

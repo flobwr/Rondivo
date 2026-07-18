@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleProp, ViewStyle } from 'react-native';
 
-import { ShimmerDuration } from '@/constants/animation';
+import { ShimmerDuration } from '@/theme';
 
 const SHIMMER_COLORS: [string, string] = ['#E8ECF2', '#CED4DE'];
 

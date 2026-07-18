@@ -17,7 +17,7 @@ import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { DevisCard } from '@/components/documents/devis/DevisCard';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { DEVIS_STATUS_META, DEVIS_STATUS_ORDER, Devis, DevisStatus, listDevis } from '@/services/documents/devis';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'validity';
 

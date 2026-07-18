@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PLUS_ITEMS, PlusItemId } from '@/components/plus/registry';
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 
 export default function PlusDetailScreen() {
   const router = useRouter();

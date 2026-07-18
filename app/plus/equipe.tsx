@@ -10,7 +10,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import {
   EMPLOYEE_ROLE_META,
   EMPLOYEE_ROLE_ORDER,

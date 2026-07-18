@@ -9,7 +9,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';

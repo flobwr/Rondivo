@@ -10,7 +10,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
 import { Priority } from '@/components/intervention/types';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { createTask, deleteTask, getTask, updateTask } from '@/services/tasks';
 

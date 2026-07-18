@@ -8,8 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncList } from '@/hooks/use-async-list';
 import {
   bucketOf,

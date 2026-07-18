@@ -8,7 +8,7 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createSupplier,

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Modal, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 
 type Props = {

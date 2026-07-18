@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { Language, getSettings, updateSettings } from '@/services/plus/settings';
 

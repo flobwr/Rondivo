@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Radius } from '@/constants/design';
+import { Radius } from '@/theme';
 import { STATUS_META, type ClientStatus } from '@/components/clients/types';
 
 type ClientStatusBadgeProps = {

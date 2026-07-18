@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { DocumentsTone } from '@/components/documents/palette';
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
 import { daysSince, formatAmount, formatShortDate } from '@/data/documents/date-utils';

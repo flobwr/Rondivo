@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { deleteSupplier, getSupplier, SUPPLIER_CATEGORY_LABEL } from '@/services/plus/suppliers';
 

@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius, Spacing } from '@/theme';
 import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function SignatureScreen() {

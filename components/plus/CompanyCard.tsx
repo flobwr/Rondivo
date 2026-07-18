@@ -4,8 +4,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 
 export type Company = {
   name: string;

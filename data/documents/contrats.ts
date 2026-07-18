@@ -1,5 +1,5 @@
 import { DocumentsTone } from '@/components/documents/palette';
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { daysSince } from './date-utils';
 
 export type ContratStatus = 'brouillon' | 'enAttenteSignature' | 'signe' | 'expire';

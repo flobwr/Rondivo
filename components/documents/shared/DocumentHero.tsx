@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale, StatusPill } from './primitives';
 
 export type HeroDateBlock = { label: string; value: string };

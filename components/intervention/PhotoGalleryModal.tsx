@@ -5,8 +5,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensio
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { InterventionPhoto, PHOTO_CATEGORY_LABEL } from '@/services/documents/photos';
 
 type Props = {

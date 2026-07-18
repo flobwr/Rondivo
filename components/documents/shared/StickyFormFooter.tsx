@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from './primitives';
 
 // Keeps the primary submit action ("Créer le devis"/"Créer la facture"/…)

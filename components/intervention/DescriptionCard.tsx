@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PRIORITY_CONFIG } from './priority';
 import { SectionCard } from './SectionCard';
 import { Priority } from './types';

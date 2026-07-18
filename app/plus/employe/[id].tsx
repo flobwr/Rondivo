@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { deleteEmployee, EMPLOYEE_ROLE_META, EMPLOYEE_STATUS_META, getEmployee } from '@/services/plus/employees';

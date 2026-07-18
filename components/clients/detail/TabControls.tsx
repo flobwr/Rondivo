@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { PressableScale } from './primitives';
 
 // Search field shared by the Interventions and Documents tabs.

@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { InterventionPhoto } from '@/services/documents/photos';
 import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
 import { PhotoGalleryModal } from './PhotoGalleryModal';

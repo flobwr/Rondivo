@@ -4,7 +4,7 @@ import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/appointment/AppointmentUI';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { COUNTRY_OPTIONS, type CountryCode } from './phone-utils';
 
 type Props = {

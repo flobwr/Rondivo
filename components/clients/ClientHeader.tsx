@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, type PaletteShape } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { iconButtonShadow, Palette, type PaletteShape } from '@/theme';
 
 type ClientHeaderProps = {
   onAddPress?: () => void;

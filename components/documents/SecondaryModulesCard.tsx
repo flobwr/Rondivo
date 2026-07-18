@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 import { DocumentModule } from './types';
 
 const TILE = 28;

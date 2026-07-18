@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
+import { Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 import {
   SORT_META,

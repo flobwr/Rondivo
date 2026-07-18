@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { FeatherIconName } from '../types';
 import { IconTile, SectionCard } from './primitives';
 

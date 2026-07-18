@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FormSection, FormField, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { KeyValueRow, PressableScale, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { Account, Company, getAccount, getCompany, updateAccount } from '@/services/plus/company';
 

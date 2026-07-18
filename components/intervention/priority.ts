@@ -1,4 +1,4 @@
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 import { Priority } from './types';
 
 // Palette.orange itself stays untouched (it's used as a solid accent

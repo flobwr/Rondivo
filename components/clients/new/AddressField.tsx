@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius } from '@/constants/design';
+import { FontSize, Palette, Radius } from '@/theme';
 import { formatAddress, mockAddressProvider, type AddressProvider, type AddressSuggestion } from './address-provider';
 import { easeLayout } from './client-form-utils';
 

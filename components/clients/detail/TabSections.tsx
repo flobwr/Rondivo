@@ -3,8 +3,7 @@ import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { type Tint } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius } from '@/theme';
 import {
   DOCUMENT_CATEGORIES,
   formatEuroShort,

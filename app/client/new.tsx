@@ -23,7 +23,7 @@ import { mockCompanyLookupProvider } from '@/components/clients/new/company-look
 import { PhoneField } from '@/components/clients/new/PhoneField';
 import { DEFAULT_PHONE_COUNTRY, formatNational, toE164, type CountryCode } from '@/components/clients/new/phone-utils';
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Palette, Radius, Spacing } from '@/theme';
 import { computeInitials, createClient, tintForName } from '@/services/clients';
 
 type EquipmentDraft = { id: string; name: string };

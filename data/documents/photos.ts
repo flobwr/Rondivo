@@ -1,4 +1,4 @@
-import { Palette } from '@/constants/design';
+import { Palette } from '@/theme';
 
 export type PhotoCategory = 'avant' | 'pendant' | 'apres';
 

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS } from '@/components/clients/types';
 import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { NotificationItem } from '@/data/notifications';
 
 type Props = {

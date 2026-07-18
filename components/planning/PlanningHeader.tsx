@@ -3,8 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, iconButtonShadow, Palette, Spacing } from '@/theme';
 
 type Props = {
   monthLabel: string; // e.g. "JUIN 2025"

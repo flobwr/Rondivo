@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function NumerotationScreen() {

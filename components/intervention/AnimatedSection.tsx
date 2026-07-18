@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
-import { Spacing } from '@/constants/design';
+import { Spacing } from '@/theme';
 
 type Props = {
   index?: number;

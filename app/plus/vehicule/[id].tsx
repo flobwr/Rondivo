@@ -9,7 +9,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Palette, Spacing } from '@/theme';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getEmployee, type Employee } from '@/services/plus/employees';

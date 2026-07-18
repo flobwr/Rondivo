@@ -4,8 +4,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Palette, Spacing, type PaletteShape } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { iconButtonShadow, Palette, Spacing, type PaletteShape } from '@/theme';
 
 type HeaderProps = {
   name: string;

@@ -4,8 +4,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Palette, Radius, Spacing, getStatusInk, type PaletteShape } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, getStatusInk, Palette, Radius, Spacing, type PaletteShape } from '@/theme';
 
 export type Appointment = {
   id: string;

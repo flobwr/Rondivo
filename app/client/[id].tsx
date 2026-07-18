@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ScreenFadeInDuration } from '@/constants/animation';
+import { FontSize, Palette, ScreenFadeInDuration, Spacing } from '@/theme';
 import { type Client } from '@/components/clients/types';
 import { ActivityCard } from '@/components/clients/detail/ActivityCard';
 import { AlertsBanner } from '@/components/clients/detail/AlertsBanner';
@@ -25,7 +25,6 @@ import {
   NotesSection,
 } from '@/components/clients/detail/TabSections';
 import { BottomNav } from '@/components/home/bottom-nav';
-import { FontSize, Palette, Spacing } from '@/constants/design';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientAlerts, getClientDetail, type ClientAlert, type ClientDetail } from '@/services/client-details';

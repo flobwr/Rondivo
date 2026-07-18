@@ -7,7 +7,7 @@ import { FeatherIconName } from '@/components/documents/types';
 import { BottomNav } from '@/components/home/bottom-nav';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 
 type FeedbackType = 'contact' | 'bug' | 'suggestion';
 

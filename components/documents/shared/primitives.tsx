@@ -2,9 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { Animated, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
-import { StaggerRowCap, StaggerRowDelay } from '@/constants/animation';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing, StaggerRowCap, StaggerRowDelay } from '@/theme';
 import { FeatherIconName } from '../types';
 import { DocumentsTone } from '../palette';
 

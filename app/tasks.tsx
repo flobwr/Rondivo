@@ -11,8 +11,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { cardShadow } from '@/constants/shadow';
+import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { formatTaskDue, listTasks, Task, toggleTaskCompleted } from '@/services/tasks';
 

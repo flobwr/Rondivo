@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, type PaletteShape } from '@/constants/design';
+import { FontSize, Palette, type PaletteShape } from '@/theme';
 
 type Tab = {
   label: string;

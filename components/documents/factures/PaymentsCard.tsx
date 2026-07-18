@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette } from '@/theme';
 import { IconTile, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { PAYMENT_METHOD_LABEL, Payment } from '@/data/documents/factures';

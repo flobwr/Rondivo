@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
-import { FontSize, Palette } from '@/constants/design';
+import { FontSize, Palette } from '@/theme';
 import { type ActivityEntry, type ActivityKind } from '@/services/client-details';
 import { SectionCard } from './primitives';
 

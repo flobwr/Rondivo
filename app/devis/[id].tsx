@@ -15,7 +15,7 @@ import { CardSeparator, KeyValueRow, PressableScale, SectionCard } from '@/compo
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { type Client } from '@/components/clients/types';
-import { Palette, Spacing } from '@/constants/design';
+import { Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
