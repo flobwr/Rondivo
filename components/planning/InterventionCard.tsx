@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { actionShadow, Palette } from '@/theme';
 import { STATUS_META } from './status';
@@ -130,16 +130,11 @@ export const InterventionCard = memo(InterventionCardBase);
 
 // The in-progress card carries a slightly stronger, brand-tinted lift; every
 // other card keeps the barely-there shadow so the eye lands on the active job.
-const activeShadow = Platform.select({
-  ios: {
-    shadowColor: Palette.blue,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-  },
-  android: { elevation: 5 },
-  default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
-});
+// Two-layer boxShadow like every DS elevation, but inked in Bleu Rondivo
+// (rgb of Palette.blue) instead of the warm shadow ink.
+const activeShadow = {
+  boxShadow: '0 2px 6px rgba(36, 71, 207, 0.10), 0 12px 28px rgba(36, 71, 207, 0.14)',
+};
 
 const styles = StyleSheet.create({
   card: {
