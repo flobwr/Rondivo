@@ -1,33 +1,35 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useCallback, useMemo } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppointmentCard } from '@/components/home/appointment-card';
-import { BottomDock } from '@/components/ui/BottomDock';
-import { Header } from '@/components/home/header';
-import { HeroCard } from '@/components/home/hero-card';
-import { QuickActions } from '@/components/home/quick-actions';
-import { RemindersCard } from '@/components/home/reminders-card';
-import { SectionHeader } from '@/components/home/section-header';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
+import { HomeHeader } from '@/components/home/HomeHeader';
+import { NextInterventionCard } from '@/components/home/NextInterventionCard';
+import { QuickActionsRow } from '@/components/home/QuickActionsRow';
+import { RemindersCard } from '@/components/home/RemindersCard';
+import { ScheduleCard } from '@/components/home/ScheduleCard';
+import { SectionTitle } from '@/components/home/SectionTitle';
 import { Intervention } from '@/components/intervention/types';
-import { FontSize, Radius, ScreenFadeInDuration, Spacing, type PaletteShape } from '@/theme';
-import { useTheme } from '@/contexts/theme';
+import { BottomDock } from '@/components/ui/BottomDock';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
+import { useTheme } from '@/contexts/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
-import { getAccount } from '@/services/plus/company';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { HomeSchedule, getHomeSchedule } from '@/services/home-schedule';
 import { getIntervention } from '@/services/interventions';
 import { getUnreadNotificationCount } from '@/services/notifications';
+import { getAccount } from '@/services/plus/company';
 import { getReminderSummary, type ReminderSummary } from '@/services/reminders';
+import { Motion, Spacing, Type, type PaletteShape } from '@/theme';
 
 type HomeBundle = {
   schedule: HomeSchedule;
   accountName: string;
-  accountRole: string;
   accountInitials: string;
   unreadCount: number;
   reminders: ReminderSummary;
@@ -46,7 +48,6 @@ async function fetchHomeBundle(): Promise<HomeBundle> {
   return {
     schedule,
     accountName: account.name,
-    accountRole: account.role,
     accountInitials: account.initials,
     unreadCount,
     reminders,
@@ -54,10 +55,15 @@ async function fetchHomeBundle(): Promise<HomeBundle> {
   };
 }
 
-/** "ven. 17 juil." — the light inline date next to "Aujourd'hui". Short forms
- *  so the line never truncates next to the interventions counter on 360px. */
-function todayLabel(): string {
-  return new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+/** "5 interventions aujourd'hui · 2 rappels" — the header's one-line day summary. */
+function daySummary(interventionCount: number, reminderCount: number): string {
+  const parts = [
+    interventionCount > 0
+      ? `${interventionCount} intervention${interventionCount > 1 ? 's' : ''} aujourd’hui`
+      : 'Aucune intervention aujourd’hui',
+  ];
+  if (reminderCount > 0) parts.push(`${reminderCount} rappel${reminderCount > 1 ? 's' : ''}`);
+  return parts.join('  ·  ');
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -65,55 +71,47 @@ function todayLabel(): string {
 function HomeSkeleton() {
   return (
     <>
-      <View style={skStyles.headerRow}>
-        <SkeletonBlock height={46} radius={23} style={{ width: 46 }} />
-        <View style={{ flex: 1, gap: 6 }}>
-          <SkeletonBlock height={16} radius={6} style={{ width: '55%' }} />
-          <SkeletonBlock height={13} radius={6} style={{ width: '35%' }} />
+      <View style={skStyles.topRow}>
+        <SkeletonBlock height={12} radius={6} style={{ width: '38%' }} />
+        <View style={skStyles.wells}>
+          <SkeletonBlock height={42} radius={21} style={{ width: 42 }} />
+          <SkeletonBlock height={42} radius={21} style={{ width: 42 }} />
         </View>
-        <SkeletonBlock height={44} radius={22} style={{ width: 44 }} />
       </View>
+      <SkeletonBlock height={36} radius={10} style={{ marginTop: 16, width: '68%' }} />
+      <SkeletonBlock height={15} radius={6} style={{ marginTop: 8, width: '52%' }} />
 
-      <SkeletonBlock height={18} radius={8} style={{ marginTop: Spacing.section, width: '48%' }} />
-      <SkeletonBlock height={248} radius={28} style={{ marginTop: 12 }} />
+      <SkeletonBlock height={216} radius={26} style={{ marginTop: Spacing.section }} />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
-          <View key={i} style={skStyles.quickItem}>
-            <SkeletonBlock height={54} radius={27} style={{ width: 54 }} />
-            <SkeletonBlock height={12} radius={6} style={{ width: 48 }} />
-          </View>
+          <SkeletonBlock key={i} height={82} radius={18} style={{ flex: 1 }} />
         ))}
       </View>
 
-      <SkeletonBlock height={64} radius={24} style={{ marginTop: Spacing.lg }} />
+      <SkeletonBlock height={68} radius={20} style={{ marginTop: Spacing.md }} />
 
-      <SkeletonBlock
-        height={18}
-        radius={8}
-        style={{ marginTop: Spacing.section, marginBottom: 12, width: '42%' }}
-      />
-      <SkeletonBlock height={92} radius={24} />
-      <SkeletonBlock height={92} radius={24} style={{ marginTop: 10 }} />
+      <SkeletonBlock height={20} radius={8} style={{ marginTop: Spacing.section, marginBottom: 14, width: '52%' }} />
+      <SkeletonBlock height={88} radius={20} />
+      <SkeletonBlock height={88} radius={20} style={{ marginTop: 10 }} />
     </>
   );
 }
 
 const skStyles = StyleSheet.create({
-  headerRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+  },
+  wells: {
+    flexDirection: 'row',
+    gap: 10,
   },
   quickRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    marginTop: Spacing.xl,
-  },
-  quickItem: {
-    alignItems: 'center',
-    gap: 6,
+    gap: 10,
+    marginTop: Spacing.section,
   },
 });
 
@@ -121,9 +119,9 @@ const skStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const router = useRouter();
-  const fadeIn = useRef(new Animated.Value(0)).current;
   const creationMenu = useDocumentCreationMenu();
   const { palette } = useTheme();
+  const reducedMotion = useReducedMotion();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
   const fetchHome = useCallback(() => fetchHomeBundle(), []);
@@ -131,24 +129,15 @@ export default function HomeScreen() {
   const isLoading = status === 'loading';
   const isError = status === 'error';
 
-  useEffect(() => {
-    if (status === 'success') {
-      Animated.timing(fadeIn, {
-        toValue: 1,
-        duration: ScreenFadeInDuration,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [status, fadeIn]);
-
-  const todayCount = home?.schedule.interventionsTodayCount ?? 0;
+  // Sections settle onto the paper one after the other — a quiet 40 ms
+  // cascade, no motion at all when the system asks for none.
+  const enter = (index: number) =>
+    reducedMotion ? undefined : FadeInDown.duration(Motion.base).delay(index * 40);
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           {isError ? (
             <EmptyState
               icon="alert-circle"
@@ -161,67 +150,51 @@ export default function HomeScreen() {
           ) : isLoading || !home ? (
             <HomeSkeleton />
           ) : (
-            <Animated.View style={{ opacity: fadeIn }}>
-              <Header
-                name={home.accountName}
-                role={home.accountRole}
-                initials={home.accountInitials}
-                unreadNotificationCount={home.unreadCount}
-                palette={palette}
-              />
-
-              <View style={styles.sectionMain}>
-                <SectionHeader
-                  title="Aujourd’hui"
-                  subtitle={todayLabel()}
-                  meta={
-                    todayCount > 0
-                      ? `${todayCount} intervention${todayCount > 1 ? 's' : ''}`
-                      : undefined
-                  }
-                  onMetaPress={() => router.push('/planning')}
-                  palette={palette}
+            <>
+              <Animated.View entering={enter(0)}>
+                <HomeHeader
+                  name={home.accountName}
+                  initials={home.accountInitials}
+                  unreadNotificationCount={home.unreadCount}
+                  summary={daySummary(home.schedule.interventionsTodayCount, home.reminders.count)}
                 />
-                <HeroCard
-                  isEmpty={!home.schedule.hasNextIntervention}
-                  intervention={home.nextIntervention}
-                  palette={palette}
+              </Animated.View>
+
+              <Animated.View entering={enter(1)} style={styles.section}>
+                <NextInterventionCard
+                  intervention={home.schedule.hasNextIntervention ? home.nextIntervention : undefined}
                 />
-              </View>
+              </Animated.View>
 
-              <View style={styles.sectionCompact}>
-                <QuickActions onNewDocument={creationMenu.open} palette={palette} />
-              </View>
+              <Animated.View entering={enter(2)} style={styles.section}>
+                <QuickActionsRow onNewDocument={creationMenu.open} />
+              </Animated.View>
 
-              <View style={styles.sectionTight}>
-                <RemindersCard
-                  nextReminder={home.reminders.nextTitle}
-                  count={home.reminders.count}
-                  palette={palette}
-                />
-              </View>
+              <Animated.View entering={enter(3)} style={styles.sectionTight}>
+                <RemindersCard nextReminder={home.reminders.nextTitle} count={home.reminders.count} />
+              </Animated.View>
 
-              <View style={styles.sectionMain}>
-                <SectionHeader
+              <Animated.View entering={enter(4)} style={styles.section}>
+                <SectionTitle
                   title="Le reste de la journée"
                   meta="Planning"
                   onMetaPress={() => router.push('/planning')}
-                  palette={palette}
                 />
 
                 {home.schedule.remainingAppointments.length > 0 ? (
-                  <View style={styles.appointmentList}>
+                  <View style={styles.scheduleList}>
                     {home.schedule.remainingAppointments.map((apt) => (
-                      <AppointmentCard key={apt.id} appointment={apt} palette={palette} />
+                      <ScheduleCard key={apt.id} appointment={apt} />
                     ))}
                   </View>
                 ) : (
                   <View style={styles.emptyDay}>
-                    <Text style={styles.emptyDayTitle}>C&apos;est tout pour aujourd&apos;hui.</Text>
+                    <Feather name="check-circle" size={15} color={palette.textTertiary} />
+                    <Text style={styles.emptyDayText}>C’est tout pour aujourd’hui</Text>
                   </View>
                 )}
-              </View>
-            </Animated.View>
+              </Animated.View>
+            </>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -238,11 +211,11 @@ export default function HomeScreen() {
   );
 }
 
-function createStyles(Palette: PaletteShape) {
+function createStyles(palette: PaletteShape) {
   return StyleSheet.create({
     root: {
       flex: 1,
-      backgroundColor: Palette.screen,
+      backgroundColor: palette.screen,
     },
     safeArea: {
       flex: 1,
@@ -252,32 +225,26 @@ function createStyles(Palette: PaletteShape) {
       paddingTop: Spacing.lg,
       paddingBottom: Spacing.section,
     },
-    sectionMain: {
+    section: {
       marginTop: Spacing.section,
     },
-    sectionCompact: {
-      marginTop: Spacing.xl,
-    },
     sectionTight: {
-      marginTop: Spacing.lg,
+      marginTop: Spacing.md,
     },
-    appointmentList: {
+    scheduleList: {
       gap: 10,
     },
     emptyDay: {
-      backgroundColor: Palette.card,
-      borderRadius: Radius.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: Palette.border,
-      paddingVertical: 22,
-      paddingHorizontal: 18,
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
+      gap: 7,
+      paddingVertical: 18,
     },
-    emptyDayTitle: {
-      fontSize: FontSize.cardLabel,
+    emptyDayText: {
+      ...Type.subhead,
       fontWeight: '500',
-      color: Palette.textSecondary,
-      letterSpacing: -0.2,
+      color: palette.textTertiary,
     },
   });
 }

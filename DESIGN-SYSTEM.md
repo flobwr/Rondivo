@@ -28,7 +28,7 @@ localement sont un bug de design system.
 
 | Fichier | Contenu |
 |---|---|
-| `palette.ts` | Surfaces (screen/card/cardMuted/float/inset/insetDeep), encres de texte (AA ≥ 4.5:1 garanti), Bleu Rondivo + lavis, duotones de statut (`…Soft` + `…Ink` — le texte utilise TOUJOURS l'encre, jamais la couleur vive), chrome. Palette sombre « papier de nuit » aux mêmes relations. |
+| `palette.ts` | Surfaces (screen/card/cardMuted/float/inset/insetDeep), encres de texte (AA ≥ 4.5:1 garanti), Bleu Rondivo + lavis, duotones de statut (`…Soft` + `…Ink` — le texte utilise TOUJOURS l'encre, jamais la couleur vive), chrome (`dock` : la capsule de navigation, un ton sous le papier). Palette sombre « papier de nuit » aux mêmes relations. |
 | `typography.ts` | SF Pro (police système), presets complets `Type.*` (largeTitle 30 → caption 12), chiffres tabulaires obligatoires (`Numeric`) pour heures, durées, km, montants. |
 | `layout.ts` | Grille 4 pt. Gouttière écran 20, rythme de section 28, padding de carte 18. Rayons : hero 26, card 20, tile 14, control 12, pill. Métriques de contrôle (`Size`) : cible 48, bouton 52, puits d'icône 38, dock 64. |
 | `elevation.ts` | Ombres à deux couches (contact serré + ambiante large) via `boxShadow`, encre chaude `#141210` à opacités faibles. Quatre niveaux : whisper / card / raised / float. En sombre, le chrome flottant s'appuie sur sa surface plus claire. |
@@ -40,7 +40,7 @@ Import unique : `import { … } from '@/components/ui'`.
 
 | Composant | Rôle |
 |---|---|
-| `BottomDock` | LE chrome flottant : capsule blanc pur sur l'ombre la plus forte, onglet actif déployé en pilule bleue avec son label, reflow sur un seul spring amorti. Mêmes cinq onglets, navigation `replace`. |
+| `BottomDock` | LE chrome flottant : capsule un ton SOUS le papier (`dock`) sur l'ombre la plus forte, onglet actif déployé en pilule Bleu Rondivo pleine (glyphe + label en `onAccent`), reflow sur un seul spring amorti. Mêmes cinq onglets, navigation `replace`. |
 | `AppBar` | Entête d'écran : titre centré 17 pt semibold, puits d'icônes circulaires (`iconButtonBg`), barre invisible — le papier la traverse. |
 | `LargeTitleBar` | Entête des cinq écrans racines : titre 30 pt aligné à gauche, eyebrow petites capitales ou sous-titre, UNE action dans un puits 44 pt (encre accent pour l'ajout). |
 | `IconWell` | Le seul bouton icône : disque pressé dans le papier, sans ombre ni bordure. |

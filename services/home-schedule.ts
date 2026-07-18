@@ -1,5 +1,5 @@
 import * as HomeScheduleData from '@/data/home-schedule';
-import { Appointment } from '@/components/home/appointment-card';
+import { Appointment } from '@/components/home/types';
 
 export type HomeSchedule = {
   hasNextIntervention: boolean;

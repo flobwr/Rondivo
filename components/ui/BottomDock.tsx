@@ -29,11 +29,12 @@ const TABS: Tab[] = [
 /**
  * Rondivo floating dock — the app's one piece of floating chrome.
  *
- * A capsule of pure white (`float`, the only surface allowed to be white)
- * hovering above the paper on the strongest shadow in the system. The
- * active tab expands into a soft blue pill carrying its label; inactive
- * tabs are quiet glyphs. Selection reflows with one gentle spring —
- * no bounce, no sliding underline.
+ * A capsule sitting one tone BELOW the paper (`dock`), so the bar reads as
+ * machined chrome rather than another card, hovering on the strongest
+ * shadow in the system. The active tab expands into a solid Bleu Rondivo
+ * pill carrying its glyph and label — the single strongest accent on any
+ * screen; inactive tabs are quiet glyphs. Selection reflows with one
+ * gentle spring — no bounce, no sliding underline.
  *
  * `activeIndex` is the tab this screen belongs to; pass `-1` for screens
  * reachable from several tabs (Notes, Tâches) so no tab claims them.
@@ -67,7 +68,7 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
           styles.dock,
           elevation.float,
           {
-            backgroundColor: palette.float,
+            backgroundColor: palette.dock,
             // On night paper shadows vanish — a hairline edge keeps the
             // capsule legible against the dark screen behind it.
             borderColor: scheme === 'dark' ? palette.border : 'transparent',
@@ -86,18 +87,18 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
                 hitSlop={6}
                 style={[
                   styles.tab,
-                  active && [styles.tabActive, { backgroundColor: palette.blueSoft }],
+                  active && [styles.tabActive, { backgroundColor: palette.blue }],
                 ]}>
                 <Feather
                   name={tab.icon}
                   size={21}
-                  color={active ? palette.blue : palette.textTertiary}
+                  color={active ? palette.onAccent : palette.textTertiary}
                 />
                 {active && (
                   <Animated.Text
                     entering={reducedMotion ? undefined : FadeIn.duration(Motion.fast)}
                     numberOfLines={1}
-                    style={[styles.label, { color: palette.blue }]}>
+                    style={[styles.label, { color: palette.onAccent }]}>
                     {tab.label}
                   </Animated.Text>
                 )}

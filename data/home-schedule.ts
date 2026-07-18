@@ -1,4 +1,4 @@
-import { Appointment } from '@/components/home/appointment-card';
+import { Appointment } from '@/components/home/types';
 
 export const HAS_NEXT_INTERVENTION = true;
 

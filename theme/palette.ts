@@ -72,6 +72,7 @@ export const LightPalette = {
   gradientEnd: '#2041B8',
 
   // ——— Chrome ———
+  dock: '#ECEAE4', // floating dock capsule — one tone below the paper, so the bar reads as chrome, not as a card
   iconButtonBg: '#EDEBE5', // circular icon-well fill (headers, modals)
   border: '#E8E5DE', // hairline sheet edge, just darker than the paper
   separator: 'rgba(27, 26, 23, 0.07)', // row dividers — alpha so they sit on any surface
@@ -130,6 +131,7 @@ export const DarkPalette: PaletteShape = {
   gradientStart: '#4C79E8',
   gradientEnd: '#2F55C4',
 
+  dock: '#2A2823',
   iconButtonBg: '#282520',
   border: '#2C2924',
   separator: 'rgba(243, 242, 238, 0.08)',
