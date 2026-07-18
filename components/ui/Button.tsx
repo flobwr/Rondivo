@@ -14,7 +14,9 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
  *  · `primary`   — Bleu Rondivo. THE action of the screen; at most one visible.
  *  · `secondary` — off-white sheet with a hairline edge; everything else.
  *  · `ghost`     — bare blue text; inline and footer actions.
- *  · `danger`    — soft red wash; destructive, quiet until pressed.
+ *  · `danger`    — a sheet inked in the muted danger red; routine
+ *                  destructive actions (logout, delete) that must not
+ *                  shout like a real error state.
  *
  * Height 52 (compact 40), always full capsule, label never wraps. Loading
  * swaps the label for a spinner without letting the button change size.
@@ -49,14 +51,18 @@ export function Button({
       borderColor: palette.border,
     },
     ghost: { backgroundColor: 'transparent' },
-    danger: { backgroundColor: palette.redSoft },
+    danger: {
+      backgroundColor: palette.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
+    },
   }[variant];
 
   const ink = {
     primary: palette.onAccent,
     secondary: palette.textPrimary,
     ghost: palette.blue,
-    danger: palette.redInk,
+    danger: palette.danger,
   }[variant];
 
   const shadow = variant === 'primary' ? elevation.whisper : undefined;

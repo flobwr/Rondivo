@@ -1,95 +1,18 @@
-import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { EmptyState } from '@/components/ui/EmptyState';
 
-import { actionShadow, Palette, Radius, Spacing } from '@/theme';
-
-type Props = {
-  onRetry?: () => void;
-};
-
-export function ErrorState({ onRetry }: Props) {
-  const pressScale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Animated.spring(pressScale, { toValue: 0.96, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-
+/**
+ * Compatibility shim — Planning's load-failure state is the DS `EmptyState`
+ * in its error tone.
+ */
+export function ErrorState({ onRetry }: { onRetry?: () => void }) {
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.iconRing}>
-        <Feather name="wifi-off" size={26} color={Palette.textSecondary} />
-      </View>
-
-      <Text style={styles.title}>Connexion perdue</Text>
-      <Text style={styles.subtitle}>Impossible de charger le planning pour le moment.</Text>
-
-      <Animated.View style={{ transform: [{ scale: pressScale }] }}>
-        <Pressable
-          style={styles.button}
-          hitSlop={8}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          onPress={onRetry}>
-          <Feather name="refresh-cw" size={16} color={Palette.white} />
-          <Text style={styles.buttonText}>Réessayer</Text>
-        </Pressable>
-      </Animated.View>
-    </View>
+    <EmptyState
+      icon="wifi-off"
+      tone="error"
+      title="Connexion perdue"
+      subtitle="Impossible de charger le planning pour le moment."
+      actionLabel="Réessayer"
+      onAction={onRetry}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    alignItems: 'center',
-    paddingHorizontal: Spacing.screen,
-    paddingTop: 64,
-  },
-  iconRing: {
-    width: 72,
-    height: 72,
-    borderRadius: 24,
-    backgroundColor: Palette.cardMuted,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    letterSpacing: -0.1,
-    marginTop: 6,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: Palette.blue,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 20,
-    paddingVertical: 13,
-    ...actionShadow,
-  },
-  buttonText: {
-    color: Palette.white,
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-});

@@ -1,8 +1,9 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
-import { PressableScale } from './primitives';
+import { Button } from '@/components/ui/Button';
+import { useTheme } from '@/contexts/theme';
+import { Spacing } from '@/theme';
 
 // Keeps the primary submit action ("Créer le devis"/"Créer la facture"/…)
 // reachable at all times on creation screens, regardless of scroll position.
@@ -23,22 +24,19 @@ export function StickyFormFooter({
   loading?: boolean;
 }) {
   const insets = useSafeAreaInsets();
-  const inactive = disabled || loading;
+  const { palette } = useTheme();
 
   return (
-    <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <PressableScale
-        onPress={inactive ? undefined : onPress}
-        disabled={inactive}
-        to={0.97}
-        style={[styles.button, inactive && styles.buttonDisabled]}
-        accessibilityLabel={label}>
-        {loading ? (
-          <ActivityIndicator color={Palette.textTertiary} />
-        ) : (
-          <Text style={[styles.buttonText, disabled && styles.buttonTextDisabled]}>{label}</Text>
-        )}
-      </PressableScale>
+    <View
+      style={[
+        styles.footer,
+        {
+          backgroundColor: palette.screen,
+          borderTopColor: palette.border,
+          paddingBottom: Math.max(insets.bottom, 16),
+        },
+      ]}>
+      <Button label={label} onPress={onPress} disabled={disabled} loading={loading} />
     </View>
   );
 }
@@ -49,28 +47,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Palette.screen,
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.border,
-  },
-  button: {
-    backgroundColor: Palette.blue,
-    borderRadius: Radius.tile,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: Palette.border,
-  },
-  buttonText: {
-    fontSize: FontSize.label,
-    fontWeight: '700',
-    color: Palette.white,
-    letterSpacing: -0.1,
-  },
-  buttonTextDisabled: {
-    color: Palette.textTertiary,
   },
 });
