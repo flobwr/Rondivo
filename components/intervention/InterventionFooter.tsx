@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   onEdit?: () => void;
@@ -65,7 +65,7 @@ export function InterventionFooter({ onEdit, onStart, onComplete, started, compl
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: 10,
@@ -123,4 +123,4 @@ const styles = StyleSheet.create({
   startTextDone: {
     color: Palette.textPrimary,
   },
-});
+}));

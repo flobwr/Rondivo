@@ -15,7 +15,7 @@ import { QuickActionsRow, type QuickAction } from '@/components/documents/shared
 import { FactureHero } from '@/components/documents/factures/FactureHero';
 import { PaymentsCard } from '@/components/documents/factures/PaymentsCard';
 import { RecordPaymentSheet } from '@/components/documents/factures/RecordPaymentSheet';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatAmount, formatLongDate } from '@/data/documents/date-utils';
 import { buildRelaunchMessage, buildSendMessage } from '@/data/documents/messaging';
@@ -255,7 +255,7 @@ export default function FactureDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -279,4 +279,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     lineHeight: 19,
   },
-});
+}));

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { PressableScale } from './primitives';
 
 // Search field shared by the Interventions and Documents tabs.
@@ -68,7 +68,7 @@ export function FilterChips<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   search: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -112,4 +112,4 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: Palette.white,
   },
-});
+}));

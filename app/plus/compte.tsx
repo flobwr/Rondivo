@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FormSection, FormField, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { KeyValueRow, PressableScale, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { Account, Company, getAccount, getCompany, updateAccount } from '@/services/plus/company';
 
@@ -121,7 +121,7 @@ export default function CompteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -180,4 +180,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

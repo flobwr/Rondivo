@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { formatEuroShort, type ClientDetail } from '@/services/client-details';
 import { SectionCard } from './primitives';
 
@@ -45,7 +45,7 @@ export function QuickStatsCard({ detail, onSeeAll }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -74,4 +74,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
     letterSpacing: -0.1,
   },
-});
+}));

@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Alert, Modal, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { PHOTO_CATEGORY_LABEL, PHOTO_CATEGORY_ORDER, InterventionPhoto } from '@/data/documents/photos';
 
@@ -85,7 +85,7 @@ export function PhotoLightbox({ photo, onClose, onDelete, onChangeCategory }: Pr
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000',
@@ -148,4 +148,4 @@ const styles = StyleSheet.create({
     color: Palette.white,
     letterSpacing: -0.1,
   },
-});
+}));

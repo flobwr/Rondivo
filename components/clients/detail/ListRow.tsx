@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { formatEuroShort } from '@/services/client-details';
 import { PressableScale, TintIcon } from './primitives';
 
@@ -42,7 +42,7 @@ export function ListRow({ icon, iconTint = 'blue', title, subtitle, amount, stat
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: 2,
   },
-});
+}));

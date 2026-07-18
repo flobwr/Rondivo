@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/documents/shared/primitives';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 export type SelectableOption<T extends string | number> = {
   key: T;
@@ -46,7 +46,7 @@ export function SelectableList<T extends string | number>({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.separator,
   },
-});
+}));

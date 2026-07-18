@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 import { MaterialItem } from './types';
 
@@ -60,7 +60,7 @@ export function MaterialCard({ material, onAdd }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,4 +120,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

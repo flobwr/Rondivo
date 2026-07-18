@@ -15,7 +15,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { PhotoLightbox } from '@/components/documents/photos/PhotoLightbox';
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
 import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
-import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { formatLongDate } from '@/data/documents/date-utils';
 import {
   InterventionPhoto,
@@ -215,7 +215,7 @@ export default function PhotoInterventionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   clientRow: {
@@ -307,4 +307,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     fontSize: 15,
   },
-});
+}));

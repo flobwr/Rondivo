@@ -9,7 +9,7 @@ import { CompanyCard } from '@/components/plus/CompanyCard';
 import { LogoutButton } from '@/components/plus/LogoutButton';
 import { PLUS_ABOUT_ITEMS, PLUS_ITEMS, PLUS_SECTIONS, PlusItemId } from '@/components/plus/registry';
 import { PlusSectionCard } from '@/components/plus/PlusSectionCard';
-import { ScreenFadeInDuration, Spacing, type PaletteShape } from '@/theme';
+import { ScreenFadeInDuration, Spacing, THEMES, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { ACCOUNT, COMPANY } from '@/data/plus/company';
 import { activeEmployeesCount, EMPLOYEES } from '@/data/plus/employees';
@@ -66,10 +66,13 @@ export default function PlusScreen() {
       tva: `${SETTINGS.defaultVatRate} %`,
       paiements: SETTINGS.paymentMethods.length > 0 ? `${SETTINGS.paymentMethods.length} moyens configurés` : 'Aucun moyen configuré',
       signature: SETTINGS.hasSignature ? SETTINGS.signatureName : 'Non configurée',
-      apparence: APPEARANCE_LABEL[SETTINGS.appearance],
+      apparence: `${APPEARANCE_LABEL[SETTINGS.appearance]} · ${THEMES[SETTINGS.theme].label}`,
       langue: SETTINGS.language === 'fr' ? 'Français' : 'English',
     }),
-    []
+    // `palette` re-derives the subtitles when Apparence changes underneath us
+    // (SETTINGS is a plain mutated object — reading it isn't reactive).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [palette]
   );
 
   const infoLine = `${VEHICLES.length} véhicule${VEHICLES.length > 1 ? 's' : ''} · Synchronisé ${COMPANY.lastSyncLabel.toLowerCase()}`;

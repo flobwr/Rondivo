@@ -9,14 +9,22 @@
  */
 
 export {
+  ArdoisePalette,
   DarkPalette,
   LightPalette,
+  NeigePalette,
   Palette,
+  SablePalette,
   StatusInk,
+  THEME_ORDER,
+  THEMES,
   getPalette,
   getStatusInk,
+  setActivePalette,
   type PaletteShape,
+  type ThemeName,
 } from './palette';
+export { createThemedStyles } from './themed';
 export { FontSize, Numeric, Type } from './typography';
 export { Radius, Size, Spacing } from './layout';
 export {

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PRIORITY_CONFIG } from './priority';
 import { SectionCard } from './SectionCard';
 import { Priority } from './types';
@@ -46,7 +46,7 @@ export function DescriptionCard({ description, notes, priority }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   priorityPill: {
     borderRadius: Radius.pill,
     paddingHorizontal: 10,
@@ -102,4 +102,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     letterSpacing: -0.1,
   },
-});
+}));

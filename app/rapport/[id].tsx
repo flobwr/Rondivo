@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, KeyValueRow, PressableScale, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
 import { MOCK_RAPPORTS, RAPPORT_STATUS_META } from '@/data/documents/rapports';
@@ -205,7 +205,7 @@ export default function RapportDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -316,4 +316,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

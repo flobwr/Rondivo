@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { actionShadow, heroShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, actionShadow, heroShadow, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 
 type MiniAction = {
@@ -130,7 +130,7 @@ export function QuickActionsCard({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 8,
@@ -197,4 +197,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.2,
   },
-});
+}));

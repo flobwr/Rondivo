@@ -3,7 +3,7 @@ import { memo, type ReactNode } from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 
 /**
@@ -101,7 +101,7 @@ export function CardSeparator() {
   return <View style={primitives.separator} />;
 }
 
-const primitives = StyleSheet.create({
+const primitives = createThemedStyles(() => StyleSheet.create({
   tile: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -156,4 +156,4 @@ const primitives = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

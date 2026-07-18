@@ -8,7 +8,7 @@ import { TINT_COLORS } from '@/components/clients/types';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { listReminderSections } from '@/services/reminders';
 import type { ReminderIconFamily, ReminderItem, ReminderSection } from '@/services/reminders';
@@ -100,7 +100,7 @@ export default function RappelsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 2,
   },
-});
+}));

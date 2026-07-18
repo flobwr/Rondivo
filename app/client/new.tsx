@@ -23,7 +23,7 @@ import { mockCompanyLookupProvider } from '@/components/clients/new/company-look
 import { PhoneField } from '@/components/clients/new/PhoneField';
 import { DEFAULT_PHONE_COUNTRY, formatNational, toE164, type CountryCode } from '@/components/clients/new/phone-utils';
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { computeInitials, createClient, tintForName } from '@/services/clients';
 
 type EquipmentDraft = { id: string; name: string };
@@ -435,7 +435,7 @@ export default function NewClientScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -639,4 +639,4 @@ const styles = StyleSheet.create({
   createTextMuted: {
     color: Palette.blue,
   },
-});
+}));

@@ -5,7 +5,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensio
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { InterventionPhoto, PHOTO_CATEGORY_LABEL } from '@/services/documents/photos';
 
 type Props = {
@@ -77,7 +77,7 @@ export function PhotoGalleryModal({ visible, photos, onClose, onAddPhoto }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   flex: { flex: 1 },
   header: {
@@ -176,4 +176,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.1,
   },
-});
+}));

@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { ContratCard } from '@/components/documents/contrats/ContratCard';
 import { CONTRAT_STATUS_META, CONTRAT_STATUS_ORDER, Contrat, ContratStatus, MOCK_CONTRATS } from '@/data/documents/contrats';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 
 export default function ContratsScreen() {
   const router = useRouter();
@@ -101,7 +101,7 @@ export default function ContratsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -126,4 +126,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 6,
   },
-});
+}));

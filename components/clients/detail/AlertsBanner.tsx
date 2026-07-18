@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { TINT_COLORS, type Tint } from '@/components/clients/types';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { type AlertSeverity, type ClientAlert } from '@/services/client-details';
 import { PressableScale } from './primitives';
 
@@ -100,7 +100,7 @@ export function AlertsBanner({ alerts, onPressAlert }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   banner: {
     borderRadius: Radius.card,
     paddingHorizontal: Spacing.lg,
@@ -162,4 +162,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     marginTop: 2,
   },
-});
+}));

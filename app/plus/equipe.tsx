@@ -10,7 +10,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import {
   EMPLOYEE_ROLE_META,
   EMPLOYEE_ROLE_ORDER,
@@ -93,7 +93,7 @@ export default function EquipeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   subtitle: {
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 8,
   },
-});
+}));

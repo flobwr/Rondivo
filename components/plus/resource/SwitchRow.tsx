@@ -1,6 +1,6 @@
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 
 /** One labelled on/off row — Notifications, Relances automatiques, Sauvegarde, Signature. */
 export function SwitchRow({
@@ -31,7 +31,7 @@ export function SwitchRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
     opacity: 0.82,
   },
-});
+}));

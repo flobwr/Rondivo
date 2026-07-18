@@ -4,7 +4,7 @@ import { Animated as RNAnimated, Pressable, StyleSheet, Text, TextInput, View } 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { interpolate, LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatAmount } from '@/data/documents/date-utils';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
@@ -315,7 +315,7 @@ export function LineItemsEditor({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   lineCard: {
     backgroundColor: Palette.card,
     borderRadius: Radius.tile,
@@ -498,4 +498,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.4,
   },
-});
+}));

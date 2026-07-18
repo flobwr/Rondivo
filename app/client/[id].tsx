@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, ScreenFadeInDuration, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, ScreenFadeInDuration, Spacing } from '@/theme';
 import { type Client } from '@/components/clients/types';
 import { ActivityCard } from '@/components/clients/detail/ActivityCard';
 import { AlertsBanner } from '@/components/clients/detail/AlertsBanner';
@@ -241,7 +241,7 @@ export default function ClientDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -275,4 +275,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.section,
   },
-});
+}));

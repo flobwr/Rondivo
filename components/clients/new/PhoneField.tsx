@@ -5,7 +5,7 @@ import { formatWithMask, useMaskedInputProps } from 'react-native-mask-input';
 
 import { PressableScale } from '@/components/appointment/AppointmentUI';
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { CountryPickerSheet } from './CountryPickerSheet';
 import { buildPhoneMask, digitsOnly, getCountryOption, getPhonePlaceholder, type CountryCode } from './phone-utils';
 
@@ -99,7 +99,7 @@ export const PhoneField = forwardRef<TextInput, Props>(function PhoneField(
   );
 });
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 8,
@@ -124,4 +124,4 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.1,
   },
-});
+}));

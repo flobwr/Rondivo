@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 
 type Props = {
@@ -76,7 +76,7 @@ export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Pr
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   address: {
     fontSize: FontSize.body,
     fontWeight: '600',
@@ -129,4 +129,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

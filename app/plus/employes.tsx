@@ -12,7 +12,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { EntityCard } from '@/components/plus/resource/EntityCard';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { EMPLOYEE_STATUS_META, Employee, EmployeeStatus, listEmployees } from '@/services/plus/employees';
@@ -144,7 +144,7 @@ export default function EmployesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -170,4 +170,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 8,
   },
-});
+}));

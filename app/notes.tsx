@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale, IconTile } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { formatNoteDate, listNotes, Note } from '@/services/notes';
@@ -89,7 +89,7 @@ export default function NotesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -140,4 +140,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 2,
   },
-});
+}));

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { type Client } from '@/components/clients/types';
 import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 import { type ClientDetail } from '@/services/client-details';
 import { CardSeparator, PressableScale, SectionCard } from './primitives';
 
@@ -92,7 +92,7 @@ export function InformationsCard({ client, detail, onCall, onEmail }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -123,4 +123,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

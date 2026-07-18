@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { openMailto } from '@/data/documents/messaging';
 
@@ -128,7 +128,7 @@ export function MessageComposerModal({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 41, 0.38)' },
   sheet: {
@@ -230,4 +230,4 @@ const styles = StyleSheet.create({
     color: Palette.white,
     letterSpacing: -0.1,
   },
-});
+}));

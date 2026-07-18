@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 import {
   SORT_META,
@@ -199,7 +199,7 @@ export function ClientFilterSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -317,4 +317,4 @@ const styles = StyleSheet.create({
     color: Palette.white,
     letterSpacing: -0.2,
   },
-});
+}));

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { type NextAppointment } from '@/services/client-details';
 import { PressableScale, TintIcon } from './primitives';
 
@@ -38,7 +38,7 @@ export function NextAppointmentCard({ appointment, onOpen }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -80,4 +80,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

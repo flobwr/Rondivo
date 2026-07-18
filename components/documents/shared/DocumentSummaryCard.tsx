@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatAmount } from '@/data/documents/date-utils';
 import { IconTile } from './primitives';
 
@@ -59,7 +59,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -121,4 +121,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.3,
   },
-});
+}));

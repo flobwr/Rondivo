@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PLUS_ITEMS, PlusItemId } from '@/components/plus/registry';
-import { Palette } from '@/theme';
+import { createThemedStyles, Palette } from '@/theme';
 
 export default function PlusDetailScreen() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function PlusDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -34,4 +34,4 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-});
+}));

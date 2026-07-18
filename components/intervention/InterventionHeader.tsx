@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { PRIORITY_CONFIG } from './priority';
 import { Intervention, InterventionStatus } from './types';
 
@@ -127,7 +127,7 @@ export function InterventionHeader({ intervention, onBack, onMore }: Props) {
 
 const AVATAR = 26;
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   container: {},
   topRow: {
     flexDirection: 'row',
@@ -223,4 +223,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
-});
+}));

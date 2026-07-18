@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 import { SectionCard } from './SectionCard';
 import { Equipment } from './types';
 
@@ -36,7 +36,7 @@ export function EquipmentCard({ equipment }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
@@ -70,4 +70,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 2,
   },
-});
+}));

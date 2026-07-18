@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { DOCUMENT_TEMPLATES, TEMPLATE_STYLE_META, TEMPLATE_STYLE_ORDER, TemplateStyle, updateDocumentTemplate } from '@/data/plus/templates';
 
 const OPTIONS: SelectableOption<TemplateStyle>[] = TEMPLATE_STYLE_ORDER.map((style) => ({
@@ -41,7 +41,7 @@ export default function ModelesDevisScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -56,4 +56,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     lineHeight: 18,
   },
-});
+}));

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { cardShadow, Palette, Radius } from '@/theme';
+import { createThemedStyles, cardShadow, Palette, Radius } from '@/theme';
 import { Shimmer } from '@/components/ui/Shimmer';
 
 /** A single skeleton row that mirrors the minimalist {@link ClientCard}. */
@@ -31,7 +31,7 @@ export function ClientListSkeleton({ count = 7 }: { count?: number }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   list: {
     paddingTop: 2,
   },
@@ -73,4 +73,4 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-});
+}));

@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { iconButtonShadow, Palette } from '@/theme';
+import { createThemedStyles, iconButtonShadow, Palette } from '@/theme';
 
 type Action = {
   key: string;
@@ -64,7 +64,7 @@ export function QuickActionsBar({ onCall, onMessage, onNewIntervention, onNewQuo
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -80,4 +80,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...iconButtonShadow,
   },
-});
+}));

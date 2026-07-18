@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 
 export type LegalSection = { heading: string; body: string };
 
@@ -18,7 +18,7 @@ export function LegalSections({ sections }: { sections: LegalSection[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   section: {
     marginBottom: Spacing.lg,
   },
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     lineHeight: 20,
   },
-});
+}));

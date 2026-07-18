@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { NextActionBanner } from './NextActionBanner';
 import { IconTile, PressableScale } from './primitives';
@@ -84,7 +84,7 @@ export function CreationConfirmationSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 41, 0.38)' },
   sheet: {
@@ -150,4 +150,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
-});
+}));

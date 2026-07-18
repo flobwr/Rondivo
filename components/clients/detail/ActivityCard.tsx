@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS, type FeatherIconName, type Tint } from '@/components/clients/types';
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 import { type ActivityEntry, type ActivityKind } from '@/services/client-details';
 import { SectionCard } from './primitives';
 
@@ -61,7 +61,7 @@ export function ActivityCard({ activity, onSeeAll, limit = 4 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 12,
@@ -110,4 +110,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 3,
   },
-});
+}));

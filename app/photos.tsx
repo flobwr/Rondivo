@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { PhotoInterventionCard } from '@/components/documents/photos/PhotoInterventionCard';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
 
 export default function PhotosScreen() {
@@ -66,7 +66,7 @@ export default function PhotosScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -88,4 +88,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 8,
   },
-});
+}));

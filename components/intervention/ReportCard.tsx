@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 import { ReportItem } from './types';
 
@@ -128,7 +128,7 @@ export function ReportCard({ reportNote, hasVoiceNote, checklist, hasSignature, 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   progressRow: {
     marginBottom: 12,
   },
@@ -204,4 +204,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.1,
   },
-});
+}));

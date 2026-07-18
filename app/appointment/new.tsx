@@ -40,7 +40,7 @@ import {
   type Recurrence,
   type Reminder,
 } from '@/components/appointment/appointment-utils';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { listInterventionTemplates, type InterventionTemplate } from '@/services/intervention-templates';
@@ -465,7 +465,7 @@ export default function NewAppointmentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -720,4 +720,4 @@ const styles = StyleSheet.create({
   createTextMuted: {
     color: Palette.blue,
   },
-});
+}));

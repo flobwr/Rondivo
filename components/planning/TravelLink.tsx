@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/theme';
+import { createThemedStyles, Palette } from '@/theme';
 import { TravelLeg } from './types';
 
 type Props = {
@@ -72,7 +72,7 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
 
 export const TravelLink = memo(TravelLinkBase);
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   wrapper: {
     justifyContent: 'center',
     paddingVertical: 2,
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

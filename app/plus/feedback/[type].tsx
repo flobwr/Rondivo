@@ -7,7 +7,7 @@ import { FeatherIconName } from '@/components/documents/types';
 import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 
 type FeedbackType = 'contact' | 'bug' | 'suggestion';
 
@@ -69,11 +69,11 @@ export default function FeedbackScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
   },
-});
+}));

@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { type InterventionTemplate } from '@/services/intervention-templates';
 import { formatDuration } from './appointment-utils';
 import { PressableScale } from './AppointmentUI';
@@ -78,7 +78,7 @@ export function TemplatePicker({ templates, selectedId, onSelect, onSelectCustom
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -163,4 +163,4 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
-});
+}));

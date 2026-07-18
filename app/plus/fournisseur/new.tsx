@@ -8,7 +8,7 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createSupplier,
@@ -115,7 +115,7 @@ export default function NewFournisseurScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -144,4 +144,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen,
     paddingBottom: FOOTER_SPACE,
   },
-});
+}));

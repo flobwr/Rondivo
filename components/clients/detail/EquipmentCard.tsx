@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { type Equipment } from '@/services/client-details';
 import { PressableScale, SectionCard, TintIcon } from './primitives';
 
@@ -58,7 +58,7 @@ export function EquipmentCard({ equipment, onOpenEquipment, onSeeAll }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -107,4 +107,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Palette.textSecondary,
   },
-});
+}));

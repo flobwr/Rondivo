@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { FormInput } from '@/components/ui/FormInput';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { formatAddress, mockAddressProvider, type AddressProvider, type AddressSuggestion } from './address-provider';
 import { easeLayout } from './client-form-utils';
 
@@ -88,7 +88,7 @@ export const AddressField = forwardRef<TextInput, Props>(function AddressField(
   );
 });
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   suggestions: {
     marginTop: 7,
     backgroundColor: Palette.card,
@@ -123,4 +123,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 1,
   },
-});
+}));

@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncList } from '@/hooks/use-async-list';
 import {
   bucketOf,
@@ -130,7 +130,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -197,4 +197,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
-});
+}));

@@ -17,7 +17,7 @@ import { QuickActionsCard } from '@/components/intervention/QuickActionsCard';
 import { ReportCard } from '@/components/intervention/ReportCard';
 import { TimingCard } from '@/components/intervention/TimingCard';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { SegmentedTabs } from '@/components/ui/SegmentedTabs';
 import { useAsyncItem } from '@/hooks/use-async-item';
@@ -232,7 +232,7 @@ export default function InterventionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -248,4 +248,4 @@ const styles = StyleSheet.create({
   tabsWrap: {
     marginTop: Spacing.section,
   },
-});
+}));

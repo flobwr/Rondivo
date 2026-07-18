@@ -12,7 +12,7 @@ import { MessageComposerModal } from '@/components/documents/shared/MessageCompo
 import { NextActionBanner } from '@/components/documents/shared/NextActionBanner';
 import { IconTile, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { buildSendMessage } from '@/data/documents/messaging';
@@ -165,7 +165,7 @@ export default function ContratDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -196,4 +196,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
-});
+}));

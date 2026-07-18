@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
-import { cardShadow, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, iconButtonShadow, Palette, Radius, Spacing } from '@/theme';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { usePersistentState } from '@/hooks/use-persistent-state';
 import { SEARCH_TYPE_ICON, SEARCH_TYPE_LABEL, SearchResult, SearchResultType, searchAll } from '@/data/documents/search';
@@ -141,7 +141,7 @@ export default function DocumentsSearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   header: {
@@ -249,4 +249,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
   },
-});
+}));

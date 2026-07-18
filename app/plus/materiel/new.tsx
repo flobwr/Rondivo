@@ -9,7 +9,7 @@ import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { formatIsoToFr, parseFrDateToIso } from '@/components/plus/resource/date-input';
 import { PickerField, type PickerOption } from '@/components/plus/resource/PickerField';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import {
   createMateriel,
@@ -146,7 +146,7 @@ export default function NewMaterielScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -175,4 +175,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screen,
     paddingBottom: FOOTER_SPACE,
   },
-});
+}));

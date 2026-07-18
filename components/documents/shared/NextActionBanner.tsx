@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text } from 'react-native';
 
-import { actionShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, actionShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 
@@ -27,7 +27,7 @@ export function NextActionBanner({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -46,4 +46,4 @@ const styles = StyleSheet.create({
     color: Palette.white,
     letterSpacing: -0.1,
   },
-});
+}));

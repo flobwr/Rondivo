@@ -9,7 +9,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard, StatusPill } from '@/components/documents/shared/primitives';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { formatLongDate } from '@/data/documents/date-utils';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import {
@@ -114,7 +114,7 @@ export default function MaterielDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -150,4 +150,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     fontSize: 15,
   },
-});
+}));

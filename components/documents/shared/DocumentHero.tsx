@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale, StatusPill } from './primitives';
 
 export type HeroDateBlock = { label: string; value: string };
@@ -66,7 +66,7 @@ export function DocumentHero({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -135,4 +135,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     marginTop: 2,
   },
-});
+}));

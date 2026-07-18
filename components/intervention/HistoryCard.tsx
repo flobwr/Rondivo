@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { SectionCard } from './SectionCard';
 import { HistoryEntry } from './types';
 
@@ -59,7 +59,7 @@ export function HistoryCard({ history }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
@@ -108,4 +108,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     paddingVertical: 4,
   },
-});
+}));

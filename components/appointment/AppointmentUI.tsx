@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { PressableScale } from '@/components/ui/PressableScale';
 
 export { PressableScale } from '@/components/ui/PressableScale';
@@ -138,7 +138,7 @@ export function ChipScroll({ children }: { children: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   field: {
     marginTop: 17,
   },
@@ -212,4 +212,4 @@ const styles = StyleSheet.create({
     color: Palette.orange,
     letterSpacing: -0.1,
   },
-});
+}));

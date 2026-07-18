@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { PHOTO_INTERVENTIONS, PhotoIntervention } from '@/data/documents/photos';
@@ -96,7 +96,7 @@ export function InterventionPickerSheet({ visible, onClose, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 41, 0.38)' },
   sheet: {
@@ -177,4 +177,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 2,
   },
-});
+}));

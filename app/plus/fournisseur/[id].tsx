@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { IconTile, KeyValueRow, SectionCard } from '@/components/documents/shared/primitives';
 import { QuickActionsRow, type QuickAction } from '@/components/documents/shared/QuickActionsRow';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { deleteSupplier, getSupplier, SUPPLIER_CATEGORY_LABEL } from '@/services/plus/suppliers';
 
@@ -105,7 +105,7 @@ export default function FournisseurDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -141,4 +141,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     fontSize: 15,
   },
-});
+}));

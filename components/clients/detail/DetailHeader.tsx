@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from './primitives';
-import { FontSize, iconButtonShadow, Palette } from '@/theme';
+import { createThemedStyles, FontSize, iconButtonShadow, Palette } from '@/theme';
 
 type Props = {
   onBack: () => void;
@@ -37,7 +37,7 @@ export function DetailHeader({ onBack, onEdit, onMenu }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     position: 'relative',
     flexDirection: 'row',
@@ -81,4 +81,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...iconButtonShadow,
   },
-});
+}));

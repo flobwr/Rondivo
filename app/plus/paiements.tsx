@@ -7,7 +7,7 @@ import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { PAYMENT_METHOD_OPTIONS, SETTINGS, updateSettings } from '@/data/plus/settings';
 
 const OPTIONS: SelectableOption<string>[] = PAYMENT_METHOD_OPTIONS.map((method) => ({ key: method, label: method }));
@@ -50,7 +50,7 @@ export default function PaiementsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -65,4 +65,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     lineHeight: 18,
   },
-});
+}));

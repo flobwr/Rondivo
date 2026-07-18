@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { formatPhoneDisplay } from '@/components/clients/new/phone-utils';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 import { type ContactPerson } from '@/services/client-details';
 import { PressableScale, SectionCard } from './primitives';
 
@@ -61,7 +61,7 @@ export function ContactsCard({ contacts, onAddContact, onCallContact }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

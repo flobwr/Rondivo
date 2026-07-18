@@ -12,7 +12,7 @@ import { ErrorState } from '@/components/planning/ErrorState';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { Palette, ScreenFadeInDuration } from '@/theme';
+import { createThemedStyles, Palette, ScreenFadeInDuration } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -121,7 +121,7 @@ export default function PlanningScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.screen,
@@ -135,4 +135,4 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-});
+}));

@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { Alert, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PhotoSourceSheet } from '@/components/documents/photos/PhotoSourceSheet';
-import { Palette } from '@/theme';
+import { createThemedStyles, Palette } from '@/theme';
 import { InterventionPhoto } from '@/services/documents/photos';
 import { pickFromCamera, pickFromLibrary } from '@/utils/photo-picker';
 import { PhotoGalleryModal } from './PhotoGalleryModal';
@@ -132,7 +132,7 @@ export function PhotosCard({ photos, onAddPhoto }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   seeAll: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,4 +177,4 @@ const styles = StyleSheet.create({
     borderColor: Palette.border,
     backgroundColor: 'transparent',
   },
-});
+}));

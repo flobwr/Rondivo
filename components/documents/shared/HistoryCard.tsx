@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/theme';
+import { createThemedStyles, Palette } from '@/theme';
 import { FeatherIconName } from '../types';
 import { IconTile, SectionCard } from './primitives';
 
@@ -32,7 +32,7 @@ export function HistoryCard({ entries }: { entries: HistoryEntry[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 10,
@@ -64,4 +64,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     marginTop: 1,
   },
-});
+}));

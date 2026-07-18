@@ -14,7 +14,7 @@ import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips'
 import { FadeInItem, IconTile, PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { IMPORT_TYPE_META, ImportFileType, ImportedFile, MOCK_IMPORTS, formatFileSize } from '@/data/documents/imports';
 import { PhotoIntervention } from '@/data/documents/photos';
@@ -249,7 +249,7 @@ export default function DocumentsImportesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -418,4 +418,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-});
+}));

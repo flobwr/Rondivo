@@ -85,9 +85,12 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
                 accessibilityLabel={tab.label}
                 accessibilityState={{ selected: active }}
                 hitSlop={6}
-                style={[
+                style={({ pressed }) => [
                   styles.tab,
                   active && [styles.tabActive, { backgroundColor: palette.blue }],
+                  // Inactive glyphs dim under the finger — the only press
+                  // feedback the dock needs, no scale, no ripple.
+                  pressed && !active && styles.tabPressed,
                 ]}>
                 <Feather
                   name={tab.icon}
@@ -138,6 +141,9 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     paddingHorizontal: Spacing.lg,
+  },
+  tabPressed: {
+    opacity: 0.55,
   },
   label: {
     fontSize: 13,

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
 import { daysSince, formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { FACTURE_STATUS_META, Facture, PAYMENT_METHOD_LABEL } from '@/data/documents/factures';
@@ -39,7 +39,7 @@ export function FactureCard({ facture, onPress }: { facture: Facture; onPress: (
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -87,4 +87,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     marginTop: 5,
   },
-});
+}));

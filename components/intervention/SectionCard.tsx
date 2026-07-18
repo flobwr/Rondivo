@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 type Props = {
   icon?: React.ComponentProps<typeof Feather>['name'];
@@ -36,7 +36,7 @@ export function SectionCard({ icon, iconColor, iconBackground, title, right, chi
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -69,4 +69,4 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
-});
+}));

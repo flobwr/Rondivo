@@ -17,7 +17,7 @@ import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { DevisCard } from '@/components/documents/devis/DevisCard';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { DEVIS_STATUS_META, DEVIS_STATUS_ORDER, Devis, DevisStatus, listDevis } from '@/services/documents/devis';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'validity';
 
@@ -168,7 +168,7 @@ export default function DevisListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -209,4 +209,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 6,
   },
-});
+}));

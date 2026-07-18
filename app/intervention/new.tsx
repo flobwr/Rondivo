@@ -9,7 +9,7 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { PRIORITY_CONFIG } from '@/components/intervention/priority';
 import { Priority } from '@/components/intervention/types';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getIntervention, updateIntervention } from '@/services/interventions';
 
@@ -118,7 +118,7 @@ export default function EditInterventionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -127,4 +127,4 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.section + FOOTER_SPACE,
   },
-});
+}));

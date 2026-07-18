@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette } from '@/theme';
+import { createThemedStyles, FontSize, Palette } from '@/theme';
 import { IconTile, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
 import { PAYMENT_METHOD_LABEL, Payment } from '@/data/documents/factures';
@@ -45,7 +45,7 @@ export function PaymentsCard({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   empty: {
     fontSize: FontSize.small,
     fontWeight: '400',
@@ -94,4 +94,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

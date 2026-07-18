@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { Children, ReactNode, useState } from 'react';
 import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { IconTile, PressableScale } from './primitives';
 
@@ -100,7 +100,7 @@ export function FormSubmitButton({ label, onPress }: { label: string; onPress: (
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   section: {
     marginTop: Spacing.section,
   },
@@ -192,4 +192,4 @@ const styles = StyleSheet.create({
     color: Palette.white,
     letterSpacing: -0.1,
   },
-});
+}));

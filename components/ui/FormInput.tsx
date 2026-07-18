@@ -3,7 +3,7 @@ import { forwardRef, useRef } from 'react';
 import { Animated, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
 
 type FormInputProps = Omit<TextInputProps, 'style' | 'placeholderTextColor'> & {
   icon?: FeatherIconName;
@@ -64,7 +64,7 @@ export const FormInput = forwardRef<TextInput, FormInputProps>(function FormInpu
   );
 });
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   box: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -100,4 +100,4 @@ const styles = StyleSheet.create({
     minHeight: 44,
     textAlignVertical: 'top',
   },
-});
+}));

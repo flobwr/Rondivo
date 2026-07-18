@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { PressableScale } from './PressableScale';
 
 export type SegmentedTab<T extends string> = {
@@ -43,7 +43,7 @@ export function SegmentedTabs<T extends string>({ tabs, active, onChange }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   wrapper: {
     position: 'relative',
   },
@@ -83,4 +83,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
   },
-});
+}));

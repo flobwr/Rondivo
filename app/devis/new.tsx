@@ -22,7 +22,7 @@ import { MessageComposerModal } from '@/components/documents/shared/MessageCompo
 import { IconTile } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Radius, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { formatAmount, formatShortDate } from '@/data/documents/date-utils';
@@ -370,7 +370,7 @@ export default function NewDevisScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -435,4 +435,4 @@ const styles = StyleSheet.create({
   summarySection: {
     marginTop: Spacing.section,
   },
-});
+}));

@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { type Client } from '@/components/clients/types';
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { queryClients } from '@/services/clients';
 import { PressableScale } from './AppointmentUI';
 
@@ -105,7 +105,7 @@ export function ClientPickerSheet({ visible, onClose, onSelect, selectedId }: Pr
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 41, 0.38)' },
   sheet: {
@@ -181,4 +181,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     marginTop: 2,
   },
-});
+}));

@@ -4,7 +4,7 @@ import { Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/appointment/AppointmentUI';
-import { FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { COUNTRY_OPTIONS, type CountryCode } from './phone-utils';
 
 type Props = {
@@ -92,7 +92,7 @@ export function CountryPickerSheet({ visible, onClose, onSelect, selected }: Pro
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 23, 41, 0.38)' },
   sheet: {
@@ -170,4 +170,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.textTertiary,
   },
-});
+}));

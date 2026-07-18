@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
+import { BusinessPulse } from '@/components/home/BusinessPulse';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { NextInterventionCard } from '@/components/home/NextInterventionCard';
 import { QuickActionsRow } from '@/components/home/QuickActionsRow';
@@ -20,6 +21,8 @@ import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useTheme } from '@/contexts/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { devisSummary, type DevisSummary } from '@/services/documents/devis';
+import { factureSummary, type FactureSummary } from '@/services/documents/factures';
 import { HomeSchedule, getHomeSchedule } from '@/services/home-schedule';
 import { getIntervention } from '@/services/interventions';
 import { getUnreadNotificationCount } from '@/services/notifications';
@@ -34,15 +37,19 @@ type HomeBundle = {
   unreadCount: number;
   reminders: ReminderSummary;
   nextIntervention?: Intervention;
+  factures: FactureSummary;
+  devis: DevisSummary;
 };
 
 async function fetchHomeBundle(): Promise<HomeBundle> {
   const schedule = await getHomeSchedule();
-  const [account, unreadCount, reminders, nextIntervention] = await Promise.all([
+  const [account, unreadCount, reminders, nextIntervention, factures, devis] = await Promise.all([
     getAccount(),
     getUnreadNotificationCount(),
     getReminderSummary(),
     schedule.hasNextIntervention ? getIntervention(schedule.nextInterventionId) : Promise.resolve(undefined),
+    factureSummary(),
+    devisSummary(),
   ]);
 
   return {
@@ -52,6 +59,8 @@ async function fetchHomeBundle(): Promise<HomeBundle> {
     unreadCount,
     reminders,
     nextIntervention,
+    factures,
+    devis,
   };
 }
 
@@ -94,6 +103,11 @@ function HomeSkeleton() {
       <SkeletonBlock height={20} radius={8} style={{ marginTop: Spacing.section, marginBottom: 14, width: '52%' }} />
       <SkeletonBlock height={88} radius={20} />
       <SkeletonBlock height={88} radius={20} style={{ marginTop: 10 }} />
+
+      <View style={skStyles.pulseRow}>
+        <SkeletonBlock height={86} radius={20} style={{ flex: 1 }} />
+        <SkeletonBlock height={86} radius={20} style={{ flex: 1 }} />
+      </View>
     </>
   );
 }
@@ -109,6 +123,11 @@ const skStyles = StyleSheet.create({
     gap: 10,
   },
   quickRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: Spacing.section,
+  },
+  pulseRow: {
     flexDirection: 'row',
     gap: 10,
     marginTop: Spacing.section,
@@ -193,6 +212,15 @@ export default function HomeScreen() {
                     <Text style={styles.emptyDayText}>C’est tout pour aujourd’hui</Text>
                   </View>
                 )}
+              </Animated.View>
+
+              <Animated.View entering={enter(5)} style={styles.section}>
+                <SectionTitle
+                  title="Activité"
+                  meta="Documents"
+                  onMetaPress={() => router.push('/documents')}
+                />
+                <BusinessPulse factures={home.factures} devis={home.devis} />
               </Animated.View>
             </>
           )}

@@ -54,7 +54,36 @@ Import unique : `import { … } from '@/components/ui'`.
 | `EmptyState` | Un seul état vide/erreur : médaillon lavé, deux lignes, une action max ; ton `error` en lavis rouge. |
 | `SegmentedTabs`, `Shimmer`/`SkeletonBlock`, `PressableScale` | Segments, squelettes ambiants, feedback de pression canonique (scale + haptique légère). |
 
-## 4. Anciens composants → shims
+## 4. Thèmes — les cinq papiers
+
+Un thème change le PAPIER, jamais le système : mêmes grilles, mêmes
+rayons, mêmes ombres, même encre bleue. Seules les surfaces, les gris
+et le chrome bougent. Réglage dans Plus ▸ Apparence (sous Clair /
+Sombre / Automatique).
+
+| Thème | Papier |
+|---|---|
+| **Atelier** (défaut) | Crème légèrement chaud — l'original. |
+| **Neige** | Blanc pur, gris quasi neutres — le plus minimal. |
+| **Ardoise** | Gris ardoise moderne, un ton plus technique. |
+| **Sable** | Papier chaud premium, un rayon de soleil au-dessus d'Atelier. |
+| **Nuit** | Papier de nuit (la palette sombre). |
+
+Mécanique :
+
+- `theme/palette.ts` expose `THEMES` (registre) et **`Palette`, l'objet
+  ACTIF muté sur place** par le `ThemeProvider` (`setActivePalette`).
+- Les écrans qui lisent `Palette.x` au rendu suivent le thème
+  automatiquement ; les feuilles de style de portée module passent par
+  `createThemedStyles(() => StyleSheet.create({ … }))` (`theme/themed.ts`),
+  qui ré-évalue la feuille après chaque changement de thème.
+- Résolution : Clair/Sombre/Auto décide d'abord de la luminosité ; tout
+  résultat sombre atterrit sur Nuit ; en clair, le papier choisi
+  s'applique — et choisir Nuit comme papier, c'est choisir le sombre.
+- Les quatre papiers clairs partagent les duotones de statut et le Bleu
+  Rondivo : changer de thème ne ré-apprend jamais l'interface.
+
+## 5. Anciens composants → shims
 
 Les composants historiques (`DetailHeader`, `SearchBar`, `EmptyState`
 des Documents, `ClientHeader`, `ClientSearch`, `ClientFilterChips`,
@@ -63,7 +92,7 @@ des Documents, `ClientHeader`, `ClientSearch`, `ClientFilterChips`,
 rendent les composants du DS — tout l'existant est restylé d'un coup,
 et les nouveaux écrans importent `@/components/ui` directement.
 
-## 5. Interdits
+## 6. Interdits
 
 - Couleur hex hors de `theme/palette.ts` (seule exception : le noir du
   lightbox photo).

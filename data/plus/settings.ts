@@ -2,6 +2,7 @@
 
 export type VatRate = 0 | 5.5 | 10 | 20;
 export type Appearance = 'clair' | 'sombre' | 'auto';
+export type ThemeChoice = 'atelier' | 'neige' | 'ardoise' | 'sable' | 'nuit';
 export type Language = 'fr' | 'en';
 
 export type Settings = {
@@ -29,6 +30,7 @@ export type Settings = {
   autoBackupEnabled: boolean;
 
   appearance: Appearance;
+  theme: ThemeChoice;
   language: Language;
 };
 
@@ -61,6 +63,7 @@ export const SETTINGS: Settings = {
   autoBackupEnabled: true,
 
   appearance: 'clair',
+  theme: 'atelier',
   language: 'fr',
 };
 

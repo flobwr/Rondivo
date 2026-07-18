@@ -15,7 +15,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FactureCard } from '@/components/documents/factures/FactureCard';
 import { FACTURE_STATUS_META, FACTURE_STATUS_ORDER, Facture, FactureStatus, MOCK_FACTURES } from '@/data/documents/factures';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'due';
 
@@ -156,7 +156,7 @@ export default function FacturesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -197,4 +197,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 6,
   },
-});
+}));

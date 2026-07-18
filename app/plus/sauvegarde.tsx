@@ -9,7 +9,7 @@ import { BottomDock } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { COMPANY, updateCompany } from '@/data/plus/company';
 import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
@@ -62,7 +62,7 @@ export default function SauvegardeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -89,4 +89,4 @@ const styles = StyleSheet.create({
     color: Palette.blue,
     letterSpacing: -0.1,
   },
-});
+}));

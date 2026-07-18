@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { PressableScale } from '@/components/documents/shared/primitives';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { createNote, deleteNote, getNote, updateNote } from '@/services/notes';
 
@@ -97,7 +97,7 @@ export default function NewNoteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   flex: { flex: 1 },
@@ -137,4 +137,4 @@ const styles = StyleSheet.create({
     color: Palette.danger,
     letterSpacing: -0.1,
   },
-});
+}));

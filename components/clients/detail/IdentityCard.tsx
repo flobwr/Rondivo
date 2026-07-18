@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ClientAvatar } from '@/components/clients/ClientAvatar';
 import { ClientStatusBadge } from '@/components/clients/ClientStatusBadge';
 import { type Client } from '@/components/clients/types';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from './primitives';
 
 type Props = {
@@ -42,7 +42,7 @@ export function IdentityCard({ client, onAddress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -78,4 +78,4 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     letterSpacing: -0.1,
   },
-});
+}));

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { PressableScale } from './primitives';
 
 type Props = {
@@ -54,7 +54,7 @@ export function NotesPreviewCard({ notes, onSeeMore }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.orangeSoft,
     borderRadius: Radius.card,
@@ -119,4 +119,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Palette.textSecondary,
   },
-});
+}));

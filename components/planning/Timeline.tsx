@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/theme';
+import { createThemedStyles, Palette } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
 import { STATUS_META, formatTime } from './status';
@@ -279,7 +279,7 @@ export function Timeline({ items, nowMin }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   listContent: {
     paddingHorizontal: LIST_PADDING_H,
     paddingTop: 32,
@@ -431,4 +431,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     fontVariant: ['tabular-nums'],
   },
-});
+}));

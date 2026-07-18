@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { actionShadow, Palette } from '@/theme';
+import { createThemedStyles, actionShadow, Palette } from '@/theme';
 import { STATUS_META } from './status';
 import { Intervention } from './types';
 
@@ -136,7 +136,7 @@ const activeShadow = {
   boxShadow: '0 2px 6px rgba(36, 71, 207, 0.10), 0 12px 28px rgba(36, 71, 207, 0.14)',
 };
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: Palette.card,
@@ -244,4 +244,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
-});
+}));

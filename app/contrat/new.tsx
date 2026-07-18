@@ -11,7 +11,7 @@ import { FormField, FormSection } from '@/components/documents/shared/FormScaffo
 import { MessageComposerModal } from '@/components/documents/shared/MessageComposerModal';
 import { FOOTER_SPACE, StickyFormFooter } from '@/components/documents/shared/StickyFormFooter';
 import { formatIsoToFr, parseFrDateToIso, todayIso } from '@/components/plus/resource/date-input';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { getClientById } from '@/data/clients';
 import { buildSendMessage } from '@/data/documents/messaging';
 import { generateDocumentPdf, shareDocumentPdf } from '@/data/documents/pdf';
@@ -193,11 +193,11 @@ export default function NewContratScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section + FOOTER_SPACE,
   },
-});
+}));

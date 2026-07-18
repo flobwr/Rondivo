@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FormSection, FormField, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { Company, getCompany, updateCompany } from '@/services/plus/company';
 import { listEmployees } from '@/services/plus/employees';
@@ -120,7 +120,7 @@ export default function EntrepriseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
@@ -145,4 +145,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
     opacity: 0.82,
   },
-});
+}));

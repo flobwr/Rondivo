@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { SectionCard } from './SectionCard';
 
 type Props = {
@@ -38,7 +38,7 @@ export function TimingCard({ startTime, endTime, duration }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -78,4 +78,4 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     lineHeight: 15,
   },
-});
+}));

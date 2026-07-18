@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { FeatherIconName } from '@/components/documents/types';
 import { IconTile, PressableScale, StatusPill } from '@/components/documents/shared/primitives';
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 
 const TILE = 38;
 
@@ -77,7 +77,7 @@ export function EntityCard({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,4 +131,4 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginLeft: 2,
   },
-});
+}));

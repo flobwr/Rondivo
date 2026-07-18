@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { Animated, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing, StaggerRowCap, StaggerRowDelay } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing, StaggerRowCap, StaggerRowDelay } from '@/theme';
 import { FeatherIconName } from '../types';
 import { DocumentsTone } from '../palette';
 
@@ -150,7 +150,7 @@ export function FadeInItem({ index = 0, children }: { index?: number; children: 
   return <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>{children}</Animated.View>;
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   iconTile: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -224,4 +224,4 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: Palette.border,
   },
-});
+}));

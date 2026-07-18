@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { TINT_COLORS } from '@/components/clients/types';
 import { IconTile, PressableScale } from '@/components/documents/shared/primitives';
-import { FontSize, Palette, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Spacing } from '@/theme';
 import { NotificationItem } from '@/data/notifications';
 
 type Props = {
@@ -39,7 +39,7 @@ export function NotificationRow({ notification, onPress, onDelete }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -88,4 +88,4 @@ const styles = StyleSheet.create({
     marginTop: -6,
     marginRight: -6,
   },
-});
+}));

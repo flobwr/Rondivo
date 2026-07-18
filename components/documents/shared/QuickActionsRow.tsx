@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { iconButtonShadow, Palette } from '@/theme';
+import { createThemedStyles, iconButtonShadow, Palette } from '@/theme';
 import { FeatherIconName } from '../types';
 import { PressableScale } from './primitives';
 
@@ -42,7 +42,7 @@ export function QuickActionsRow({ actions }: { actions: QuickAction[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -70,4 +70,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     textAlign: 'center',
   },
-});
+}));

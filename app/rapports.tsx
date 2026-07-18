@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { RapportCard } from '@/components/documents/rapports/RapportCard';
 import { RAPPORT_STATUS_META, RAPPORT_STATUS_ORDER, Rapport, RapportStatus, MOCK_RAPPORTS } from '@/data/documents/rapports';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 
 export default function RapportsScreen() {
   const router = useRouter();
@@ -103,7 +103,7 @@ export default function RapportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   searchWrap: {
@@ -128,4 +128,4 @@ const styles = StyleSheet.create({
   separator: {
     height: 6,
   },
-});
+}));

@@ -16,6 +16,8 @@
  *      one-handed, outdoors, at noon.
  */
 
+import { bumpThemeGeneration } from './themed';
+
 export const LightPalette = {
   // ——— Surfaces ———
   screen: '#F4F3F0', // the paper — calm, faintly warm, never white
@@ -140,12 +142,146 @@ export const DarkPalette: PaletteShape = {
   pillBlueBg: '#222941',
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Papers — the five Rondivo themes.
+//
+// A theme changes the PAPER, never the system: same grid, same radii, same
+// shadows, same single ink. Only the surfaces, the greys and the chrome move.
+// The four light papers share every status duotone and the signature blue, so
+// switching theme never re-teaches the interface.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Neige — pure white, the most minimal paper. Cool, near-neutral greys. */
+export const NeigePalette: PaletteShape = {
+  ...LightPalette,
+  screen: '#FFFFFF',
+  card: '#FFFFFF',
+  cardMuted: '#F6F6F8',
+  float: '#FFFFFF',
+  inset: '#F1F1F4',
+  insetDeep: '#E4E4E9',
+
+  textPrimary: '#161719',
+  textSecondary: '#54565C',
+  textTertiary: '#6D7077',
+
+  blueSoft: '#EAEEFB',
+  blueTint: '#F2F4FD',
+  blueBorder: '#C6CFF3',
+
+  dock: '#F2F2F5',
+  iconButtonBg: '#F1F1F4',
+  border: '#ECECEF',
+  separator: 'rgba(22, 23, 25, 0.06)',
+  shadow: '#101114',
+  pillBlueBg: '#EAEEFB',
+};
+
+/** Ardoise — modern slate grey, cooler and a touch more technical. */
+export const ArdoisePalette: PaletteShape = {
+  ...LightPalette,
+  screen: '#EEEFF2',
+  card: '#FBFBFC',
+  cardMuted: '#F4F5F7',
+  float: '#FFFFFF',
+  inset: '#E4E5E9',
+  insetDeep: '#D6D8DE',
+
+  textPrimary: '#17191C',
+  textSecondary: '#52565F',
+  textTertiary: '#6A6E77',
+
+  blueSoft: '#E7EBFA',
+  blueTint: '#EFF2FC',
+  blueBorder: '#C2CCF1',
+
+  dock: '#E4E5E9',
+  iconButtonBg: '#E7E8EC',
+  border: '#E1E3E7',
+  separator: 'rgba(23, 25, 28, 0.07)',
+  shadow: '#0F1115',
+  pillBlueBg: '#E7EBFA',
+};
+
+/** Sable — warm premium paper, one sunbeam warmer than Atelier. */
+export const SablePalette: PaletteShape = {
+  ...LightPalette,
+  screen: '#F4EFE5',
+  card: '#FDFBF6',
+  cardMuted: '#F7F3EA',
+  float: '#FFFFFF',
+  inset: '#EBE3D3',
+  insetDeep: '#DFD5C0',
+
+  textPrimary: '#221D14',
+  textSecondary: '#5C5546',
+  textTertiary: '#716A59',
+
+  dock: '#EBE3D3',
+  iconButtonBg: '#EDE6D8',
+  border: '#E9E1D0',
+  separator: 'rgba(34, 29, 20, 0.08)',
+  shadow: '#191408',
+};
+
+export type ThemeName = 'atelier' | 'neige' | 'ardoise' | 'sable' | 'nuit';
+
+export const THEME_ORDER: ThemeName[] = ['atelier', 'neige', 'ardoise', 'sable', 'nuit'];
+
+export const THEMES: Record<
+  ThemeName,
+  { label: string; tagline: string; scheme: 'light' | 'dark'; palette: PaletteShape }
+> = {
+  atelier: {
+    label: 'Atelier',
+    tagline: 'Papier crème, l’original',
+    scheme: 'light',
+    palette: LightPalette,
+  },
+  neige: {
+    label: 'Neige',
+    tagline: 'Blanc pur, minimal',
+    scheme: 'light',
+    palette: NeigePalette,
+  },
+  ardoise: {
+    label: 'Ardoise',
+    tagline: 'Gris moderne',
+    scheme: 'light',
+    palette: ArdoisePalette,
+  },
+  sable: {
+    label: 'Sable',
+    tagline: 'Papier chaud',
+    scheme: 'light',
+    palette: SablePalette,
+  },
+  nuit: {
+    label: 'Nuit',
+    tagline: 'Papier de nuit',
+    scheme: 'dark',
+    palette: DarkPalette,
+  },
+};
+
 export function getPalette(scheme: 'light' | 'dark'): PaletteShape {
   return scheme === 'dark' ? DarkPalette : LightPalette;
 }
 
-/** Static light palette — screens that haven't opted into dark mode. */
-export const Palette = LightPalette;
+/**
+ * The ACTIVE palette — a live object, mutated in place when the theme
+ * changes. Screens that read `Palette.x` at render time follow the theme
+ * automatically; module-scope styles follow through `createThemedStyles`
+ * (see `theme/themed.ts`). Starts on Atelier, the default paper.
+ */
+export const Palette: PaletteShape = { ...LightPalette };
+
+/** Swap the active paper. Called by the ThemeProvider only. */
+export function setActivePalette(next: PaletteShape) {
+  Object.assign(Palette, next);
+  Object.assign(StatusInk, getStatusInk(next));
+  bumpThemeGeneration();
+}
 
 /**
  * The one place to look up an accent's TEXT-safe colour. The vivid accents

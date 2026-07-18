@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { type Tint } from '@/components/clients/types';
-import { cardShadow, FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius } from '@/theme';
 import {
   DOCUMENT_CATEGORIES,
   formatEuroShort,
@@ -367,7 +367,7 @@ export function NotesSection({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   stack: {
     gap: DETAIL_GAP,
   },
@@ -522,4 +522,4 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
   },
-});
+}));

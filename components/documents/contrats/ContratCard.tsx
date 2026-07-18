@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { DocumentsTone } from '@/components/documents/palette';
 import { PressableScale, StatusPill } from '@/components/documents/shared/primitives';
 import { daysSince, formatShortDate } from '@/data/documents/date-utils';
@@ -42,7 +42,7 @@ export function ContratCard({ contrat, onPress }: { contrat: Contrat; onPress: (
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
@@ -83,4 +83,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
     marginTop: 5,
   },
-});
+}));

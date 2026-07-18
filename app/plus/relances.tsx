@@ -8,7 +8,7 @@ import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
-import { Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing } from '@/theme';
 import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function RelancesScreen() {
@@ -63,11 +63,11 @@ export default function RelancesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.screen },
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
     paddingBottom: Spacing.section,
   },
-});
+}));
