@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Animated as RNAnimated, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Reanimated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Reanimated, { interpolate, LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
 import { formatAmount } from '@/data/documents/date-utils';
@@ -105,12 +105,17 @@ function LineRow({
       translateY.value = withTiming(0, { duration: SETTLE_DURATION });
     });
 
-  const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value + lift.value }, { scale: scale.value }],
-    zIndex: isActive.value ? 10 : 0,
-    elevation: isActive.value ? 5 : 3,
-    shadowOpacity: isActive.value ? 0.14 : 0.07,
-  }));
+  // The lift's shadow rides the same timing as the scale: the DS two-layer
+  // boxShadow deepens from the resting card level toward the float level as
+  // the row engages — no legacy elevation/shadowOpacity props.
+  const cardAnimatedStyle = useAnimatedStyle(() => {
+    const p = interpolate(scale.value, [1, ACTIVE_SCALE], [0, 1]);
+    return {
+      transform: [{ translateY: translateY.value + lift.value }, { scale: scale.value }],
+      zIndex: isActive.value ? 10 : 0,
+      boxShadow: `0 ${1 + 4 * p}px ${2 + 8 * p}px rgba(20, 18, 16, ${0.03 + 0.04 * p}), 0 ${6 + 10 * p}px ${20 + 16 * p}px rgba(20, 18, 16, ${0.05 + 0.08 * p})`,
+    };
+  });
 
   return (
     <Reanimated.View style={[styles.lineCard, cardAnimatedStyle]} layout={LinearTransition.duration(220)}>
