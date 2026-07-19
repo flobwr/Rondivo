@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { getSettings, updateSettings, type Appearance } from '@/services/plus/settings';
+import { getSettings, updateSettings, type ThemeChoice } from '@/services/plus/settings';
 import {
-  DarkPalette,
   LightPalette,
+  MidnightPalette,
   THEMES,
   getStatusInk,
   setActivePalette,
@@ -13,13 +13,10 @@ import {
 } from '@/theme';
 
 type ThemeContextValue = {
-  /** Clair / Sombre / Auto — the luminosity switch. */
-  appearance: Appearance;
-  setAppearance: (value: Appearance) => void;
-  /** The chosen paper (Plus ▸ Apparence ▸ Thème). */
-  theme: ThemeName;
-  setTheme: (value: ThemeName) => void;
-  /** The paper actually on screen — `nuit` whenever the scheme is dark. */
+  /** The raw setting — a paper name, or `auto` to follow the system. */
+  theme: ThemeChoice;
+  setTheme: (value: ThemeChoice) => void;
+  /** `theme` resolved to an actual paper — `auto` becomes Atelier or Midnight. */
   resolvedTheme: ThemeName;
   scheme: 'light' | 'dark';
   palette: PaletteShape;
@@ -29,47 +26,29 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 /**
- * Resolves Apparence (Clair/Sombre/Auto) × Thème (Atelier/Neige/Ardoise/
- * Sable/Nuit) to the active palette and pushes it into the live `Palette`
- * object, so every screen — themed-hook consumers AND `createThemedStyles`
- * call sites — follows the same paper.
+ * Resolves the Thème setting (Plus ▸ Apparence) to an actual paper and
+ * pushes it into the live `Palette` object, so every screen — themed-hook
+ * consumers AND `createThemedStyles` call sites — follows the same paper.
  *
- * Resolution: the luminosity switch decides light/dark first; any dark
- * result lands on Nuit. In the light, the chosen paper applies — and
- * choosing Nuit as the paper IS choosing the dark scheme.
+ * `auto` isn't its own palette: it watches the OS light/dark switch and
+ * resolves to Atelier or Midnight, exactly like choosing either directly.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [appearance, setAppearanceState] = useState<Appearance>('clair');
-  const [theme, setThemeState] = useState<ThemeName>('atelier');
+  const [theme, setThemeState] = useState<ThemeChoice>('atelier');
 
   useEffect(() => {
-    getSettings().then((settings) => {
-      setAppearanceState(settings.appearance);
-      setThemeState(settings.theme);
-    });
+    getSettings().then((settings) => setThemeState(settings.theme));
   }, []);
 
-  const setAppearance = (value: Appearance) => {
-    setAppearanceState(value);
-    updateSettings({ appearance: value });
-  };
-
-  const setTheme = (value: ThemeName) => {
+  const setTheme = (value: ThemeChoice) => {
     setThemeState(value);
     updateSettings({ theme: value });
   };
 
-  const baseScheme: 'light' | 'dark' =
-    appearance === 'sombre'
-      ? 'dark'
-      : appearance === 'clair'
-        ? 'light'
-        : systemScheme === 'dark'
-          ? 'dark'
-          : 'light';
+  const resolvedTheme: ThemeName =
+    theme === 'auto' ? (systemScheme === 'dark' ? 'midnight' : 'atelier') : theme;
 
-  const resolvedTheme: ThemeName = baseScheme === 'dark' ? 'nuit' : theme;
   const scheme = THEMES[resolvedTheme].scheme;
   const palette = THEMES[resolvedTheme].palette;
 
@@ -83,17 +62,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const statusInk = useMemo(() => getStatusInk(palette), [palette]);
 
   const value = useMemo(
-    () => ({
-      appearance,
-      setAppearance,
-      theme,
-      setTheme,
-      resolvedTheme,
-      scheme,
-      palette,
-      statusInk,
-    }),
-    [appearance, theme, resolvedTheme, scheme, palette, statusInk]
+    () => ({ theme, setTheme, resolvedTheme, scheme, palette, statusInk }),
+    [theme, resolvedTheme, scheme, palette, statusInk]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -105,8 +75,6 @@ export function useTheme(): ThemeContextValue {
     // Screens outside the ThemeProvider tree (shouldn't happen once mounted
     // at the app root) still get a valid, default-paper value.
     return {
-      appearance: 'clair',
-      setAppearance: () => {},
       theme: 'atelier',
       setTheme: () => {},
       resolvedTheme: 'atelier',
@@ -118,4 +86,4 @@ export function useTheme(): ThemeContextValue {
   return ctx;
 }
 
-export { DarkPalette, LightPalette };
+export { LightPalette, MidnightPalette as DarkPalette };

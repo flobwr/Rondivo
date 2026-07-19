@@ -1,8 +1,9 @@
 /** Everything under Plus ▸ Automatisations / Paramètres that isn't its own module — one small settings object rather than nine tiny data files. */
 
 export type VatRate = 0 | 5.5 | 10 | 20;
-export type Appearance = 'clair' | 'sombre' | 'auto';
-export type ThemeChoice = 'atelier' | 'neige' | 'ardoise' | 'sable' | 'nuit';
+/** The five papers, plus `auto` — follows the system's light/dark switch
+ *  (resolves to Atelier in light, Midnight in dark). */
+export type ThemeChoice = 'atelier' | 'arctic' | 'slate' | 'midnight' | 'amoled' | 'auto';
 export type Language = 'fr' | 'en';
 
 export type Settings = {
@@ -29,7 +30,6 @@ export type Settings = {
 
   autoBackupEnabled: boolean;
 
-  appearance: Appearance;
   theme: ThemeChoice;
   language: Language;
 };
@@ -62,7 +62,6 @@ export const SETTINGS: Settings = {
 
   autoBackupEnabled: true,
 
-  appearance: 'clair',
   theme: 'atelier',
   language: 'fr',
 };

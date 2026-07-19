@@ -40,8 +40,8 @@ export function Button({
   loading?: boolean;
   fullWidth?: boolean;
 }) {
-  const { palette, scheme } = useTheme();
-  const elevation = getElevation(scheme);
+  const { palette, resolvedTheme } = useTheme();
+  const elevation = getElevation(resolvedTheme);
 
   const surface = {
     primary: { backgroundColor: palette.blue },

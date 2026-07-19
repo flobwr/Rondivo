@@ -8,27 +8,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { useDocumentCreationMenu } from '@/components/documents/shared/useDocumentCreationMenu';
-import { BusinessPulse } from '@/components/home/BusinessPulse';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { NextInterventionCard } from '@/components/home/NextInterventionCard';
 import { QuickActionsRow } from '@/components/home/QuickActionsRow';
 import { RemindersCard } from '@/components/home/RemindersCard';
 import { ScheduleCard } from '@/components/home/ScheduleCard';
 import { SectionTitle } from '@/components/home/SectionTitle';
+import { getHomeStatus } from '@/components/home/status';
+import { useNowMinutes } from '@/components/home/time';
 import { Intervention } from '@/components/intervention/types';
 import { BottomDock } from '@/components/ui/BottomDock';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useTheme } from '@/contexts/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { devisSummary, type DevisSummary } from '@/services/documents/devis';
-import { factureSummary, type FactureSummary } from '@/services/documents/factures';
 import { HomeSchedule, getHomeSchedule } from '@/services/home-schedule';
 import { getIntervention } from '@/services/interventions';
 import { getUnreadNotificationCount } from '@/services/notifications';
 import { getAccount } from '@/services/plus/company';
 import { getReminderSummary, type ReminderSummary } from '@/services/reminders';
 import { Motion, Spacing, Type, type PaletteShape } from '@/theme';
+
+/** The Home only ever shows the next two stops — "Voir le planning" is where the full day lives. */
+const MAX_REMAINING_ON_HOME = 2;
 
 type HomeBundle = {
   schedule: HomeSchedule;
@@ -37,19 +39,15 @@ type HomeBundle = {
   unreadCount: number;
   reminders: ReminderSummary;
   nextIntervention?: Intervention;
-  factures: FactureSummary;
-  devis: DevisSummary;
 };
 
 async function fetchHomeBundle(): Promise<HomeBundle> {
   const schedule = await getHomeSchedule();
-  const [account, unreadCount, reminders, nextIntervention, factures, devis] = await Promise.all([
+  const [account, unreadCount, reminders, nextIntervention] = await Promise.all([
     getAccount(),
     getUnreadNotificationCount(),
     getReminderSummary(),
     schedule.hasNextIntervention ? getIntervention(schedule.nextInterventionId) : Promise.resolve(undefined),
-    factureSummary(),
-    devisSummary(),
   ]);
 
   return {
@@ -59,20 +57,7 @@ async function fetchHomeBundle(): Promise<HomeBundle> {
     unreadCount,
     reminders,
     nextIntervention,
-    factures,
-    devis,
   };
-}
-
-/** "5 interventions aujourd'hui · 2 rappels" — the header's one-line day summary. */
-function daySummary(interventionCount: number, reminderCount: number): string {
-  const parts = [
-    interventionCount > 0
-      ? `${interventionCount} intervention${interventionCount > 1 ? 's' : ''} aujourd’hui`
-      : 'Aucune intervention aujourd’hui',
-  ];
-  if (reminderCount > 0) parts.push(`${reminderCount} rappel${reminderCount > 1 ? 's' : ''}`);
-  return parts.join('  ·  ');
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -103,11 +88,6 @@ function HomeSkeleton() {
       <SkeletonBlock height={20} radius={8} style={{ marginTop: Spacing.section, marginBottom: 14, width: '52%' }} />
       <SkeletonBlock height={88} radius={20} />
       <SkeletonBlock height={88} radius={20} style={{ marginTop: 10 }} />
-
-      <View style={skStyles.pulseRow}>
-        <SkeletonBlock height={86} radius={20} style={{ flex: 1 }} />
-        <SkeletonBlock height={86} radius={20} style={{ flex: 1 }} />
-      </View>
     </>
   );
 }
@@ -127,11 +107,6 @@ const skStyles = StyleSheet.create({
     gap: 10,
     marginTop: Spacing.section,
   },
-  pulseRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: Spacing.section,
-  },
 });
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -142,11 +117,13 @@ export default function HomeScreen() {
   const { palette } = useTheme();
   const reducedMotion = useReducedMotion();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const nowMin = useNowMinutes();
 
   const fetchHome = useCallback(() => fetchHomeBundle(), []);
   const { data: home, status, refresh } = useAsyncItem(fetchHome);
   const isLoading = status === 'loading';
   const isError = status === 'error';
+  const upcoming = home?.schedule.remainingAppointments.slice(0, MAX_REMAINING_ON_HOME) ?? [];
 
   // Sections settle onto the paper one after the other — a quiet 40 ms
   // cascade, no motion at all when the system asks for none.
@@ -175,7 +152,13 @@ export default function HomeScreen() {
                   name={home.accountName}
                   initials={home.accountInitials}
                   unreadNotificationCount={home.unreadCount}
-                  summary={daySummary(home.schedule.interventionsTodayCount, home.reminders.count)}
+                  status={getHomeStatus({
+                    nowMin,
+                    hasNextIntervention: home.schedule.hasNextIntervention,
+                    nextIntervention: home.nextIntervention,
+                    interventionsTodayCount: home.schedule.interventionsTodayCount,
+                    reminderCount: home.reminders.count,
+                  })}
                 />
               </Animated.View>
 
@@ -193,35 +176,32 @@ export default function HomeScreen() {
                 <RemindersCard nextReminder={home.reminders.nextTitle} count={home.reminders.count} />
               </Animated.View>
 
-              <Animated.View entering={enter(4)} style={styles.section}>
-                <SectionTitle
-                  title="Le reste de la journée"
-                  meta="Planning"
-                  onMetaPress={() => router.push('/planning')}
-                />
+              {home.schedule.interventionsTodayCount > 0 ? (
+                <Animated.View entering={enter(4)} style={styles.section}>
+                  <SectionTitle
+                    title="Le reste de la journée"
+                    meta="Voir le planning"
+                    onMetaPress={() => router.push('/planning')}
+                  />
 
-                {home.schedule.remainingAppointments.length > 0 ? (
-                  <View style={styles.scheduleList}>
-                    {home.schedule.remainingAppointments.map((apt) => (
-                      <ScheduleCard key={apt.id} appointment={apt} />
-                    ))}
-                  </View>
-                ) : (
-                  <View style={styles.emptyDay}>
-                    <Feather name="check-circle" size={15} color={palette.textTertiary} />
-                    <Text style={styles.emptyDayText}>C’est tout pour aujourd’hui</Text>
-                  </View>
-                )}
-              </Animated.View>
-
-              <Animated.View entering={enter(5)} style={styles.section}>
-                <SectionTitle
-                  title="Activité"
-                  meta="Documents"
-                  onMetaPress={() => router.push('/documents')}
-                />
-                <BusinessPulse factures={home.factures} devis={home.devis} />
-              </Animated.View>
+                  {upcoming.length > 0 ? (
+                    <View style={styles.scheduleList}>
+                      {upcoming.map((apt) => (
+                        <ScheduleCard key={apt.id} appointment={apt} />
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={styles.emptyDay}>
+                      <Feather name="check-circle" size={15} color={palette.textTertiary} />
+                      <Text style={styles.emptyDayText}>
+                        {home.schedule.hasNextIntervention
+                          ? 'Rien d’autre prévu après cette intervention.'
+                          : 'Toutes les interventions du jour sont terminées.'}
+                      </Text>
+                    </View>
+                  )}
+                </Animated.View>
+              ) : null}
             </>
           )}
         </ScrollView>

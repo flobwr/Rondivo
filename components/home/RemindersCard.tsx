@@ -23,9 +23,9 @@ export function RemindersCard({
   count?: number;
 }) {
   const router = useRouter();
-  const { palette, scheme } = useTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  const elevation = getElevation(scheme);
+  const { palette, scheme, resolvedTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette, scheme), [palette, scheme]);
+  const elevation = getElevation(resolvedTheme);
 
   const isEmpty = !nextReminder;
 
@@ -35,7 +35,7 @@ export function RemindersCard({
       style={[styles.card, elevation.card]}
       onPress={() => router.push('/rappels')}
       accessibilityLabel={isEmpty ? 'Rappels, aucun rappel' : `Rappels, ${count} en attente`}>
-      <View style={styles.well}>
+      <View style={[styles.well, elevation.whisper]}>
         <Feather name="bell" size={17} color={isEmpty ? palette.textTertiary : palette.textPrimary} />
       </View>
 
@@ -58,7 +58,7 @@ export function RemindersCard({
   );
 }
 
-function createStyles(palette: PaletteShape) {
+function createStyles(palette: PaletteShape, scheme: 'light' | 'dark') {
   return StyleSheet.create({
     card: {
       flexDirection: 'row',
@@ -66,13 +66,18 @@ function createStyles(palette: PaletteShape) {
       gap: 12,
       backgroundColor: palette.card,
       borderRadius: Radius.card,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
+      ...(scheme === 'dark'
+        ? { borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border }
+        : null),
     },
     well: {
       width: WELL,
       height: WELL,
-      borderRadius: 13,
+      // A full disc — the same shape as every other icon well in the DS
+      // (HomeHeader's bell, QuickActionsRow's discs), not a one-off squircle.
+      borderRadius: Radius.pill,
       backgroundColor: palette.inset,
       alignItems: 'center',
       justifyContent: 'center',

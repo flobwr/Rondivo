@@ -20,8 +20,6 @@ import { SETTINGS } from '@/data/plus/settings';
 import { SUPPLIERS } from '@/data/plus/suppliers';
 import { VEHICLES } from '@/data/plus/vehicles';
 
-const APPEARANCE_LABEL = { clair: 'Clair', sombre: 'Sombre', auto: 'Automatique' } as const;
-
 // Denser rhythm than the shared Spacing tokens — matches the Documents screen
 // this menu takes its visual cues from.
 const HEADER_GAP = 14;
@@ -34,7 +32,7 @@ const APP_VERSION = '1.0.0';
 export default function PlusScreen() {
   const router = useRouter();
   const fadeIn = useRef(new Animated.Value(0)).current;
-  const { palette } = useTheme();
+  const { palette, resolvedTheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
   // All the data below is synchronous mock data (no network round-trip), so
@@ -66,13 +64,17 @@ export default function PlusScreen() {
       tva: `${SETTINGS.defaultVatRate} %`,
       paiements: SETTINGS.paymentMethods.length > 0 ? `${SETTINGS.paymentMethods.length} moyens configurés` : 'Aucun moyen configuré',
       signature: SETTINGS.hasSignature ? SETTINGS.signatureName : 'Non configurée',
-      apparence: `${APPEARANCE_LABEL[SETTINGS.appearance]} · ${THEMES[SETTINGS.theme].label}`,
+      apparence:
+        SETTINGS.theme === 'auto'
+          ? `Auto · ${THEMES[resolvedTheme].label}`
+          : THEMES[resolvedTheme].label,
       langue: SETTINGS.language === 'fr' ? 'Français' : 'English',
     }),
-    // `palette` re-derives the subtitles when Apparence changes underneath us
-    // (SETTINGS is a plain mutated object — reading it isn't reactive).
+    // `palette`/`resolvedTheme` re-derive the subtitles when Apparence
+    // changes underneath us (SETTINGS is a plain mutated object — reading it
+    // isn't reactive on its own).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [palette]
+    [palette, resolvedTheme]
   );
 
   const infoLine = `${VEHICLES.length} véhicule${VEHICLES.length > 1 ? 's' : ''} · Synchronisé ${COMPANY.lastSyncLabel.toLowerCase()}`;

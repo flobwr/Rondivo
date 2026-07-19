@@ -26,8 +26,8 @@ export function Card({
   padded?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { palette, scheme } = useTheme();
-  const elevation = getElevation(scheme);
+  const { palette, scheme, resolvedTheme } = useTheme();
+  const elevation = getElevation(resolvedTheme);
 
   const surface: ViewStyle =
     variant === 'flat'

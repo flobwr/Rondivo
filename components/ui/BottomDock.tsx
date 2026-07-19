@@ -43,9 +43,9 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
-  const { palette, scheme } = useTheme();
+  const { palette, scheme, resolvedTheme } = useTheme();
   const reducedMotion = useReducedMotion();
-  const elevation = getElevation(scheme);
+  const elevation = getElevation(resolvedTheme);
 
   const handlePress = (tab: Tab, index: number) => {
     if (index === activeIndex || pathname === tab.route) return; // already here

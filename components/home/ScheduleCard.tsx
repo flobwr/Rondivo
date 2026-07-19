@@ -30,9 +30,9 @@ function statusTone(status: string, palette: PaletteShape): { ink: string; dot: 
  */
 export function ScheduleCard({ appointment }: { appointment: Appointment }) {
   const router = useRouter();
-  const { palette, scheme } = useTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  const elevation = getElevation(scheme);
+  const { palette, scheme, resolvedTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette, scheme), [palette, scheme]);
+  const elevation = getElevation(resolvedTheme);
   const tone = appointment.status ? statusTone(appointment.status, palette) : null;
 
   return (
@@ -72,7 +72,7 @@ export function ScheduleCard({ appointment }: { appointment: Appointment }) {
   );
 }
 
-function createStyles(palette: PaletteShape) {
+function createStyles(palette: PaletteShape, scheme: 'light' | 'dark') {
   return StyleSheet.create({
     card: {
       flexDirection: 'row',
@@ -82,6 +82,9 @@ function createStyles(palette: PaletteShape) {
       borderRadius: Radius.card,
       paddingVertical: 14,
       paddingHorizontal: 14,
+      ...(scheme === 'dark'
+        ? { borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border }
+        : null),
     },
     timeChip: {
       backgroundColor: palette.inset,

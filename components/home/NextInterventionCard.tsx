@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { compactAddress } from '@/components/home/format';
 import {
@@ -14,7 +15,8 @@ import { Intervention } from '@/components/intervention/types';
 import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
-import { getElevation, Numeric, Radius, Type, type PaletteShape } from '@/theme';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { getElevation, Motion, Numeric, Radius, Type, type PaletteShape } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
 
 const NAV_BUTTON = 54;
@@ -31,10 +33,11 @@ const NAV_BUTTON = 54;
  */
 export function NextInterventionCard({ intervention }: { intervention?: Intervention }) {
   const router = useRouter();
-  const { palette, scheme } = useTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  const elevation = getElevation(scheme);
+  const { palette, scheme, resolvedTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette, scheme), [palette, scheme]);
+  const elevation = getElevation(resolvedTheme);
   const nowMin = useNowMinutes();
+  const reducedMotion = useReducedMotion();
 
   if (!intervention) {
     return (
@@ -80,10 +83,10 @@ export function NextInterventionCard({ intervention }: { intervention?: Interven
 
   return (
     <View style={[styles.card, elevation.raised]}>
-      <Pressable
+      <PressableScale
+        to={0.99}
         style={styles.body}
         onPress={openDetail}
-        accessibilityRole="button"
         accessibilityLabel={`Prochaine intervention, ${intervention.client}, ${intervention.startTime}`}>
         <View style={styles.eyebrowRow}>
           <View style={styles.eyebrowPill}>
@@ -105,25 +108,27 @@ export function NextInterventionCard({ intervention }: { intervention?: Interven
             {compactAddress(intervention.address)}
           </Text>
         </View>
-      </Pressable>
+      </PressableScale>
 
       <View style={[styles.board, { backgroundColor: board.bg }]}>
-        <Pressable
+        <PressableScale
+          to={0.99}
           style={styles.boardInfo}
           onPress={openDetail}
-          accessibilityRole="button"
           accessibilityLabel={`Départ ${departure.label}, conseillé à ${departureTime}`}>
-          <Text
+          <Animated.Text
+            key={departure.label}
+            entering={reducedMotion ? undefined : FadeIn.duration(Motion.fast)}
             style={[styles.boardHeadline, Numeric, { color: board.ink }]}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.8}>
             {departure.urgent ? departure.label : `Départ ${departure.label}`}
-          </Text>
+          </Animated.Text>
           <Text style={[styles.boardSub, Numeric]} numberOfLines={1}>
             Conseillé à {departureTime} · {intervention.travelMinutes} min · {km} km
           </Text>
-        </Pressable>
+        </PressableScale>
 
         <PressableScale
           style={[styles.navButton, elevation.float]}
@@ -137,16 +142,21 @@ export function NextInterventionCard({ intervention }: { intervention?: Interven
   );
 }
 
-function createStyles(palette: PaletteShape) {
+function createStyles(palette: PaletteShape, scheme: 'light' | 'dark') {
   return StyleSheet.create({
     card: {
       backgroundColor: palette.card,
       borderRadius: Radius.hero,
+      // Shadows carry less information on the darker papers — a hairline
+      // edge keeps the hero card legible against Midnight/AMOLED.
+      ...(scheme === 'dark'
+        ? { borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border }
+        : null),
     },
     body: {
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 18,
+      paddingHorizontal: 22,
+      paddingTop: 22,
+      paddingBottom: 20,
     },
     eyebrowRow: {
       flexDirection: 'row',
@@ -176,7 +186,7 @@ function createStyles(palette: PaletteShape) {
       fontWeight: '800',
       letterSpacing: -0.6,
       color: palette.textPrimary,
-      marginTop: 14,
+      marginTop: 16,
     },
     type: {
       ...Type.subhead,
@@ -187,7 +197,7 @@ function createStyles(palette: PaletteShape) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      marginTop: 10,
+      marginTop: 12,
     },
     address: {
       ...Type.footnote,

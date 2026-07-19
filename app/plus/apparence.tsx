@@ -5,11 +5,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
-import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
 import { BottomDock } from '@/components/ui/BottomDock';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
-import { Appearance } from '@/services/plus/settings';
+import type { ThemeChoice } from '@/services/plus/settings';
 import {
   Radius,
   Spacing,
@@ -17,66 +16,71 @@ import {
   THEME_ORDER,
   getElevation,
   type PaletteShape,
-  type ThemeName,
 } from '@/theme';
 
-const LUMINOSITY_OPTIONS: SelectableOption<Appearance>[] = [
-  { key: 'clair', label: 'Clair' },
-  { key: 'sombre', label: 'Sombre' },
-  { key: 'auto', label: 'Automatique', description: 'Suit les réglages de votre téléphone' },
-];
-
 /**
- * A theme rendered as its own paper: the tile is painted with the CANDIDATE
- * palette (screen, card, inks) while the ring and check follow the ACTIVE
- * one — a true miniature of the app, not a colour chip.
+ * A theme tile IS its paper — painted with the CANDIDATE palette (screen,
+ * card, ink, accent) rather than described by a colour chip, so choosing a
+ * theme feels like previewing a real screen. The ring and check follow the
+ * ACTIVE palette so the selected tile always reads correctly regardless of
+ * which paper is currently applied.
  */
-function ThemePaperTile({
-  name,
+function ThemeTile({
+  choice,
   selected,
-  wide,
   onSelect,
 }: {
-  name: ThemeName;
+  choice: ThemeChoice;
   selected: boolean;
-  wide?: boolean;
-  onSelect: (name: ThemeName) => void;
+  onSelect: (choice: ThemeChoice) => void;
 }) {
-  const meta = THEMES[name];
-  const paper = meta.palette;
-  const { palette, scheme } = useTheme();
-  const elevation = getElevation(scheme);
+  const { palette, resolvedTheme } = useTheme();
+  const elevation = getElevation(resolvedTheme);
+  const isAuto = choice === 'auto';
+
+  const label = isAuto ? 'Auto' : THEMES[choice].label;
+  const tagline = isAuto ? 'Suit votre téléphone' : THEMES[choice].tagline;
+  const light = THEMES.atelier.palette;
+  const dark = THEMES.midnight.palette;
+  const paper = isAuto ? light : THEMES[choice].palette;
 
   return (
     <PressableScale
       to={0.97}
-      onPress={() => onSelect(name)}
-      accessibilityLabel={`Thème ${meta.label}, ${meta.tagline}${selected ? ', sélectionné' : ''}`}
+      onPress={() => onSelect(choice)}
+      accessibilityLabel={`Thème ${label}, ${tagline}${selected ? ', sélectionné' : ''}`}
       style={[
         tileStyles.tile,
-        wide && tileStyles.tileWide,
-        // Constant 2 px frame — only the colour changes on selection, so the
-        // tile never shifts under the finger.
         { backgroundColor: paper.screen, borderColor: selected ? palette.blue : paper.border },
         elevation.whisper,
       ]}>
-      {/* Miniature sheet resting on the candidate paper */}
-      <View style={[tileStyles.sheet, { backgroundColor: paper.card }, elevation.card]}>
-        <View style={[tileStyles.inkLine, { backgroundColor: paper.textPrimary }]} />
-        <View style={[tileStyles.inkLineSoft, { backgroundColor: paper.insetDeep }]} />
-        <View style={tileStyles.sheetFooter}>
-          <View style={[tileStyles.accentDot, { backgroundColor: paper.blue }]} />
-          <View style={[tileStyles.inkLineTiny, { backgroundColor: paper.inset }]} />
+      {isAuto ? (
+        <View style={[tileStyles.sheet, tileStyles.splitSheet, elevation.card]}>
+          <View style={[tileStyles.splitHalf, { backgroundColor: light.card }]}>
+            <Feather name="sun" size={13} color={light.textTertiary} />
+          </View>
+          <View style={[tileStyles.splitHalf, { backgroundColor: dark.card }]}>
+            <Feather name="moon" size={13} color={dark.textTertiary} />
+          </View>
         </View>
-      </View>
+      ) : (
+        <View style={[tileStyles.sheet, { backgroundColor: paper.card }, elevation.card]}>
+          <View style={[tileStyles.inkLine, { backgroundColor: paper.textPrimary }]} />
+          <View style={[tileStyles.inkLineSoft, { backgroundColor: paper.insetDeep }]} />
+          <View style={tileStyles.sheetFooter}>
+            <View style={[tileStyles.accentDot, { backgroundColor: paper.blue }]} />
+            <View style={[tileStyles.inkLineTiny, { backgroundColor: paper.inset }]} />
+          </View>
+        </View>
+      )}
 
       <View style={tileStyles.meta}>
         <View style={tileStyles.labels}>
           <Text style={[tileStyles.label, { color: paper.textPrimary }]} numberOfLines={1}>
-            {meta.label}
+            {label}
           </Text>
           <Text style={[tileStyles.tagline, { color: paper.textTertiary }]} numberOfLines={1}>
-            {meta.tagline}
+            {tagline}
           </Text>
         </View>
         {selected ? (
@@ -91,22 +95,10 @@ function ThemePaperTile({
 
 export default function ApparenceScreen() {
   const router = useRouter();
-  const { appearance, setAppearance, theme, setTheme, resolvedTheme, palette } = useTheme();
+  const { theme, setTheme, palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
-  const handleAppearance = (value: Appearance) => {
-    setAppearance(value);
-    // "Clair" must actually mean clair — leaving Nuit selected as the paper
-    // would silently override the explicit choice.
-    if (value !== 'sombre' && theme === 'nuit') setTheme('atelier');
-  };
-
-  const handleTheme = (name: ThemeName) => {
-    setTheme(name);
-    // Picking a light paper while the app is dark switches the luminosity
-    // too, so the choice is visible immediately.
-    if (name !== 'nuit' && resolvedTheme === 'nuit') setAppearance('clair');
-  };
+  const choices: ThemeChoice[] = [...THEME_ORDER, 'auto'];
 
   return (
     <View style={styles.root}>
@@ -114,34 +106,19 @@ export default function ApparenceScreen() {
         <DetailHeader title="Apparence" onBack={() => router.back()} />
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={styles.intro}>Choisissez l’apparence de Rondivo sur cet appareil.</Text>
+          <Text style={styles.intro}>
+            Choisissez le papier de Rondivo — la même application, une autre ambiance.
+          </Text>
 
-          <SelectableList
-            options={LUMINOSITY_OPTIONS}
-            selected={appearance}
-            onSelect={handleAppearance}
-          />
-
-          <Text style={styles.sectionLabel}>THÈME</Text>
           <View style={styles.grid}>
-            {THEME_ORDER.filter((name) => name !== 'nuit').map((name) => (
-              <ThemePaperTile
-                key={name}
-                name={name}
-                selected={resolvedTheme === name}
-                onSelect={handleTheme}
-              />
+            {choices.map((choice) => (
+              <ThemeTile key={choice} choice={choice} selected={theme === choice} onSelect={setTheme} />
             ))}
           </View>
-          <ThemePaperTile
-            name="nuit"
-            wide
-            selected={resolvedTheme === 'nuit'}
-            onSelect={handleTheme}
-          />
 
           <Text style={styles.note}>
             Le thème change le papier de toute l’application — la structure, elle, ne bouge pas.
+            « Auto » suit le réglage clair/sombre de votre téléphone.
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -160,15 +137,21 @@ const tileStyles = StyleSheet.create({
     padding: 14,
     gap: 12,
   },
-  tileWide: {
-    flexBasis: 'auto',
-    alignSelf: 'stretch',
-    marginTop: Spacing.cardGap,
-  },
   sheet: {
     borderRadius: Radius.tile,
     padding: 10,
     gap: 5,
+    minHeight: 52,
+  },
+  splitSheet: {
+    flexDirection: 'row',
+    padding: 0,
+    overflow: 'hidden',
+  },
+  splitHalf: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   inkLine: {
     height: 6,
@@ -239,14 +222,6 @@ function createStyles(palette: PaletteShape) {
       letterSpacing: -0.1,
       marginBottom: Spacing.lg,
       lineHeight: 18,
-    },
-    sectionLabel: {
-      fontSize: 11,
-      fontWeight: '700',
-      letterSpacing: 1.2,
-      color: palette.textTertiary,
-      marginTop: Spacing.section,
-      marginBottom: Spacing.md,
     },
     grid: {
       flexDirection: 'row',

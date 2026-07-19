@@ -31,7 +31,7 @@ localement sont un bug de design system.
 | `palette.ts` | Surfaces (screen/card/cardMuted/float/inset/insetDeep), encres de texte (AA ≥ 4.5:1 garanti), Bleu Rondivo + lavis, duotones de statut (`…Soft` + `…Ink` — le texte utilise TOUJOURS l'encre, jamais la couleur vive), chrome (`dock` : la capsule de navigation, un ton sous le papier). Palette sombre « papier de nuit » aux mêmes relations. |
 | `typography.ts` | SF Pro (police système), presets complets `Type.*` (largeTitle 30 → caption 12), chiffres tabulaires obligatoires (`Numeric`) pour heures, durées, km, montants. |
 | `layout.ts` | Grille 4 pt. Gouttière écran 20, rythme de section 28, padding de carte 18. Rayons : hero 26, card 20, tile 14, control 12, pill. Métriques de contrôle (`Size`) : cible 48, bouton 52, puits d'icône 38, dock 64. |
-| `elevation.ts` | Ombres à deux couches (contact serré + ambiante large) via `boxShadow`, encre chaude `#141210` à opacités faibles. Quatre niveaux : whisper / card / raised / float. En sombre, le chrome flottant s'appuie sur sa surface plus claire. |
+| `elevation.ts` | Ombres à deux couches (contact serré + ambiante large) via `boxShadow`. Quatre niveaux : whisper / card / raised / float — mêmes tiers partout (cartes, boutons, dock, sheets). `getElevation(theme)` teinte l'encre par papier (chaude sur Atelier, froide sur Arctic/Slate, noire sur Midnight/AMOLED) ; sur AMOLED l'ombre est presque inerte et c'est le filet (`border`) qui fait le travail. |
 | `motion.ts` | Quatre durées (120/180/240/320), une courbe de décélération maison, deux springs (`PressSpring`, `SettleSpring`). Rien ne rebondit, rien ne boucle pour le spectacle. `useReducedMotion` honoré partout. |
 
 ## 3. Composants (`components/ui/`)
@@ -56,32 +56,40 @@ Import unique : `import { … } from '@/components/ui'`.
 
 ## 4. Thèmes — les cinq papiers
 
-Un thème change le PAPIER, jamais le système : mêmes grilles, mêmes
-rayons, mêmes ombres, même encre bleue. Seules les surfaces, les gris
-et le chrome bougent. Réglage dans Plus ▸ Apparence (sous Clair /
-Sombre / Automatique).
+Un thème change l'AMBIANCE, jamais le système : même grille, mêmes
+rayons, mêmes interactions, même encre de marque. Ce qui bouge : la
+température du papier, le poids relatif des filets vs. des ombres, et
+la teinte de Bleu Rondivo sur les papiers sombres (éclaircie pour rester
+lisible — jamais une autre couleur). Réglage dans Plus ▸ Apparence,
+en une seule galerie de six vignettes.
 
 | Thème | Papier |
 |---|---|
 | **Atelier** (défaut) | Crème légèrement chaud — l'original. |
-| **Neige** | Blanc pur, gris quasi neutres — le plus minimal. |
-| **Ardoise** | Gris ardoise moderne, un ton plus technique. |
-| **Sable** | Papier chaud premium, un rayon de soleil au-dessus d'Atelier. |
-| **Nuit** | Papier de nuit (la palette sombre). |
+| **Arctic** | Blanc glacé, le plus minimal, feuilles blanc pur. |
+| **Slate** | Gris ardoise technique, plus de contraste et de structure. |
+| **Midnight** | Bleu nuit profond — une vraie identité sombre, pas un simple inversé. |
+| **AMOLED** | Noir pur, économe en batterie ; le filet remplace l'ombre. |
+| **Auto** | Suit le réglage clair/sombre du téléphone → Atelier ou Midnight. |
+
+Les trois papiers clairs (Atelier/Arctic/Slate) étendent `LightPalette` :
+le Bleu Rondivo et les duotones de statut restent identiques au bit près
+d'un papier à l'autre — seuls les neutres, le chrome et l'encre d'ombre
+changent. Midnight et AMOLED sont écrits en entier (trop de valeurs
+s'inversent pour hériter proprement).
 
 Mécanique :
 
-- `theme/palette.ts` expose `THEMES` (registre) et **`Palette`, l'objet
-  ACTIF muté sur place** par le `ThemeProvider` (`setActivePalette`).
+- `theme/palette.ts` expose `THEMES` (registre des 5 papiers) et
+  **`Palette`, l'objet ACTIF muté sur place** par le `ThemeProvider`
+  (`setActivePalette`).
 - Les écrans qui lisent `Palette.x` au rendu suivent le thème
   automatiquement ; les feuilles de style de portée module passent par
   `createThemedStyles(() => StyleSheet.create({ … }))` (`theme/themed.ts`),
   qui ré-évalue la feuille après chaque changement de thème.
-- Résolution : Clair/Sombre/Auto décide d'abord de la luminosité ; tout
-  résultat sombre atterrit sur Nuit ; en clair, le papier choisi
-  s'applique — et choisir Nuit comme papier, c'est choisir le sombre.
-- Les quatre papiers clairs partagent les duotones de statut et le Bleu
-  Rondivo : changer de thème ne ré-apprend jamais l'interface.
+- Le réglage stocké est `ThemeChoice` (`ThemeName | 'auto'`). `auto`
+  n'est pas un papier : il observe le système et résout vers Atelier ou
+  Midnight — exactement comme s'il avait été choisi directement.
 
 ## 5. Anciens composants → shims
 

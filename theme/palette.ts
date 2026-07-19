@@ -85,148 +85,189 @@ export const LightPalette = {
 
 export type PaletteShape = Record<keyof typeof LightPalette, string>;
 
-/**
- * Night paper — same relationships as the light palette (screen → card →
- * float still steps *up* in lightness, washes still carry their matching
- * ink at ≥ 4.5:1), re-derived for warm charcoal instead of inverted.
- */
-export const DarkPalette: PaletteShape = {
-  screen: '#141311',
-  card: '#1E1C19',
-  cardMuted: '#242219',
-  float: '#262420',
-  inset: '#2A2823',
-  insetDeep: '#343128',
+// ═══════════════════════════════════════════════════════════════════════════
+// The five papers.
+//
+// A theme changes the AMBIANCE, never the system: same grid, same radii,
+// same interactions, same brand ink. What actually moves:
+//
+//   · the paper's temperature (warm cream → icy blue → cool slate → deep
+//     navy → true black)
+//   · how much weight borders carry vs. shadows (crisp hairlines on the
+//     cool papers, near-invisible shadow + a real edge on AMOLED)
+//   · the accent blue's own tint where legibility demands it (dark papers
+//     lighten Bleu Rondivo to a readable tint; light papers keep the exact
+//     brand hex, so the identity never drifts)
+//
+// The three light papers spread from `LightPalette`, so Bleu Rondivo and
+// every status duotone stay byte-identical across them — only the neutrals,
+// the chrome and the shadow ink change. Midnight and AMOLED are written out
+// in full: too much inverts to spread cleanly.
+// ═══════════════════════════════════════════════════════════════════════════
 
-  textPrimary: '#F3F2EE',
-  textSecondary: '#B9B5AC',
-  textTertiary: '#918D84',
+/** Arctic — icy, minimal, the crispest paper. Cool near-white, pure-white sheets. */
+export const ArcticPalette: PaletteShape = {
+  ...LightPalette,
+  screen: '#F1F6FA',
+  card: '#FFFFFF',
+  cardMuted: '#E9F1F7',
+  float: '#FFFFFF',
+  inset: '#E1EBF2',
+  insetDeep: '#CFDFEA',
+
+  textPrimary: '#0E1B26',
+  textSecondary: '#4C6072',
+  textTertiary: '#6C8194',
+
+  dock: '#E5EEF4',
+  iconButtonBg: '#E7EFF5',
+  border: '#DCE7EF',
+  separator: 'rgba(14, 27, 38, 0.07)',
+  shadow: '#0A1620',
+};
+
+/** Slate — modern, technical cool grey. More contrast and visible structure than Arctic. */
+export const SlatePalette: PaletteShape = {
+  ...LightPalette,
+  screen: '#E7E8EC',
+  card: '#F7F7F9',
+  cardMuted: '#EFEFF2',
+  float: '#FFFFFF',
+  inset: '#DEE0E5',
+  insetDeep: '#CBCED6',
+
+  textPrimary: '#15171B',
+  textSecondary: '#4B4F58',
+  textTertiary: '#686D78',
+
+  dock: '#DEE0E5',
+  iconButtonBg: '#E3E4E9',
+  border: '#D2D5DC',
+  separator: 'rgba(21, 23, 27, 0.09)',
+  shadow: '#0C0D10',
+};
+
+/**
+ * Midnight — deep navy dark paper. Same relationships as any light paper
+ * (screen → card → float steps *up* in lightness), re-derived for a
+ * blue-black instead of the warm charcoal Atelier would invert to.
+ */
+export const MidnightPalette: PaletteShape = {
+  screen: '#0A0D16',
+  card: '#141A29',
+  cardMuted: '#1A2135',
+  float: '#1D2438',
+  inset: '#212A44',
+  insetDeep: '#2B3554',
+
+  textPrimary: '#F1F3FA',
+  textSecondary: '#AEB4CC',
+  textTertiary: '#7D85A4',
   white: '#FFFFFF',
 
-  onAccent: '#10131C',
+  onAccent: '#0A0D16',
 
-  blue: '#8FA8F5',
+  blue: '#8CA6FA',
   blueAvatar: '#5B82EA',
-  blueSoft: '#222941',
-  blueTint: '#1C2233',
-  blueBorder: '#35476E',
+  blueSoft: '#212B4A',
+  blueTint: '#1A2338',
+  blueBorder: '#37477E',
 
   green: '#4CC38A',
-  greenSoft: '#12291E',
-  greenInk: '#77D9A8',
+  greenSoft: '#122A22',
+  greenInk: '#7BDDAF',
 
   orange: '#F2A33C',
   orangeSoft: '#332912',
   orangeInk: '#F5BC66',
 
   red: '#F27970',
-  redSoft: '#331B18',
+  redSoft: '#33201D',
   redInk: '#F59E96',
   danger: '#DD8F88',
 
   purple: '#B79BF2',
-  purpleSoft: '#261D3B',
+  purpleSoft: '#271F3D',
 
   teal: '#3FC8B4',
-  tealSoft: '#10302C',
+  tealSoft: '#123430',
 
   gradientStart: '#4C79E8',
   gradientEnd: '#2F55C4',
 
-  dock: '#2A2823',
-  iconButtonBg: '#282520',
-  border: '#2C2924',
-  separator: 'rgba(243, 242, 238, 0.08)',
-  shadow: '#000000',
+  dock: '#151C2E',
+  iconButtonBg: '#1B2338',
+  border: '#2B3554',
+  separator: 'rgba(241, 243, 250, 0.09)',
+  shadow: '#010208',
   notification: '#F27970',
-  pillBlueBg: '#222941',
+  pillBlueBg: '#212B4A',
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Papers — the five Rondivo themes.
-//
-// A theme changes the PAPER, never the system: same grid, same radii, same
-// shadows, same single ink. Only the surfaces, the greys and the chrome move.
-// The four light papers share every status duotone and the signature blue, so
-// switching theme never re-teaches the interface.
-// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * AMOLED — true black, battery-friendly. Shadows lose all meaning on pure
+ * black (there's nothing darker to cast *onto*), so definition comes from a
+ * visible hairline border instead — the one paper where a border carries
+ * more weight than its shadow.
+ */
+export const AmoledPalette: PaletteShape = {
+  screen: '#000000',
+  card: '#0D0D0D',
+  cardMuted: '#151515',
+  float: '#121212',
+  inset: '#1B1B1B',
+  insetDeep: '#242424',
 
-/** Neige — pure white, the most minimal paper. Cool, near-neutral greys. */
-export const NeigePalette: PaletteShape = {
-  ...LightPalette,
-  screen: '#FFFFFF',
-  card: '#FFFFFF',
-  cardMuted: '#F6F6F8',
-  float: '#FFFFFF',
-  inset: '#F1F1F4',
-  insetDeep: '#E4E4E9',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#B6B6B6',
+  textTertiary: '#8A8A8A',
+  white: '#FFFFFF',
 
-  textPrimary: '#161719',
-  textSecondary: '#54565C',
-  textTertiary: '#6D7077',
+  onAccent: '#040404',
 
-  blueSoft: '#EAEEFB',
-  blueTint: '#F2F4FD',
-  blueBorder: '#C6CFF3',
+  blue: '#6D93FF',
+  blueAvatar: '#4C79E8',
+  blueSoft: '#182036',
+  blueTint: '#12182B',
+  blueBorder: '#33427A',
 
-  dock: '#F2F2F5',
-  iconButtonBg: '#F1F1F4',
-  border: '#ECECEF',
-  separator: 'rgba(22, 23, 25, 0.06)',
-  shadow: '#101114',
-  pillBlueBg: '#EAEEFB',
+  green: '#57D69A',
+  greenSoft: '#0F2019',
+  greenInk: '#7BE6AE',
+
+  orange: '#FFAE4A',
+  orangeSoft: '#2B2110',
+  orangeInk: '#FFC876',
+
+  red: '#FF8478',
+  redSoft: '#2B1714',
+  redInk: '#FFA398',
+  danger: '#E2948C',
+
+  purple: '#C4A8FF',
+  purpleSoft: '#201936',
+
+  teal: '#4FDCC4',
+  tealSoft: '#0D2925',
+
+  gradientStart: '#5B85F2',
+  gradientEnd: '#3560D0',
+
+  dock: '#0A0A0A',
+  iconButtonBg: '#171717',
+  border: 'rgba(255, 255, 255, 0.14)',
+  separator: 'rgba(255, 255, 255, 0.10)',
+  shadow: '#000000',
+  notification: '#FF8478',
+  pillBlueBg: '#182036',
 };
 
-/** Ardoise — modern slate grey, cooler and a touch more technical. */
-export const ArdoisePalette: PaletteShape = {
-  ...LightPalette,
-  screen: '#EEEFF2',
-  card: '#FBFBFC',
-  cardMuted: '#F4F5F7',
-  float: '#FFFFFF',
-  inset: '#E4E5E9',
-  insetDeep: '#D6D8DE',
+/** Kept as the historical name for Midnight — a few call sites still import it directly. */
+export const DarkPalette = MidnightPalette;
 
-  textPrimary: '#17191C',
-  textSecondary: '#52565F',
-  textTertiary: '#6A6E77',
+export type ThemeName = 'atelier' | 'arctic' | 'slate' | 'midnight' | 'amoled';
 
-  blueSoft: '#E7EBFA',
-  blueTint: '#EFF2FC',
-  blueBorder: '#C2CCF1',
-
-  dock: '#E4E5E9',
-  iconButtonBg: '#E7E8EC',
-  border: '#E1E3E7',
-  separator: 'rgba(23, 25, 28, 0.07)',
-  shadow: '#0F1115',
-  pillBlueBg: '#E7EBFA',
-};
-
-/** Sable — warm premium paper, one sunbeam warmer than Atelier. */
-export const SablePalette: PaletteShape = {
-  ...LightPalette,
-  screen: '#F4EFE5',
-  card: '#FDFBF6',
-  cardMuted: '#F7F3EA',
-  float: '#FFFFFF',
-  inset: '#EBE3D3',
-  insetDeep: '#DFD5C0',
-
-  textPrimary: '#221D14',
-  textSecondary: '#5C5546',
-  textTertiary: '#716A59',
-
-  dock: '#EBE3D3',
-  iconButtonBg: '#EDE6D8',
-  border: '#E9E1D0',
-  separator: 'rgba(34, 29, 20, 0.08)',
-  shadow: '#191408',
-};
-
-export type ThemeName = 'atelier' | 'neige' | 'ardoise' | 'sable' | 'nuit';
-
-export const THEME_ORDER: ThemeName[] = ['atelier', 'neige', 'ardoise', 'sable', 'nuit'];
+export const THEME_ORDER: ThemeName[] = ['atelier', 'arctic', 'slate', 'midnight', 'amoled'];
 
 export const THEMES: Record<
   ThemeName,
@@ -238,34 +279,34 @@ export const THEMES: Record<
     scheme: 'light',
     palette: LightPalette,
   },
-  neige: {
-    label: 'Neige',
-    tagline: 'Blanc pur, minimal',
+  arctic: {
+    label: 'Arctic',
+    tagline: 'Blanc glacé, minimal',
     scheme: 'light',
-    palette: NeigePalette,
+    palette: ArcticPalette,
   },
-  ardoise: {
-    label: 'Ardoise',
-    tagline: 'Gris moderne',
+  slate: {
+    label: 'Slate',
+    tagline: 'Gris ardoise, technique',
     scheme: 'light',
-    palette: ArdoisePalette,
+    palette: SlatePalette,
   },
-  sable: {
-    label: 'Sable',
-    tagline: 'Papier chaud',
-    scheme: 'light',
-    palette: SablePalette,
-  },
-  nuit: {
-    label: 'Nuit',
-    tagline: 'Papier de nuit',
+  midnight: {
+    label: 'Midnight',
+    tagline: 'Bleu nuit profond',
     scheme: 'dark',
-    palette: DarkPalette,
+    palette: MidnightPalette,
+  },
+  amoled: {
+    label: 'AMOLED',
+    tagline: 'Noir pur, économe',
+    scheme: 'dark',
+    palette: AmoledPalette,
   },
 };
 
 export function getPalette(scheme: 'light' | 'dark'): PaletteShape {
-  return scheme === 'dark' ? DarkPalette : LightPalette;
+  return scheme === 'dark' ? MidnightPalette : LightPalette;
 }
 
 /**

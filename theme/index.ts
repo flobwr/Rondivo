@@ -9,12 +9,13 @@
  */
 
 export {
-  ArdoisePalette,
+  AmoledPalette,
+  ArcticPalette,
   DarkPalette,
   LightPalette,
-  NeigePalette,
+  MidnightPalette,
   Palette,
-  SablePalette,
+  SlatePalette,
   StatusInk,
   THEME_ORDER,
   THEMES,
