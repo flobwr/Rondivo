@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
@@ -18,6 +18,7 @@ export default function RapportsScreen() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<RapportStatus | null>(null);
   const listOpacity = useRef(new Animated.Value(1)).current;
+  const dockClearance = useBottomDockClearance();
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
@@ -83,7 +84,7 @@ export default function RapportsScreen() {
                 <RapportCard rapport={item} onPress={() => handleOpen(item)} />
               </FadeInItem>
             )}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListHeaderComponent={
@@ -115,7 +116,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   count: {

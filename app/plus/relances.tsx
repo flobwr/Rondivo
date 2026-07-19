@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SectionCard } from '@/components/documents/shared/primitives';
@@ -13,6 +13,7 @@ import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function RelancesScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [enabled, setEnabled] = useState(SETTINGS.autoRemindersEnabled);
   const [quoteDays, setQuoteDays] = useState(String(SETTINGS.quoteReminderDays));
   const [invoiceDays, setInvoiceDays] = useState(String(SETTINGS.invoiceReminderDays));
@@ -37,7 +38,10 @@ export default function RelancesScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Relances automatiques" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <SectionCard>
             <SwitchRow
               label="Activer les relances automatiques"
@@ -68,6 +72,5 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
 }));

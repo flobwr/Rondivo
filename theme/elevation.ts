@@ -34,13 +34,13 @@ type ElevationSet = {
 function lightSet(ink: string): ElevationSet {
   return {
     /** Chips, badges, icon wells, quick-action buttons — a breath of lift. */
-    whisper: { boxShadow: `0 1px 3px rgba(${ink}, 0.06), 0 4px 10px rgba(${ink}, 0.04)` },
+    whisper: { boxShadow: `0 1px 3px rgba(${ink}, 0.07), 0 4px 11px rgba(${ink}, 0.05)` },
     /** Standard sheet/card resting on the paper. */
-    card: { boxShadow: `0 1px 3px rgba(${ink}, 0.04), 0 8px 24px rgba(${ink}, 0.07)` },
+    card: { boxShadow: `0 2px 4px rgba(${ink}, 0.05), 0 10px 26px rgba(${ink}, 0.09)` },
     /** The screen's one dominant card. */
-    raised: { boxShadow: `0 3px 6px rgba(${ink}, 0.05), 0 20px 48px rgba(${ink}, 0.10)` },
+    raised: { boxShadow: `0 4px 8px rgba(${ink}, 0.06), 0 22px 52px rgba(${ink}, 0.13)` },
     /** Floating chrome: dock, FAB, sheets, popovers, modals. */
-    float: { boxShadow: `0 3px 8px rgba(${ink}, 0.08), 0 24px 56px rgba(${ink}, 0.16)` },
+    float: { boxShadow: `0 4px 10px rgba(${ink}, 0.10), 0 26px 60px rgba(${ink}, 0.20)` },
     none: {} as ViewStyle,
   };
 }
@@ -50,10 +50,10 @@ function darkSet(opacityScale: number): ElevationSet {
   // up front-to-back but leans on the hairline border (added at the call
   // site) for the definition a light shadow can't provide here.
   return {
-    whisper: { boxShadow: `0 1px 3px rgba(0, 0, 0, ${0.32 * opacityScale})` },
-    card: { boxShadow: `0 2px 10px rgba(0, 0, 0, ${0.38 * opacityScale})` },
-    raised: { boxShadow: `0 8px 28px rgba(0, 0, 0, ${0.46 * opacityScale})` },
-    float: { boxShadow: `0 10px 36px rgba(0, 0, 0, ${0.54 * opacityScale})` },
+    whisper: { boxShadow: `0 1px 3px rgba(0, 0, 0, ${0.36 * opacityScale})` },
+    card: { boxShadow: `0 2px 11px rgba(0, 0, 0, ${0.42 * opacityScale})` },
+    raised: { boxShadow: `0 9px 30px rgba(0, 0, 0, ${0.50 * opacityScale})` },
+    float: { boxShadow: `0 11px 38px rgba(0, 0, 0, ${0.58 * opacityScale})` },
     none: {} as ViewStyle,
   };
 }

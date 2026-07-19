@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -16,6 +16,7 @@ import { deleteSupplier, getSupplier, SUPPLIER_CATEGORY_LABEL } from '@/services
 
 export default function FournisseurDetailScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -79,7 +80,7 @@ export default function FournisseurDetailScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title={supplier.name} onBack={() => router.back()} onMenu={() => setMenuOpen(true)} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <IconTile icon="package" color={Palette.blue} soft={Palette.blueSoft} size={64} iconSize={28} radius={20} />
             <Text style={styles.name}>{supplier.name}</Text>
@@ -110,7 +111,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   hero: {
     alignItems: 'center',

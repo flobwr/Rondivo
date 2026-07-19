@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { ChecklistCard } from '@/components/documents/rapports/ChecklistCard';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
@@ -36,6 +36,7 @@ export default function RapportDetailScreen() {
   const [checklist, setChecklist] = useState(source?.checklist ?? []);
   const [signed, setSigned] = useState(source?.signed ?? false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const dockClearance = useBottomDockClearance();
 
   if (!source || !status) {
     return (
@@ -121,7 +122,9 @@ export default function RapportDetailScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title={rapport.number} onBack={() => router.back()} onMenu={() => setMenuOpen(true)} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <View style={styles.heroTop}>
               <PressableScale onPress={() => router.push(`/client/${rapport.clientId}`)} to={0.98} accessibilityLabel="Ouvrir le client" style={styles.heroClientWrap}>
@@ -210,7 +213,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   hero: {
     backgroundColor: Palette.card,

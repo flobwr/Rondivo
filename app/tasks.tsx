@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale } from '@/components/documents/shared/primitives';
@@ -63,6 +63,7 @@ function TaskRow({ task, onToggle, onPress }: { task: Task; onToggle: () => void
 export default function TasksScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const dockClearance = useBottomDockClearance();
 
   const fetchTasks = useCallback(() => listTasks(), []);
   const { data: tasks, status, refresh, setData: setTasks } = useAsyncList<Task>(fetchTasks);
@@ -91,7 +92,9 @@ export default function TasksScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Tâches" onBack={() => router.back()} onAdd={() => router.push('/task/new')} />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher une tâche…" />
 
           {status === 'loading' ? (
@@ -158,7 +161,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     gap: Spacing.lg,
   },
   section: {

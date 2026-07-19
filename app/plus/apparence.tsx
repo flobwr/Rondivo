@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
 import type { ThemeChoice } from '@/services/plus/settings';
@@ -95,6 +95,7 @@ function ThemeTile({
 
 export default function ApparenceScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const { theme, setTheme, palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
@@ -105,7 +106,7 @@ export default function ApparenceScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Apparence" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false}>
           <Text style={styles.intro}>
             Choisissez le papier de Rondivo — la même application, une autre ambiance.
           </Text>
@@ -213,7 +214,6 @@ function createStyles(palette: PaletteShape) {
     safeArea: { flex: 1 },
     content: {
       paddingHorizontal: Spacing.screen,
-      paddingBottom: Spacing.section,
     },
     intro: {
       fontSize: 13,

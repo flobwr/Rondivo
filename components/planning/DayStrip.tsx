@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { actionShadow, Palette, Spacing } from '@/theme';
+import { actionShadow, createThemedStyles, Palette, Spacing } from '@/theme';
 import { CalendarDay } from './types';
 
 // Tall pill cards straight from the reference: day name on top, big date
@@ -55,21 +55,26 @@ function DayCell({
     inputRange: [0, 0.5, 1],
     outputRange: [1, 1.04, 1],
   });
+  // Selected text uses `onAccent`, not white: on the dark papers Bleu Rondivo
+  // lightens to a tint, where white would fail contrast — onAccent flips dark
+  // to stay legible on the pill.
   const labelColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textSecondary, 'rgba(255,255,255,0.85)'],
+    outputRange: [Palette.textSecondary, Palette.onAccent],
   });
   const numberColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textPrimary, Palette.white],
+    outputRange: [Palette.textPrimary, Palette.onAccent],
   });
+  // The day name stays a touch quieter than the date on the selected pill.
+  const labelOpacity = sel.interpolate({ inputRange: [0, 1], outputRange: [1, 0.82] });
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View style={{ transform: [{ scale: pressScale }] }}>
         <Animated.View
           style={[styles.cell, { backgroundColor: pillBg, transform: [{ scale: pillScale }] }]}>
-          <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>{day.dayLabel}</Animated.Text>
+          <Animated.Text style={[styles.dayLabel, { color: labelColor, opacity: labelOpacity }]}>{day.dayLabel}</Animated.Text>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>{day.date}</Animated.Text>
         </Animated.View>
       </Animated.View>
@@ -111,7 +116,7 @@ export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles(() => StyleSheet.create({
   strip: {
     flexGrow: 0,
   },
@@ -126,6 +131,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     paddingVertical: 15,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
     ...actionShadow,
   },
   dayLabel: {
@@ -139,4 +146,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
     marginTop: 4,
   },
-});
+}));

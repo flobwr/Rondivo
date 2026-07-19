@@ -161,8 +161,8 @@ const styles = createThemedStyles(() => StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     alignSelf: 'flex-start',
   },
   pillDot: {
@@ -171,9 +171,9 @@ const styles = createThemedStyles(() => StyleSheet.create({
     borderRadius: 2.5,
   },
   pillText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600',
-    letterSpacing: -0.05,
+    letterSpacing: -0.1,
   },
   card: {
     backgroundColor: Palette.card,

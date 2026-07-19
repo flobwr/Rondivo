@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { createThemedStyles, Palette } from '@/theme';
+import { useBottomDockClearance } from '@/components/ui/BottomDock';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
 import { STATUS_META, formatTime } from './status';
@@ -233,6 +234,7 @@ const MemoRow = memo(TimelineRow);
 
 export function Timeline({ items, nowMin }: Props) {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance(0);
 
   const rows = useMemo<PositionedRow[]>(() => {
     const base = buildRows(items, nowMin);
@@ -271,7 +273,7 @@ export function Timeline({ items, nowMin }: Props) {
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[styles.listContent, { paddingBottom: dockClearance }]}
       initialNumToRender={8}
       maxToRenderPerBatch={8}
       windowSize={7}
@@ -283,7 +285,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   listContent: {
     paddingHorizontal: LIST_PADDING_H,
     paddingTop: 32,
-    paddingBottom: 32,
   },
   row: {
     flexDirection: 'row',

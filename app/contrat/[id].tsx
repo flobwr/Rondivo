@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
@@ -28,6 +28,7 @@ export default function ContratDetailScreen() {
   const [status, setStatus] = useState(source?.status);
   const [menuOpen, setMenuOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const dockClearance = useBottomDockClearance();
 
   if (!source || !status) {
     return (
@@ -104,7 +105,9 @@ export default function ContratDetailScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title={contrat.number} onBack={() => router.back()} onMenu={() => setMenuOpen(true)} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <DocumentHero
             clientName={contrat.clientName}
             onOpenClient={() => router.push(`/client/${contrat.clientId}`)}
@@ -170,7 +173,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   bannerWrap: {
     marginTop: Spacing.md,

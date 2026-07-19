@@ -3,7 +3,7 @@ import { Alert, Animated, ScrollView, StyleSheet, Text, View } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { LargeTitleBar } from '@/components/ui/LargeTitleBar';
 import { CompanyCard } from '@/components/plus/CompanyCard';
 import { LogoutButton } from '@/components/plus/LogoutButton';
@@ -34,6 +34,7 @@ export default function PlusScreen() {
   const fadeIn = useRef(new Animated.Value(0)).current;
   const { palette, resolvedTheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const dockClearance = useBottomDockClearance();
 
   // All the data below is synchronous mock data (no network round-trip), so
   // there's nothing to actually wait for — just a fade-in on mount, no
@@ -96,7 +97,9 @@ export default function PlusScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <LargeTitleBar title="Plus" subtitle="Gérez votre entreprise" />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}>
           <Animated.View style={{ opacity: fadeIn }}>
             <View style={{ marginTop: HEADER_GAP }}>
               <CompanyCard
@@ -155,7 +158,6 @@ function createStyles(Palette: PaletteShape) {
     },
     content: {
       paddingHorizontal: Spacing.screen,
-      paddingBottom: Spacing.section,
     },
     version: {
       textAlign: 'center',

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { DocumentHero } from '@/components/documents/shared/DocumentHero';
@@ -38,6 +38,7 @@ export default function DevisDetailScreen() {
   const [sent, setSent] = useState(false);
   const [composer, setComposer] = useState<Composer>(null);
   const [client, setClient] = useState<Client | null>(null);
+  const dockClearance = useBottomDockClearance();
 
   useEffect(() => {
     setStatusOverride(undefined);
@@ -189,7 +190,9 @@ export default function DevisDetailScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title={devis.number} onBack={() => router.back()} onMenu={() => setMenuOpen(true)} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <DocumentHero
             clientName={devis.clientName}
             onOpenClient={() => router.push(`/client/${devis.clientId}`)}

@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TINT_COLORS } from '@/components/clients/types';
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -28,6 +28,7 @@ const ROLE_TONE: Record<EmployeeRole, { color: string; soft: string; icon: 'shie
 
 export default function EquipeScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [employees, setEmployees] = useState<Employee[]>(() => [...EMPLOYEES]);
   const [target, setTarget] = useState<Employee | null>(null);
 
@@ -72,7 +73,7 @@ export default function EquipeScreen() {
               </FadeInItem>
             );
           }}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
@@ -107,7 +108,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   separator: {

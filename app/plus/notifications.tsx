@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
@@ -12,6 +12,7 @@ import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [reminders, setReminders] = useState(SETTINGS.notifyReminders);
   const [unpaid, setUnpaid] = useState(SETTINGS.notifyUnpaidInvoices);
   const [messages, setMessages] = useState(SETTINGS.notifyNewMessages);
@@ -21,7 +22,9 @@ export default function NotificationsScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Notifications" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <SectionCard icon="bell" title="Recevoir une notification pour">
             <SwitchRow
               label="Rappels et tâches"
@@ -57,7 +60,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   separator: {
     height: StyleSheet.hairlineWidth,

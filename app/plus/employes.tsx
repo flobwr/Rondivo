@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TINT_COLORS } from '@/components/clients/types';
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
@@ -37,6 +37,7 @@ function normalize(text: string) {
 
 export default function EmployesScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EmployeeStatus | null>(null);
 
@@ -114,7 +115,7 @@ export default function EmployesScreen() {
                 />
               </FadeInItem>
             )}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListHeaderComponent={
@@ -157,7 +158,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   count: {

@@ -17,7 +17,7 @@ import { SectionTitle } from '@/components/home/SectionTitle';
 import { getHomeStatus } from '@/components/home/status';
 import { useNowMinutes } from '@/components/home/time';
 import { Intervention } from '@/components/intervention/types';
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useTheme } from '@/contexts/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
@@ -118,6 +118,7 @@ export default function HomeScreen() {
   const reducedMotion = useReducedMotion();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const nowMin = useNowMinutes();
+  const dockClearance = useBottomDockClearance();
 
   const fetchHome = useCallback(() => fetchHomeBundle(), []);
   const { data: home, status, refresh } = useAsyncItem(fetchHome);
@@ -133,7 +134,9 @@ export default function HomeScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}>
           {isError ? (
             <EmptyState
               icon="alert-circle"
@@ -231,7 +234,6 @@ function createStyles(palette: PaletteShape) {
     content: {
       paddingHorizontal: Spacing.screen,
       paddingTop: Spacing.lg,
-      paddingBottom: Spacing.section,
     },
     section: {
       marginTop: Spacing.section,

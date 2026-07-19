@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     borderRadius: Radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     alignSelf: 'flex-start',
   },
   dot: {
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
   },
   text: {
-    fontSize: 12,
-    letterSpacing: -0.05,
+    fontSize: 11.5,
+    letterSpacing: -0.1,
   },
 });

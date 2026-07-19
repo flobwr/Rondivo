@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
@@ -19,6 +19,7 @@ const OPTIONS: SelectableOption<Language>[] = [
 
 export default function LangueScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const fetchSettings = useCallback(() => getSettings(), []);
   const { data: settings, status, refresh } = useAsyncItem(fetchSettings);
 
@@ -53,7 +54,7 @@ export default function LangueScreen() {
             </View>
           )
         ) : (
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false}>
             <SelectableList options={OPTIONS} selected={language} onSelect={handleSelect} />
           </ScrollView>
         )}
@@ -70,6 +71,5 @@ const styles = createThemedStyles(() => StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.sm,
-    paddingBottom: Spacing.section,
   },
 }));

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ClientCard } from '@/components/clients/ClientCard';
 import { ClientFilterChips } from '@/components/clients/ClientFilterChips';
@@ -39,6 +39,7 @@ export default function ClientsScreen() {
   const router = useRouter();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const dockClearance = useBottomDockClearance();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<ClientStatus[]>([]);
@@ -186,7 +187,7 @@ export default function ClientsScreen() {
             keyExtractor={(client) => client.id}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
             ListHeaderComponent={listHeader}
             ListEmptyComponent={listEmpty}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -255,7 +256,6 @@ function createStyles(Palette: PaletteShape) {
     },
     content: {
       paddingHorizontal: Spacing.screen,
-      paddingBottom: Spacing.section,
       flexGrow: 1,
     },
     chipsWrap: {

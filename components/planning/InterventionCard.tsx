@@ -133,7 +133,7 @@ export const InterventionCard = memo(InterventionCardBase);
 // Two-layer boxShadow like every DS elevation, but inked in Bleu Rondivo
 // (rgb of Palette.blue) instead of the warm shadow ink.
 const activeShadow = {
-  boxShadow: '0 2px 6px rgba(36, 71, 207, 0.10), 0 12px 28px rgba(36, 71, 207, 0.14)',
+  boxShadow: '0 3px 7px rgba(36, 71, 207, 0.12), 0 14px 32px rgba(36, 71, 207, 0.16)',
 };
 
 const styles = createThemedStyles(() => StyleSheet.create({
@@ -218,11 +218,11 @@ const styles = createThemedStyles(() => StyleSheet.create({
   chip: {
     borderRadius: 999,
     paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   chipLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.1,
   },
   type: {

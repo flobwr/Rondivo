@@ -27,6 +27,18 @@ const TABS: Tab[] = [
 ];
 
 /**
+ * How much bottom padding a screen's scrollable content needs so its last
+ * row clears the floating dock instead of hiding behind it. The dock is
+ * absolutely positioned — content now scrolls the full height of the
+ * screen and settles underneath it — so every root screen pads its list
+ * with this instead of a flat `Spacing.section`.
+ */
+export function useBottomDockClearance(extra: number = Spacing.lg): number {
+  const insets = useSafeAreaInsets();
+  return Spacing.sm + Size.dockHeight + Math.max(insets.bottom, 14) + extra;
+}
+
+/**
  * Rondivo floating dock — the app's one piece of floating chrome.
  *
  * A capsule sitting one tone BELOW the paper (`dock`), so the bar reads as
@@ -35,6 +47,11 @@ const TABS: Tab[] = [
  * pill carrying its glyph and label — the single strongest accent on any
  * screen; inactive tabs are quiet glyphs. Selection reflows with one
  * gentle spring — no bounce, no sliding underline.
+ *
+ * Absolutely positioned over the screen's content — it floats, the page
+ * scrolls behind it — so it must be the LAST sibling rendered in a root
+ * screen (paints on top) and never wrapped in a flex sibling that would
+ * claim layout space for it.
  *
  * `activeIndex` is the tab this screen belongs to; pass `-1` for screens
  * reachable from several tabs (Notes, Tâches) so no tab claims them.
@@ -116,6 +133,10 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
 
 const styles = StyleSheet.create({
   wrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingTop: Spacing.sm,
     paddingHorizontal: Spacing.screen,
     alignItems: 'center',

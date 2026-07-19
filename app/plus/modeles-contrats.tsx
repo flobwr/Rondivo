@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
 import { createThemedStyles, Palette, Spacing } from '@/theme';
@@ -18,6 +18,7 @@ const OPTIONS: SelectableOption<TemplateStyle>[] = TEMPLATE_STYLE_ORDER.map((sty
 
 export default function ModelesContratsScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [style, setStyle] = useState<TemplateStyle>(DOCUMENT_TEMPLATES.contrats);
 
   const handleSelect = (key: TemplateStyle) => {
@@ -30,7 +31,9 @@ export default function ModelesContratsScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Modèles de contrats" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <Text style={styles.intro}>Choisissez la présentation utilisée pour vos contrats.</Text>
           <SelectableList options={OPTIONS} selected={style} onSelect={handleSelect} />
         </ScrollView>
@@ -46,7 +49,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   intro: {
     fontSize: 13,

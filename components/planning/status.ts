@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 
-import { Palette } from '@/theme';
+import { Palette, StatusInk } from '@/theme';
 import { InterventionStatus } from './types';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
@@ -40,15 +40,18 @@ export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
     dot: 'pulse',
   },
   done: {
+    // `color` renders as chip TEXT in InterventionCard — the vivid green
+    // fails AA on its own wash, so this must stay the text-safe ink.
     label: 'Terminée',
-    color: Palette.green,
+    color: StatusInk.green,
     soft: Palette.greenSoft,
     dot: 'icon',
     dotIcon: 'check',
   },
   postponed: {
+    // Same AA constraint as `done` — orange must come from StatusInk.
     label: 'Reportée',
-    color: Palette.orange,
+    color: StatusInk.orange,
     soft: Palette.orangeSoft,
     dot: 'icon',
     dotIcon: 'arrow-right',

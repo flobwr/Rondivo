@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     gap: 5,
     borderRadius: Radius.pill,
     paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingVertical: 3,
     alignSelf: 'flex-start',
   },
   dot: {
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
   },
   text: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: '600',
     letterSpacing: -0.1,
   },
