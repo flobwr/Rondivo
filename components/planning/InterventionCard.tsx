@@ -218,11 +218,11 @@ const styles = createThemedStyles(() => StyleSheet.create({
   chip: {
     borderRadius: 999,
     paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   chipLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.1,
   },
   type: {

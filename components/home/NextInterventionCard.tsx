@@ -19,7 +19,7 @@ import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { getElevation, Motion, Numeric, Radius, Type, type PaletteShape } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
 
-const NAV_BUTTON = 54;
+const NAV_BUTTON = 50;
 
 /**
  * The screen's one dominant card — "where am I due next".
@@ -131,11 +131,11 @@ export function NextInterventionCard({ intervention }: { intervention?: Interven
         </PressableScale>
 
         <PressableScale
-          style={[styles.navButton, elevation.float]}
+          style={[styles.navButton, elevation.whisper]}
           to={0.92}
           onPress={() => openMapsTo(intervention.address)}
           accessibilityLabel="Lancer l’itinéraire vers l’intervention">
-          <Feather name="navigation" size={20} color={palette.onAccent} />
+          <Feather name="navigation" size={19} color={palette.onAccent} />
         </PressableScale>
       </View>
     </View>

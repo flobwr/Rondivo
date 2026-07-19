@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -92,9 +93,15 @@ export function HomeHeader({
           </PressableScale>
 
           <PressableScale
-            style={[styles.well, styles.avatar]}
+            style={[styles.well, styles.avatar, elevation.whisper]}
             onPress={() => router.push('/plus/compte')}
             accessibilityLabel="Mon compte">
+            <LinearGradient
+              colors={[palette.gradientStart, palette.gradientEnd]}
+              start={{ x: 0.2, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={[StyleSheet.absoluteFill, { borderRadius: Radius.pill }]}
+            />
             <Text style={styles.avatarText}>{initials}</Text>
           </PressableScale>
         </View>
