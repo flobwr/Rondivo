@@ -4,7 +4,11 @@ import { Animated, StyleSheet, TextInput, View } from 'react-native';
 
 import { IconWell } from '@/components/ui/IconWell';
 import { useTheme } from '@/contexts/theme';
-import { Radius, SettleSpring, Size, Spacing } from '@/theme';
+import { Radius, SettleSpring, Spacing } from '@/theme';
+
+// A touch shorter than the old Size.touchTarget (48) — reads lighter without
+// dropping under the ~44pt minimum tap target.
+const FIELD_HEIGHT = 44;
 
 /**
  * Rondivo search field — an inset well, not a floating card.
@@ -59,7 +63,7 @@ export function SearchField({
         <View>
           <IconWell
             icon="sliders"
-            size={Size.touchTarget}
+            size={FIELD_HEIGHT}
             onPress={onFilterPress}
             accessibilityLabel="Filtrer et trier"
           />
@@ -88,7 +92,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.tile,
     borderWidth: 1.5,
     paddingHorizontal: Spacing.lg,
-    height: Size.touchTarget,
+    height: FIELD_HEIGHT,
     gap: Spacing.sm + 2,
   },
   input: {

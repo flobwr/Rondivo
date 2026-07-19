@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { AccordionList, type AccordionItem } from '@/components/plus/resource/AccordionList';
 import { createThemedStyles, Palette, Spacing } from '@/theme';
@@ -37,13 +37,14 @@ const FAQ: AccordionItem[] = [
 
 export default function AideScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Centre d’aide" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false}>
           <AccordionList items={FAQ} />
         </ScrollView>
       </SafeAreaView>
@@ -59,6 +60,5 @@ const styles = createThemedStyles(() => StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.sm,
-    paddingBottom: Spacing.section,
   },
 }));

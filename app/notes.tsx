@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { PressableScale, IconTile } from '@/components/documents/shared/primitives';
@@ -35,6 +35,7 @@ function NoteRow({ note, onPress }: { note: Note; onPress: () => void }) {
 export default function NotesScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const dockClearance = useBottomDockClearance();
 
   const fetchNotes = useCallback(() => listNotes(), []);
   const { data: allNotes, status, refresh } = useAsyncList<Note>(fetchNotes);
@@ -52,7 +53,9 @@ export default function NotesScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Notes" onBack={() => router.back()} onAdd={() => router.push('/note/new')} />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Rechercher une note…" />
 
           {status === 'loading' ? (
@@ -99,7 +102,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     gap: Spacing.lg,
   },
   card: {

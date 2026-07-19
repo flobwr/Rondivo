@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionRequiredCard } from '@/components/documents/ActionRequiredCard';
 import { ActionSheetMenu } from '@/components/documents/shared/ActionSheetMenu';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -160,6 +160,7 @@ export default function DocumentsScreen() {
   const fadeIn = useRef(new Animated.Value(0)).current;
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const dockClearance = useBottomDockClearance();
 
   const fetchDocuments = useCallback(() => fetchDocumentsBundle(), []);
   const { data: bundle, status, refresh } = useAsyncItem(fetchDocuments);
@@ -195,7 +196,9 @@ export default function DocumentsScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DocumentsHeader onSearch={() => router.push('/documents-search' as never)} onAdd={creationMenu.open} palette={palette} />
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}>
           {isLoading || !bundle ? (
             <DocumentsSkeleton />
           ) : status === 'error' ? (
@@ -249,7 +252,6 @@ function createStyles(Palette: PaletteShape) {
     },
     content: {
       paddingHorizontal: Spacing.screen,
-      paddingBottom: Spacing.section,
     },
     moduleList: {
       gap: CARD_GAP,

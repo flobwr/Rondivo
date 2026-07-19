@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips';
@@ -31,6 +31,7 @@ function normalize(text: string) {
 
 export default function FournisseursScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<SupplierCategory | null>(null);
 
@@ -104,7 +105,7 @@ export default function FournisseursScreen() {
                 />
               </FadeInItem>
             )}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListHeaderComponent={
@@ -143,7 +144,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   count: {

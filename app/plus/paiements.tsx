@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection } from '@/components/documents/shared/FormScaffold';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
@@ -14,6 +14,7 @@ const OPTIONS: SelectableOption<string>[] = PAYMENT_METHOD_OPTIONS.map((method) 
 
 export default function PaiementsScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [methods, setMethods] = useState<string[]>(SETTINGS.paymentMethods);
   const [iban, setIban] = useState(SETTINGS.iban);
 
@@ -33,7 +34,10 @@ export default function PaiementsScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Paiements" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <Text style={styles.intro}>Sélectionnez les moyens de paiement acceptés — ils apparaîtront sur vos factures.</Text>
           <SelectableList options={OPTIONS} selected={methods} onSelect={toggleMethod} />
 
@@ -55,7 +59,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   intro: {
     fontSize: 13,

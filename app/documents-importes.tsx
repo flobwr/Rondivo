@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Alert, Animated, FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ClientPickerSheet } from '@/components/appointment/ClientPickerSheet';
 import { type Client } from '@/components/clients/types';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
@@ -140,6 +140,7 @@ export default function DocumentsImportesScreen() {
   const [clientPickerFileId, setClientPickerFileId] = useState<string | null>(null);
   const [interventionPickerFileId, setInterventionPickerFileId] = useState<string | null>(null);
   const listOpacity = useRef(new Animated.Value(1)).current;
+  const dockClearance = useBottomDockClearance();
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
@@ -215,7 +216,7 @@ export default function DocumentsImportesScreen() {
                 />
               </FadeInItem>
             )}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
             showsVerticalScrollIndicator={false}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListHeaderComponent={
@@ -261,7 +262,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   count: {

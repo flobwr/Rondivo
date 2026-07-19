@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { ActionSheetMenu, type ActionSheetItem } from '@/components/documents/shared/ActionSheetMenu';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
@@ -44,6 +44,7 @@ export default function PhotoInterventionScreen() {
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [pendingCategory, setPendingCategory] = useState<PhotoCategory | null>(null);
   const [sourceSheetOpen, setSourceSheetOpen] = useState(false);
+  const dockClearance = useBottomDockClearance();
 
   const tileSize = (width - Spacing.screen * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
 
@@ -161,7 +162,7 @@ export default function PhotoInterventionScreen() {
           keyExtractor={(p) => p.id}
           numColumns={COLUMNS}
           columnWrapperStyle={{ gap: GAP }}
-          contentContainerStyle={styles.grid}
+          contentContainerStyle={[styles.grid, { paddingBottom: dockClearance }]}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
           renderItem={({ item }) => (
@@ -246,7 +247,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   grid: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: 100,
     flexGrow: 1,
   },
   tile: {

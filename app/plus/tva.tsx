@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { SelectableList, type SelectableOption } from '@/components/plus/resource/SelectableList';
@@ -27,6 +27,7 @@ const OPTIONS: SelectableOption<VatRate>[] = VAT_RATE_OPTIONS.map((rate) => ({
 
 export default function TvaScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const fetchSettings = useCallback(() => getSettings(), []);
   const { data: settings, status, refresh } = useAsyncItem(fetchSettings);
 
@@ -61,7 +62,9 @@ export default function TvaScreen() {
             </View>
           )
         ) : (
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+            showsVerticalScrollIndicator={false}>
             <Text style={styles.intro}>Ce taux sera proposé par défaut à la création d’un devis ou d’une facture.</Text>
             <SelectableList options={OPTIONS} selected={rate} onSelect={handleSelect} />
           </ScrollView>

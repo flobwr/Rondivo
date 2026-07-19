@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FormSection, FormField, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
@@ -22,6 +22,7 @@ async function fetchEntrepriseBundle(): Promise<EntrepriseBundle> {
 
 export default function EntrepriseScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
 
   const fetchBundle = useCallback(() => fetchEntrepriseBundle(), []);
   const { data: bundle, status, refresh } = useAsyncItem(fetchBundle);
@@ -86,7 +87,7 @@ export default function EntrepriseScreen() {
             </View>
           )
         ) : (
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.hero}>
               <Text style={styles.heroName}>{bundle!.company.name}</Text>
               <Text style={styles.heroSummary}>
@@ -125,7 +126,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   hero: {
     paddingTop: Spacing.sm,

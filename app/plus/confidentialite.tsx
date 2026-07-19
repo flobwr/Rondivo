@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { LegalSections, type LegalSection } from '@/components/plus/resource/LegalSections';
 import { createThemedStyles, Palette, Spacing } from '@/theme';
@@ -32,13 +32,14 @@ const SECTIONS: LegalSection[] = [
 
 export default function ConfidentialiteScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Politique de confidentialité" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]} showsVerticalScrollIndicator={false}>
           <LegalSections sections={SECTIONS} />
         </ScrollView>
       </SafeAreaView>
@@ -54,6 +55,5 @@ const styles = createThemedStyles(() => StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.sm,
-    paddingBottom: Spacing.section,
   },
 }));

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { SectionCard } from '@/components/documents/shared/primitives';
@@ -13,6 +13,7 @@ import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function SignatureScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [name, setName] = useState(SETTINGS.signatureName);
   const [enabled, setEnabled] = useState(SETTINGS.hasSignature);
 
@@ -28,7 +29,10 @@ export default function SignatureScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Signature" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <FormSection title="Signature" icon="edit-2">
             <FormField label="Nom affiché" value={name} onChangeText={setName} placeholder="Votre nom" />
           </FormSection>
@@ -63,7 +67,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   preview: {
     backgroundColor: Palette.cardMuted,

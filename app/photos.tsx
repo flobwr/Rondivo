@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { EmptyState } from '@/components/documents/shared/EmptyState';
 import { FadeInItem } from '@/components/documents/shared/primitives';
@@ -15,6 +15,7 @@ import { PHOTO_INTERVENTIONS } from '@/data/documents/photos';
 export default function PhotosScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const dockClearance = useBottomDockClearance();
 
   const filtered = useMemo(() => {
     let list = PHOTO_INTERVENTIONS;
@@ -47,7 +48,7 @@ export default function PhotosScreen() {
               <PhotoInterventionCard intervention={item} onPress={() => router.push(`/photos/${item.id}` as never)} />
             </FadeInItem>
           )}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: dockClearance }]}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListHeaderComponent={
@@ -75,7 +76,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   list: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
     flexGrow: 1,
   },
   count: {

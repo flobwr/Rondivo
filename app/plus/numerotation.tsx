@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { FormField, FormSection, FormSubmitButton } from '@/components/documents/shared/FormScaffold';
 import { createThemedStyles, Palette, Spacing } from '@/theme';
@@ -11,6 +11,7 @@ import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function NumerotationScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [quotePrefix, setQuotePrefix] = useState(SETTINGS.quotePrefix);
   const [quoteNextNumber, setQuoteNextNumber] = useState(String(SETTINGS.quoteNextNumber));
   const [invoicePrefix, setInvoicePrefix] = useState(SETTINGS.invoicePrefix);
@@ -33,7 +34,10 @@ export default function NumerotationScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Numérotation" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <FormSection title="Devis" icon="edit-3">
             <FormField label="Préfixe" value={quotePrefix} onChangeText={setQuotePrefix} placeholder="DE-2026-" />
             <FormField label="Prochain numéro" value={quoteNextNumber} onChangeText={setQuoteNextNumber} placeholder="1" keyboardType="number-pad" />
@@ -58,6 +62,5 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
 }));

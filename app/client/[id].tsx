@@ -24,7 +24,7 @@ import {
   InterventionsSection,
   NotesSection,
 } from '@/components/clients/detail/TabSections';
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientAlerts, getClientDetail, type ClientAlert, type ClientDetail } from '@/services/client-details';
@@ -64,6 +64,7 @@ export default function ClientDetailScreen() {
 
   const fetchBundle = useCallback(() => fetchClientBundle(id), [id]);
   const { data: bundle, status } = useAsyncItem(fetchBundle);
+  const dockClearance = useBottomDockClearance();
 
   const [notes, setNotes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<DetailTab>('resume');
@@ -231,7 +232,7 @@ export default function ClientDetailScreen() {
 
             {activeTab === 'notes' ? <NotesSection notes={notes} onChangeNotes={setNotes} /> : null}
 
-            <View style={styles.bottomSpacer} />
+            <View style={{ height: dockClearance }} />
           </ScrollView>
         </Animated.View>
 

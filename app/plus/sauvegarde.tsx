@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomDock } from '@/components/ui/BottomDock';
+import { BottomDock, useBottomDockClearance } from '@/components/ui/BottomDock';
 import { DetailHeader } from '@/components/documents/shared/DetailHeader';
 import { KeyValueRow, PressableScale, SectionCard } from '@/components/documents/shared/primitives';
 import { SwitchRow } from '@/components/plus/resource/SwitchRow';
@@ -15,6 +15,7 @@ import { SETTINGS, updateSettings } from '@/data/plus/settings';
 
 export default function SauvegardeScreen() {
   const router = useRouter();
+  const dockClearance = useBottomDockClearance();
   const [autoBackup, setAutoBackup] = useState(SETTINGS.autoBackupEnabled);
   const [lastSync, setLastSync] = useState(COMPANY.lastSyncLabel);
   const [saving, setSaving] = useState(false);
@@ -35,7 +36,9 @@ export default function SauvegardeScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <DetailHeader title="Sauvegarde" onBack={() => router.back()} />
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: dockClearance }]}
+          showsVerticalScrollIndicator={false}>
           <SectionCard icon="cloud" title="État">
             <KeyValueRow label="Dernière sauvegarde" value={lastSync} />
             <KeyValueRow label="Statut" value={COMPANY.synced ? 'Synchronisé' : 'Non synchronisé'} />
@@ -67,7 +70,6 @@ const styles = createThemedStyles(() => StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.screen,
-    paddingBottom: Spacing.section,
   },
   toggleCard: {
     marginTop: Spacing.section,
