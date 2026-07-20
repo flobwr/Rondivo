@@ -26,6 +26,13 @@ export {
   type ThemeName,
 } from './palette';
 export { createThemedStyles } from './themed';
+export {
+  getStatusSurface,
+  type ColorTone,
+  type SemanticTone,
+  type StatusSurface,
+  type StatusTone,
+} from './status';
 export { FontSize, Numeric, Type } from './typography';
 export { Radius, Size, Spacing } from './layout';
 export {

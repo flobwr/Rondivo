@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 
-import { Palette, StatusInk } from '@/theme';
+import { getStatusInk, Palette, type PaletteShape } from '@/theme';
 import { InterventionStatus } from './types';
 
 type FeatherName = React.ComponentProps<typeof Feather>['name'];
@@ -14,56 +14,67 @@ export type StatusMeta = {
   dotIcon?: FeatherName;
 };
 
-export const STATUS_META: Record<InterventionStatus, StatusMeta> = {
-  planned: {
-    label: 'Planifiée',
-    color: Palette.textSecondary,
-    soft: '#F1F3F8',
-    dot: 'hollow',
-  },
-  enRoute: {
-    label: 'En route',
-    color: Palette.teal,
-    soft: Palette.tealSoft,
-    dot: 'pulse',
-  },
-  arrived: {
-    label: 'Arrivé',
-    color: Palette.purple,
-    soft: Palette.purpleSoft,
-    dot: 'pulse',
-  },
-  inProgress: {
-    label: 'En cours',
-    color: Palette.blue,
-    soft: Palette.blueSoft,
-    dot: 'pulse',
-  },
-  done: {
-    // `color` renders as chip TEXT in InterventionCard — the vivid green
-    // fails AA on its own wash, so this must stay the text-safe ink.
-    label: 'Terminée',
-    color: StatusInk.green,
-    soft: Palette.greenSoft,
-    dot: 'icon',
-    dotIcon: 'check',
-  },
-  postponed: {
-    // Same AA constraint as `done` — orange must come from StatusInk.
-    label: 'Reportée',
-    color: StatusInk.orange,
-    soft: Palette.orangeSoft,
-    dot: 'icon',
-    dotIcon: 'arrow-right',
-  },
-  cancelled: {
-    label: 'Annulée',
-    color: Palette.textTertiary,
-    soft: '#F1F3F8',
-    dot: 'icon',
-    dotIcon: 'x',
-  },
-};
+/**
+ * The status vocabulary, resolved on a LIVE palette so Planning chips and
+ * timeline dots follow the active theme (a frozen module-scope map would
+ * stay on the light paper's colours under Midnight/AMOLED). Pass
+ * `useTheme().palette`; call sites without a theme fall back to the active
+ * `Palette`.
+ *
+ * `color` doubles as chip TEXT, so the vivid green/orange (which fail AA on
+ * their own wash) come from the text-safe ink; neutral washes reuse the
+ * palette's own `inset`, never a hardcoded grey.
+ */
+export function getStatusMeta(palette: PaletteShape = Palette): Record<InterventionStatus, StatusMeta> {
+  const ink = getStatusInk(palette);
+  return {
+    planned: {
+      label: 'Planifiée',
+      color: palette.textSecondary,
+      soft: palette.inset,
+      dot: 'hollow',
+    },
+    enRoute: {
+      label: 'En route',
+      color: palette.teal,
+      soft: palette.tealSoft,
+      dot: 'pulse',
+    },
+    arrived: {
+      label: 'Arrivé',
+      color: palette.purple,
+      soft: palette.purpleSoft,
+      dot: 'pulse',
+    },
+    inProgress: {
+      label: 'En cours',
+      color: palette.blue,
+      soft: palette.blueSoft,
+      dot: 'pulse',
+    },
+    done: {
+      label: 'Terminée',
+      color: ink.green,
+      soft: palette.greenSoft,
+      dot: 'icon',
+      dotIcon: 'check',
+    },
+    postponed: {
+      label: 'Reportée',
+      color: ink.orange,
+      soft: palette.orangeSoft,
+      dot: 'icon',
+      dotIcon: 'arrow-right',
+    },
+    cancelled: {
+      label: 'Annulée',
+      color: palette.textTertiary,
+      soft: palette.inset,
+      dot: 'icon',
+      dotIcon: 'x',
+    },
+  };
+}
 
 // ── Time helpers ──────────────────────────────────────────────────────────────
 

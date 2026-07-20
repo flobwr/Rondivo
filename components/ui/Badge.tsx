@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '@/contexts/theme';
-import { Radius } from '@/theme';
+import { getStatusSurface, Radius, type ColorTone } from '@/theme';
 
-export type BadgeTone = 'blue' | 'green' | 'orange' | 'red' | 'purple' | 'teal' | 'neutral';
+export type BadgeTone = ColorTone;
 
 /**
  * Rondivo status badge — ink on wash, named by tone, never by raw colour.
@@ -25,17 +25,8 @@ export function Badge({
   critical?: boolean;
   dot?: boolean;
 }) {
-  const { palette, statusInk } = useTheme();
-
-  const { wash, ink, vivid } = {
-    blue: { wash: palette.blueSoft, ink: statusInk.blue, vivid: palette.blue },
-    green: { wash: palette.greenSoft, ink: statusInk.green, vivid: palette.green },
-    orange: { wash: palette.orangeSoft, ink: statusInk.orange, vivid: palette.orange },
-    red: { wash: palette.redSoft, ink: statusInk.red, vivid: palette.red },
-    purple: { wash: palette.purpleSoft, ink: statusInk.purple, vivid: palette.purple },
-    teal: { wash: palette.tealSoft, ink: palette.teal, vivid: palette.teal },
-    neutral: { wash: palette.inset, ink: palette.textSecondary, vivid: palette.textTertiary },
-  }[tone];
+  const { palette } = useTheme();
+  const { wash, ink, vivid } = getStatusSurface(palette, tone);
 
   return (
     <View

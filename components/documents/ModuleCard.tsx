@@ -45,16 +45,18 @@ export function ModuleCard({
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
   // A module carrying a real "red" alert (unpaid invoice, overdue…) should
-  // outweigh one with no alert at all — same card shape, a touch more
-  // visual weight instead of an identical footprint for every module.
+  // read as needing attention — not with a loud outline, but the same quiet
+  // way "Départ dépassé" earns colour on the Home: the icon tile takes the
+  // alert's tinted wash and ink. No border, no shouting.
   const critical = module.stats?.some((s) => s.tone === 'red') ?? false;
+  const tile = critical ? DocumentsTone.red : null;
 
   return (
     <Animated.View style={{ opacity: enter, transform: [{ translateY }] }}>
       <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
-        <Animated.View style={[styles.card, critical && styles.cardCritical, { transform: [{ scale: pressScale }] }]}>
-          <View style={styles.iconTile}>
-            <Feather name={module.icon} size={16} color={palette.blue} />
+        <Animated.View style={[styles.card, { transform: [{ scale: pressScale }] }]}>
+          <View style={[styles.iconTile, tile ? { backgroundColor: tile.soft } : null]}>
+            <Feather name={module.icon} size={16} color={tile ? tile.color : palette.blue} />
           </View>
 
           <View style={styles.content}>
@@ -103,9 +105,6 @@ function createStyles(Palette: PaletteShape) {
       borderWidth: 1,
       borderColor: 'transparent',
       ...actionShadow,
-    },
-    cardCritical: {
-      borderColor: DocumentsTone.red.color,
     },
     iconTile: {
       width: TILE,

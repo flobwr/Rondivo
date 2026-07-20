@@ -4,10 +4,11 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { createThemedStyles, Palette } from '@/theme';
+import { useTheme } from '@/contexts/theme';
 import { useBottomDockClearance } from '@/components/ui/BottomDock';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
-import { STATUS_META, formatTime } from './status';
+import { getStatusMeta, formatTime } from './status';
 import { TravelLink } from './TravelLink';
 import { BreakSlot, DayItem, Intervention, InterventionStatus, TravelLeg } from './types';
 
@@ -66,7 +67,8 @@ function PulseDot({ color }: { color: string }) {
 }
 
 function StatusDot({ status }: { status: InterventionStatus }) {
-  const meta = STATUS_META[status];
+  const { palette } = useTheme();
+  const meta = getStatusMeta(palette)[status];
 
   if (meta.dot === 'pulse') return <PulseDot color={meta.color} />;
 

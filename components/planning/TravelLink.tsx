@@ -4,18 +4,13 @@ import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { createThemedStyles, Palette } from '@/theme';
+import { useTheme } from '@/contexts/theme';
 import { TravelLeg } from './types';
 
 type Props = {
   travel: TravelLeg;
   index?: number;
   onNavigate?: () => void;
-};
-
-const TRAFFIC_COLOR: Record<TravelLeg['traffic'], string> = {
-  fluid: Palette.green,
-  dense: Palette.orange,
-  jammed: Palette.red,
 };
 
 // A travel leg is a *connector*, not a card: slim capsule, no shadow. The tiny
@@ -25,6 +20,13 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
+  const { palette } = useTheme();
+
+  const trafficColor: Record<TravelLeg['traffic'], string> = {
+    fluid: palette.green,
+    dense: palette.orange,
+    jammed: palette.red,
+  };
 
   useEffect(() => {
     Animated.spring(enter, {
@@ -47,7 +49,7 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
-        <View style={[styles.trafficDot, { backgroundColor: TRAFFIC_COLOR[travel.traffic] }]} />
+        <View style={[styles.trafficDot, { backgroundColor: trafficColor[travel.traffic] }]} />
         <Feather name="truck" size={13} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min · {kmLabel} km

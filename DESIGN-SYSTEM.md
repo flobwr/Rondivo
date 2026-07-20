@@ -33,6 +33,7 @@ localement sont un bug de design system.
 | `layout.ts` | Grille 4 pt. Gouttière écran 20, rythme de section 28, padding de carte 18. Rayons : hero 26, card 20, tile 14, control 12, pill. Métriques de contrôle (`Size`) : cible 48, bouton 52, puits d'icône 38, dock 64. |
 | `elevation.ts` | Ombres à deux couches (contact serré + ambiante large) via `boxShadow`. Quatre niveaux : whisper / card / raised / float — mêmes tiers partout (cartes, boutons, dock, sheets). `getElevation(theme)` teinte l'encre par papier (chaude sur Atelier, froide sur Arctic/Slate, noire sur Midnight/AMOLED) ; sur AMOLED l'ombre est presque inerte et c'est le filet (`border`) qui fait le travail. |
 | `motion.ts` | Quatre durées (120/180/240/320), une courbe de décélération maison, deux springs (`PressSpring`, `SettleSpring`). Rien ne rebondit, rien ne boucle pour le spectacle. `useReducedMotion` honoré partout. |
+| `status.ts` | LE langage d'état partagé. `getStatusSurface(palette, tone)` résout un ton — nommé par sens (`success`/`warning`/`danger`/`info`/`neutral`) ou par couleur (`blue`/`green`/…) — en `{ wash, ink, vivid }` : lavis très clair en fond, encre AA comme SEUL texte, couleur vive réservée au point/à l'icône. Jamais de bordure colorée criarde. Lit la palette ACTIVE, donc chaque état suit le thème (papiers sombres compris). Source unique de `Badge` et des surfaces d'attention (Documents, Clients, Planning, Home, Notifications). |
 
 ## 3. Composants (`components/ui/`)
 

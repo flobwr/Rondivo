@@ -4,7 +4,8 @@ import { memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { createThemedStyles, actionShadow, Palette } from '@/theme';
-import { STATUS_META } from './status';
+import { useTheme } from '@/contexts/theme';
+import { getStatusMeta } from './status';
 import { Intervention } from './types';
 
 type Props = {
@@ -21,8 +22,9 @@ type Props = {
 function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
   const pressScale = useRef(new Animated.Value(1)).current;
   const enter = useRef(new Animated.Value(0)).current;
+  const { palette } = useTheme();
 
-  const meta = STATUS_META[intervention.status];
+  const meta = getStatusMeta(palette)[intervention.status];
   const isActive = intervention.status === 'inProgress';
   const isDone = intervention.status === 'done';
   const isPostponed = intervention.status === 'postponed';
@@ -102,7 +104,7 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
                 <Text
                   style={[
                     styles.chipLabel,
-                    { color: isActive ? Palette.white : meta.color },
+                    { color: isActive ? palette.onAccent : meta.color },
                   ]}>
                   {meta.label}
                 </Text>
