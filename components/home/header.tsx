@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { ControlColor, FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { badgeShadow, iconButtonShadow } from '@/constants/shadow';
 
 type RoundButtonProps = {
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     width: BUTTON,
     height: BUTTON,
     borderRadius: BUTTON / 2,
-    backgroundColor: '#ECEEF2',
+    backgroundColor: ControlColor.neutralBg,
     alignItems: 'center',
     justifyContent: 'center',
     ...iconButtonShadow,

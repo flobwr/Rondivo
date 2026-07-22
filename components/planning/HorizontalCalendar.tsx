@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { FontSize, Overlay, Palette, Spacing } from '@/constants/design';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
@@ -43,7 +43,7 @@ function DayCell({
 
   const bubbleBg = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: ['rgba(37, 99, 235, 0)', Palette.blue],
+    outputRange: [Overlay.blueTransparent, Palette.blue],
   });
   // subtle spring pop while the selection settles
   const bubbleScale = sel.interpolate({

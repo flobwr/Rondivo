@@ -9,6 +9,7 @@ import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { ShimmerColors } from '@/constants/motion';
 import { useShimmer } from '@/hooks/use-shimmer';
 
 // ── Mock data — replace with real data source ─────────────────────────────────
@@ -37,9 +38,9 @@ const REMAINING_APPOINTMENTS: Appointment[] = [
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function SkeletonBlock({ height, radius = 12, style }: { height: number; radius?: number; style?: object }) {
-  // Exact legacy shimmer preserved (950ms, #E8ECF2 → #CED4DE); only the
-  // duplicated loop boilerplate is now shared via useShimmer.
-  const { backgroundColor } = useShimmer({ duration: 950, from: '#E8ECF2', to: '#CED4DE' });
+  // Exact legacy shimmer preserved (950ms, home's slightly deeper highlight);
+  // only the duplicated loop boilerplate is now shared via useShimmer.
+  const { backgroundColor } = useShimmer({ duration: 950, to: ShimmerColors.toStrong });
 
   return <Animated.View style={[{ height, borderRadius: radius, backgroundColor }, style]} />;
 }

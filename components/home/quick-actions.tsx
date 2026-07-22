@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/constants/design';
+import { ControlColor, Palette } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.cardMuted,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E8EF',
+    borderColor: ControlColor.tileBorder,
     paddingVertical: 12,
     paddingHorizontal: 4,
     alignItems: 'center',

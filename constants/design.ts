@@ -133,10 +133,41 @@ export const Opacity = {
  */
 export const Overlay = {
   scrim: 'rgba(15, 23, 41, 0.35)',
+  /** White hairline divider over a coloured surface (hero card). */
+  whiteDivider: 'rgba(255,255,255,0.30)',
+  /** Translucent white pill/button over a coloured surface (hero empty CTA). */
+  whitePill: 'rgba(255,255,255,0.20)',
+  /** Fully transparent brand blue — start of the calendar bubble crossfade. */
+  blueTransparent: 'rgba(37, 99, 235, 0)',
+  /** Neutral-black shadow colour for the floating hero GPS button. */
+  gpsShadow: '#000',
 } as const;
 
 export const ControlColor = {
+  /** Neutral round-button background (Home header bell/settings). */
   neutralBg: '#ECEEF2',
+  /** Neutral back-button background (Rappels header) — a hair lighter. */
+  neutralBgAlt: '#EFF1F4',
+  /** Quick-action tile hairline border. */
+  tileBorder: '#E4E8EF',
+} as const;
+
+/**
+ * Brand colours that intentionally differ from the semantic Palette.
+ * `tabActive` is the active bottom-tab blue — deeper than Palette.blue by
+ * design; kept as its own token so it isn't accidentally "unified" away.
+ */
+export const BrandColor = {
+  tabActive: '#1A50E2',
+} as const;
+
+/**
+ * Multi-stop gradients (arrays consumed by expo-linear-gradient). The primary
+ * hero gradient lives in Palette (gradientStart/End); this holds the muted
+ * empty-state variant.
+ */
+export const Gradient = {
+  heroEmpty: ['#C2CBD8', '#B8C4D2'],
 } as const;
 
 /** Border widths. `hairline` is resolved by primitives via StyleSheet.hairlineWidth. */

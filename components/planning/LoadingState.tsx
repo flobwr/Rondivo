@@ -4,9 +4,9 @@ import { Palette, Radius, Spacing } from '@/constants/design';
 import { useShimmer } from '@/hooks/use-shimmer';
 
 function Shimmer({ style }: { style?: object }) {
-  // Exact legacy shimmer preserved (900ms, #E8ECF2 → #D6DCE6); only the
+  // Exact legacy shimmer preserved (900ms, ShimmerColors from → to); only the
   // duplicated loop boilerplate is now shared via useShimmer.
-  const { backgroundColor } = useShimmer({ duration: 900, from: '#E8ECF2', to: '#D6DCE6' });
+  const { backgroundColor } = useShimmer({ duration: 900 });
 
   return <Animated.View style={[{ backgroundColor }, style]} />;
 }

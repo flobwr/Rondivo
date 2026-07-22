@@ -17,36 +17,35 @@ import { AppScreen, AppSection, AppCard, CardHeader, CardContent, AppText, AppBu
 
 ## Pourquoi ce système existe (problèmes résolus)
 
-Cette couche a été ajoutée après un audit du projet. Les problèmes concrets
-qu'elle adresse :
+Cette couche a été ajoutée après un audit du projet. État des problèmes
+identifiés (✅ = résolu dans le code existant, ◻︎ = primitive prête, migration
+structurelle progressive) :
 
-1. **Animation de press dupliquée ~10×** (`Animated.Value(1)` + `onPressIn/out`),
-   avec des valeurs de scale légèrement différentes à chaque fois (0.98, 0.978,
-   0.95, 0.92, 0.9, 0.86…). → `usePressScale` / `PressableScale` + `PressScale` tokens.
-2. **Deux implémentations de shimmer** (home `SkeletonBlock`, planning `Shimmer`).
-   → `useShimmer` / `AppSkeleton`.
-3. **Animation d'entrée dupliquée** (planning cards, empty state, travel).
-   → `useEntrance`.
-4. **Conteneurs « card » recopiés** (`backgroundColor + Radius.card + cardShadow`)
-   dans 5+ endroits. → `AppSurface` / `AppCard`.
-5. **Tuiles icône douces recopiées** (quick-actions, reminders, rappels).
-   → `AppIconTile`.
-6. **Pills / badges recopiés** (status pill, header badge, EN COURS / URGENT).
-   → `AppBadge` / `AppStatus`.
-7. **Boutons ronds recopiés** (bell, settings, back, +, GPS, nav). → `AppIconButton`.
-8. **États vides / erreur recopiés** (planning EmptyState/ErrorState, home, reminders).
-   → `AppEmptyState`.
-9. **Titres de section recopiés** (home, rappels). → `AppSection`.
-10. **Rows recopiées** (rappels ActionRow, reminders). → `AppListItem`.
-11. **Squelette d'écran recopié** (`root/safeArea/ScrollView/BottomNav`). → `AppScreen`.
-12. **Couleur de statut décidée dans 3 fichiers** (planning : `TIME_COLOR`,
-    `DOT_COLOR`, `STATUS_STYLE`). → `StatusAccent` / `Accent`.
-13. **Valeurs codées en dur malgré les tokens** : polices (17, 19, 30…), graisses
-    ('700'…), letter-spacing, couleurs (`#ECEEF2`, `#E4E8EF`, `#1A50E2`…).
-    → `Typography`, `FontWeight`, `LetterSpacing`, `Accent`, `<AppText variant>`.
+1. ✅ **Animation de press dupliquée ~10×** (`Animated.Value(1)` + `onPressIn/out`),
+   valeurs de scale différentes à chaque fois (0.98, 0.978, 0.95, 0.92, 0.9…).
+   → **migrée** vers `usePressScale` dans les 9 composants concernés.
+2. ✅ **Deux implémentations de shimmer** (home `SkeletonBlock`, planning `Shimmer`).
+   → **migrées** vers `useShimmer` (couleurs/durées exactes préservées).
+3. ✅ **Animation d'entrée dupliquée** (planning cards, empty state, travel).
+   → **migrée** vers `useEntrance`.
+4. ✅ **Couleur de statut / valeurs codées** : toutes les couleurs codées en dur
+   (`#ECEEF2`, `#E4E8EF`, `#1A50E2`, gradients, overlays, shimmer, ombre GPS…)
+   sont **tokenisées** (`ControlColor`, `BrandColor`, `Gradient`, `Overlay`,
+   `ShimmerColors`). ESLint interdit désormais toute couleur codée (`error`).
+5. ✅ **Ombre inline** (`focalShadow` du planning) → déplacée dans
+   `constants/shadow.ts`.
+6. ✅ **Dead code Expo template** (ThemedText/View, HapticTab, IconSymbol,
+   use-theme-color, use-color-scheme, theme.ts) → **supprimé** (0 référence).
+7. ◻︎ **Conteneurs « card » / rows / sections / états vides** recopiés →
+   primitives prêtes (`AppCard`, `AppListItem`, `AppSection`, `AppEmptyState`,
+   `AppScreen`). Migration **structurelle** volontairement différée là où elle
+   introduirait un écart sub-pixel non vérifiable sans QA visuel (voir le
+   rapport de session et COMPONENT_GUIDELINES §9).
 
-Rien de tout cela n'a été réécrit de force dans les écrans existants : la
-migration est **progressive** (voir COMPONENT_GUIDELINES §9).
+Les migrations « invisibles » (animations, couleurs, dead code) ont été faites
+sans **aucun** changement de rendu. Les migrations structurelles restantes
+suivent la règle progressive : le code nouveau utilise les primitives, l'ancien
+migre quand on le touche, avec QA visuel.
 
 ---
 
@@ -108,8 +107,8 @@ migration est **progressive** (voir COMPONENT_GUIDELINES §9).
 
 | Fichier               | Contenu |
 | --------------------- | ------- |
-| `constants/design.ts` | `Palette`, `Spacing`, `Radius`, `FontSize` **+** `FontWeight`, `LetterSpacing`, `Opacity`, `BorderWidth`, `HitSlop`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography` |
-| `constants/shadow.ts` | `heroShadow`, `cardShadow`, `actionShadow`, `badgeShadow`, `iconButtonShadow` |
+| `constants/design.ts` | `Palette`, `Spacing`, `Radius`, `FontSize` **+** `FontWeight`, `LetterSpacing`, `Opacity`, `BorderWidth`, `HitSlop`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography`, `ControlColor`, `BrandColor`, `Gradient`, `Overlay` |
+| `constants/shadow.ts` | `heroShadow`, `cardShadow`, `actionShadow`, `badgeShadow`, `iconButtonShadow`, `focalShadow` |
 | `constants/motion.ts` | `Spring`, `PressScale`, `Duration`, `StaggerDelay`, `ShimmerColors` |
 
 Tous les tokens étendus sont **additifs** : aucune valeur existante n'a été

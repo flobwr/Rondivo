@@ -1,9 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { memo } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
-import { actionShadow } from '@/constants/shadow';
+import { actionShadow, focalShadow } from '@/constants/shadow';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { AppointmentStatus, PlanningAppointment } from './types';
@@ -150,20 +150,6 @@ function PlanningAppointmentCardBase({ appointment, index = 0, onPress }: Props)
 }
 
 export const PlanningAppointmentCard = memo(PlanningAppointmentCardBase);
-
-// Focal (in-progress) card carries a slightly stronger, brand-tinted lift.
-// Every other card uses the barely-there action shadow from the design system,
-// so the eye lands on the current intervention first.
-const focalShadow = Platform.select({
-  ios: {
-    shadowColor: Palette.blue,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-  },
-  android: { elevation: 5 },
-  default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
-});
 
 const styles = StyleSheet.create({
   card: {

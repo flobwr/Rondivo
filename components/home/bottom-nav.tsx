@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FontSize, Palette } from '@/constants/design';
+import { BrandColor, FontSize, Palette } from '@/constants/design';
 
 type Tab = {
   label: string;
@@ -37,7 +37,7 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {TABS.map((tab, index) => {
         const active = index === activeIndex;
-        const color = active ? '#1A50E2' : Palette.textTertiary;
+        const color = active ? BrandColor.tabActive : Palette.textTertiary;
         return (
           <Pressable
             key={tab.label}

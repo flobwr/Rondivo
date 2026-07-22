@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Gradient, Overlay, Palette, Radius, Spacing } from '@/constants/design';
 import { heroShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -39,7 +39,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
   if (isEmpty) {
     return (
       <LinearGradient
-        colors={['#C2CBD8', '#B8C4D2']}
+        colors={Gradient.heroEmpty}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.card}>
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     alignSelf: 'stretch',
-    backgroundColor: 'rgba(255,255,255,0.30)',
+    backgroundColor: Overlay.whiteDivider,
     marginHorizontal: 12,
   },
   footerLabel: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 14,
-    shadowColor: '#000',
+    shadowColor: Overlay.gpsShadow,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 18,
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    backgroundColor: Overlay.whitePill,
     borderRadius: Radius.pill,
     paddingHorizontal: 14,
     paddingVertical: 8,

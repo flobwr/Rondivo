@@ -41,10 +41,9 @@ components/
   planning/               # composants de l'écran planning
 constants/
   design.ts               # tokens : Palette, Spacing, Radius, FontSize + tokens étendus
-  shadow.ts               # tokens d'ombre (hero/card/action/badge/iconButton)
-  motion.ts               # tokens d'animation (spring, durées, press scale)
-  theme.ts                # thème clair/sombre (héritage Expo, voir §7)
-hooks/                    # hooks transverses (animation, thème)
+  shadow.ts               # tokens d'ombre (hero/card/action/badge/iconButton/focal)
+  motion.ts               # tokens d'animation (spring, durées, press scale, shimmer)
+hooks/                    # hooks transverses (animation : press/entrance/shimmer)
 ```
 
 ### 1.2 Cible (évolution progressive vers une architecture par domaine)
@@ -188,12 +187,22 @@ supprime avec `StatusAccent`).
 
 **Où sont les tokens :** `constants/design.ts`
 (`Palette`, `Spacing`, `Radius`, `FontSize`, `FontWeight`, `LetterSpacing`,
-`Opacity`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography`),
-`constants/shadow.ts`, `constants/motion.ts`.
+`Opacity`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography`,
+`ControlColor`, `BrandColor`, `Gradient`, `Overlay`), `constants/shadow.ts`
+(`…Shadow`, `focalShadow`), `constants/motion.ts` (`Spring`, `PressScale`,
+`Duration`, `StaggerDelay`, `ShimmerColors`).
+
+**Couleurs — tolérance zéro (ESLint `error`).** Il n'y a plus **aucune** couleur
+codée en dur dans `app/`, `components/`, `hooks/`. Toute nouvelle valeur
+`#hex` / `rgb()` / `rgba()` hors de `constants/**` fait échouer le lint. Si une
+couleur n'a pas encore de token, on l'ajoute dans `constants/` (verbatim si on
+veut préserver un rendu exact) puis on la référence.
 
 **Exception légitime :** une valeur purement locale et non réutilisable (ex : la
-largeur d'une colonne de time-line) peut rester en dur **avec un commentaire**
-expliquant pourquoi. Le nouveau code passe d'abord par les tokens.
+largeur d'une colonne de time-line, une ombre inline dont le comportement
+multi-plateforme doit rester exact comme le bouton GPS du hero) peut rester en
+dur **avec un commentaire** expliquant pourquoi. Le nouveau code passe d'abord
+par les tokens.
 
 ---
 
@@ -204,7 +213,10 @@ expliquant pourquoi. Le nouveau code passe d'abord par les tokens.
 - Utilise **`usePressScale`**, **`useEntrance`**, **`useShimmer`** (ou
   `PressableScale`) au lieu de recopier `Animated.Value(1)` + `onPressIn/out`.
 - Les constantes vivent dans `constants/motion.ts` (`Spring`, `PressScale`,
-  `Duration`, `StaggerDelay`).
+  `Duration`, `StaggerDelay`, `ShimmerColors`).
+- Les trois hooks acceptent des overrides optionnels (`springIn`/`springOut`,
+  `spring`, `from`/`to`/`duration`) : on peut donc reproduire un feel legacy au
+  paramètre près tout en supprimant le boilerplate dupliqué.
 
 ---
 

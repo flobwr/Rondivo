@@ -66,3 +66,17 @@ export const iconButtonShadow = Platform.select({
   android: { elevation: 0 },
   default: { boxShadow: '0px 1px 4px rgba(15, 23, 41, 0.04)' },
 });
+
+// Focal (in-progress) planning card — a slightly stronger, brand-tinted lift so
+// the eye lands on the current intervention first. The only shadow that is
+// blue-tinted rather than the neutral app shadow.
+export const focalShadow = Platform.select({
+  ios: {
+    shadowColor: Palette.blue,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+  },
+  android: { elevation: 5 },
+  default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
+});

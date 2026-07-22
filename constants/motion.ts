@@ -47,8 +47,13 @@ export const Duration = {
 /** Per-item stagger delay (ms) for list entrance animations. */
 export const StaggerDelay = 45;
 
-/** Shimmer gradient endpoints for skeleton loaders. */
+/**
+ * Shimmer gradient endpoints for skeleton loaders. `to` is the planning
+ * skeleton's highlight; `toStrong` is the home skeleton's slightly deeper pulse
+ * (kept distinct to preserve the exact existing look of each screen).
+ */
 export const ShimmerColors = {
   from: '#E8ECF2',
   to: '#D6DCE6',
+  toStrong: '#CED4DE',
 } as const;
