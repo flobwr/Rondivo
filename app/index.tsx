@@ -152,7 +152,7 @@ export default function HomeScreen() {
                   </View>
                 ) : (
                   <View style={styles.emptyDay}>
-                    <Text style={styles.emptyDayTitle}>C'est tout pour aujourd'hui.</Text>
+                    <Text style={styles.emptyDayTitle}>C&apos;est tout pour aujourd&apos;hui.</Text>
                   </View>
                 )}
               </View>

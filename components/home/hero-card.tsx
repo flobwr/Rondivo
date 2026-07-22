@@ -64,7 +64,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         <Text style={styles.eyebrow}>PROCHAINE INTERVENTION</Text>
         <Text style={[styles.client, { fontSize: 24, opacity: 0.55 }]}>Journée libre</Text>
         <Text style={[styles.metaText, { marginTop: 8, opacity: 0.6 }]}>
-          Aucune intervention prévue aujourd'hui
+          Aucune intervention prévue aujourd&apos;hui
         </Text>
         <Pressable style={styles.emptyAction} hitSlop={8}>
           <Text style={styles.emptyActionText}>Créer une intervention</Text>
