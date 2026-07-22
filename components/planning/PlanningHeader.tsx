@@ -1,10 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Spacing } from '@/constants/design';
 import { iconButtonShadow } from '@/constants/shadow';
+import { usePressScale } from '@/hooks/use-press-scale';
 
 type Props = {
   monthLabel: string; // e.g. "JUIN 2025"
@@ -12,16 +11,7 @@ type Props = {
 };
 
 export function PlanningHeader({ monthLabel, onAdd }: Props) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.92 });
 
   return (
     <View style={styles.row}>

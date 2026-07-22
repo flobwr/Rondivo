@@ -9,6 +9,7 @@ import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { useShimmer } from '@/hooks/use-shimmer';
 
 // ── Mock data — replace with real data source ─────────────────────────────────
 
@@ -36,25 +37,11 @@ const REMAINING_APPOINTMENTS: Appointment[] = [
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function SkeletonBlock({ height, radius = 12, style }: { height: number; radius?: number; style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
+  // Exact legacy shimmer preserved (950ms, #E8ECF2 → #CED4DE); only the
+  // duplicated loop boilerplate is now shared via useShimmer.
+  const { backgroundColor } = useShimmer({ duration: 950, from: '#E8ECF2', to: '#CED4DE' });
 
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 950, useNativeDriver: false }),
-        Animated.timing(shimmer, { toValue: 0, duration: 950, useNativeDriver: false }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
-
-  const bgColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#E8ECF2', '#CED4DE'],
-  });
-
-  return <Animated.View style={[{ height, borderRadius: radius, backgroundColor: bgColor }, style]} />;
+  return <Animated.View style={[{ height, borderRadius: radius, backgroundColor }, style]} />;
 }
 
 function HomeSkeleton() {

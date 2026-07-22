@@ -1,8 +1,8 @@
-import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FontSize, Palette, Spacing } from '@/constants/design';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
 const CELL_WIDTH = 50;
@@ -23,7 +23,9 @@ function DayCell({
   selected: boolean;
   onPress: () => void;
 }) {
-  const pressScale = useRef(new Animated.Value(1)).current;
+  const { scale: pressScale, onPressIn: handlePressIn, onPressOut: handlePressOut } = usePressScale({
+    to: 0.92,
+  });
   // Single animated value drives the whole selected/unselected crossfade so the
   // blue bubble appears to glide from one day to the next.
   const sel = useRef(new Animated.Value(selected ? 1 : 0)).current;
@@ -36,14 +38,6 @@ function DayCell({
       tension: 140,
     }).start();
   }, [selected, sel]);
-
-  const handlePressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(pressScale, { toValue: 0.92, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
 
   const baseDot = day.hasUrgent ? Palette.orange : day.hasAppointments ? Palette.blue : null;
 

@@ -6,6 +6,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
 import { heroShadow } from '@/constants/shadow';
+import { usePressScale } from '@/hooks/use-press-scale';
 
 type HeroCardProps = {
   isEmpty?: boolean;
@@ -14,27 +15,8 @@ type HeroCardProps = {
 const GPS = 48;
 
 export function HeroCard({ isEmpty = false }: HeroCardProps) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.978 });
   const gpsScale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, {
-      toValue: 0.978,
-      useNativeDriver: true,
-      friction: 6,
-      tension: 300,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 4,
-      tension: 120,
-    }).start();
-  };
 
   const onGpsPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

@@ -1,10 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
+import { usePressScale } from '@/hooks/use-press-scale';
 
 type Action = {
   label: string;
@@ -21,26 +20,11 @@ const ACTIONS: Action[] = [
 ];
 
 function ActionCard({ label, icon, color, background }: Action) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      friction: 5,
-      tension: 300,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 4,
-      tension: 100,
-    }).start();
-  };
+  const { scale, onPressIn, onPressOut } = usePressScale({
+    to: 0.95,
+    springIn: { friction: 5, tension: 300 },
+    springOut: { friction: 4, tension: 100 },
+  });
 
   return (
     <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>

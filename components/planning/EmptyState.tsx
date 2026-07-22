@@ -1,30 +1,22 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
+import { useEntrance } from '@/hooks/use-entrance';
+import { usePressScale } from '@/hooks/use-press-scale';
 
 type Props = {
   onPlan?: () => void;
 };
 
 export function EmptyState({ onPlan }: Props) {
-  const enter = useRef(new Animated.Value(0)).current;
-  const pressScale = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.spring(enter, { toValue: 1, useNativeDriver: true, friction: 8, tension: 70 }).start();
-  }, [enter]);
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Animated.spring(pressScale, { toValue: 0.96, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
+  const { progress: enter } = useEntrance({ spring: { friction: 8, tension: 70 } });
+  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({
+    to: 0.96,
+    haptic: Haptics.ImpactFeedbackStyle.Medium,
+  });
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
 

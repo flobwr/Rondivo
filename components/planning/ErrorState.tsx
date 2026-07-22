@@ -1,25 +1,20 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
 import { actionShadow } from '@/constants/shadow';
+import { usePressScale } from '@/hooks/use-press-scale';
 
 type Props = {
   onRetry?: () => void;
 };
 
 export function ErrorState({ onRetry }: Props) {
-  const pressScale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Animated.spring(pressScale, { toValue: 0.96, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
+  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({
+    to: 0.96,
+    haptic: Haptics.ImpactFeedbackStyle.Medium,
+  });
 
   return (
     <View style={styles.wrapper}>

@@ -1,26 +1,12 @@
-import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 import { Palette, Radius, Spacing } from '@/constants/design';
+import { useShimmer } from '@/hooks/use-shimmer';
 
 function Shimmer({ style }: { style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: false }),
-        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: false }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
-
-  const backgroundColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#E8ECF2', '#D6DCE6'],
-  });
+  // Exact legacy shimmer preserved (900ms, #E8ECF2 → #D6DCE6); only the
+  // duplicated loop boilerplate is now shared via useShimmer.
+  const { backgroundColor } = useShimmer({ duration: 900, from: '#E8ECF2', to: '#D6DCE6' });
 
   return <Animated.View style={[{ backgroundColor }, style]} />;
 }
