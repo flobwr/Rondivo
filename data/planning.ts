@@ -274,4 +274,4 @@ export const DAY_SCENARIOS_BY_INDEX: Record<number, DayScenario> = {
   6: { items: [] },
 };
 
-export const PLANNING_MONTH_LABEL = 'JUIN 2025';
+export const PLANNING_MONTH_LABEL = 'JUILLET 2026';

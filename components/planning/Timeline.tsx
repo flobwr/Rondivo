@@ -79,7 +79,15 @@ type Row =
   | { key: string; kind: 'break'; brk: BreakSlot }
   | { key: string; kind: 'now'; timeLabel: string };
 
-type PositionedRow = Row & { lineMode: 'none' | 'full' | 'capTop' | 'capBottom'; isLastRow: boolean };
+/**
+ * `showSegment` replaces what used to be a continuous vertical rail threading
+ * the whole day: a tiny discrete tick now appears only between two
+ * back-to-back dotted rows (an intervention, a break, the "now" marker) with
+ * no travel leg between them. The common case — every job separated by a
+ * trajet — stays completely silent; the travel capsule alone carries the
+ * sequence, and the timeline never competes with the cards for attention.
+ */
+type PositionedRow = Row & { showSegment: boolean; isLastRow: boolean };
 
 /** The intervention "now" points at: the active one, else the next planned. */
 function findNowIndex(items: DayItem[]): number {
@@ -116,28 +124,10 @@ function buildRows(items: DayItem[], nowMin?: number): Row[] {
 
 // ── Rows rendering ────────────────────────────────────────────────────────────
 
-// Each row paints its own rail segment over its full height (gap included) so
-// the segments join into one continuous line running the whole day; the first
-// and last dotted rows cap the rail exactly at their dot.
 function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPressIntervention: (id: string) => void }) {
-  let lineStyle: object | null;
   const dotCenter = DOT_CENTER[row.kind] ?? 28;
-  switch (row.lineMode) {
-    case 'none':
-      lineStyle = null;
-      break;
-    case 'capTop':
-      lineStyle = { top: dotCenter, bottom: 0 };
-      break;
-    case 'capBottom':
-      lineStyle = { top: 0, height: dotCenter };
-      break;
-    default:
-      lineStyle = { top: 0, bottom: 0 };
-  }
-
   const rowStyle = [styles.row, !row.isLastRow ? { paddingBottom: ROW_GAP } : null];
-  const line = lineStyle ? <View style={[styles.line, lineStyle]} /> : null;
+  const segment = row.showSegment ? <View style={styles.segment} /> : null;
 
   const dotAnchor = (child: React.ReactNode) => (
     <View style={[styles.dotAnchor, { top: dotCenter - 13 }]}>{child}</View>
@@ -148,7 +138,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
       return (
         <View style={rowStyle}>
           <View style={styles.gutter}>
-            {line}
             {dotAnchor(
               <View style={styles.nowDotHalo}>
                 <View style={styles.nowDot} />
@@ -160,16 +149,14 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
             <View style={styles.nowLine} />
             <Text style={styles.nowTime}>{row.timeLabel}</Text>
           </View>
+          {segment}
         </View>
       );
 
     case 'card':
       return (
         <View style={rowStyle}>
-          <View style={styles.gutter}>
-            {line}
-            {dotAnchor(<StatusDot status={row.intervention.status} />)}
-          </View>
+          <View style={styles.gutter}>{dotAnchor(<StatusDot status={row.intervention.status} />)}</View>
           <View style={styles.content}>
             <InterventionCard
               intervention={row.intervention}
@@ -177,6 +164,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
               onPress={() => onPressIntervention(row.intervention.id)}
             />
           </View>
+          {segment}
         </View>
       );
 
@@ -184,7 +172,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
       return (
         <View style={rowStyle}>
           <View style={styles.gutter}>
-            {line}
             {dotAnchor(
               <View style={styles.breakDot}>
                 <Feather name="coffee" size={9} color={Palette.textSecondary} />
@@ -197,13 +184,14 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
               {row.brk.start} – {row.brk.end}
             </Text>
           </View>
+          {segment}
         </View>
       );
 
     default:
       return (
         <View style={rowStyle}>
-          <View style={styles.gutter}>{line}</View>
+          <View style={styles.gutter} />
           <View style={styles.content}>
             <TravelLink
               travel={row.travel}
@@ -225,20 +213,11 @@ export function Timeline({ items, nowMin }: Props) {
   const rows = useMemo<PositionedRow[]>(() => {
     const base = buildRows(items, nowMin);
     const hasDot = (r: Row) => r.kind !== 'travel';
-    const firstDotIdx = base.findIndex(hasDot);
-    let lastDotIdx = -1;
-    base.forEach((r, idx) => {
-      if (hasDot(r)) lastDotIdx = idx;
-    });
 
     return base.map((row, index) => {
-      const isFirst = index === firstDotIdx;
-      const isLast = index === lastDotIdx;
-      let lineMode: PositionedRow['lineMode'] = 'full';
-      if (isFirst && isLast) lineMode = 'none';
-      else if (isLast) lineMode = 'capBottom';
-      else if (isFirst) lineMode = 'capTop';
-      return { ...row, lineMode, isLastRow: index === base.length - 1 };
+      const next = base[index + 1];
+      const showSegment = hasDot(row) && !!next && hasDot(next);
+      return { ...row, showSegment, isLastRow: index === base.length - 1 };
     });
   }, [items, nowMin]);
 
@@ -278,10 +257,14 @@ const styles = createThemedStyles(() => StyleSheet.create({
   gutter: {
     width: GUTTER_WIDTH,
   },
-  line: {
+  // A small discrete tick — never a rail — bridging two back-to-back dotted
+  // rows. Centred in the row's own bottom gap, well clear of both dots.
+  segment: {
     position: 'absolute',
     left: GUTTER_WIDTH / 2 - 1,
+    bottom: (ROW_GAP - 10) / 2,
     width: 2,
+    height: 10,
     borderRadius: 1,
     backgroundColor: Palette.insetDeep,
   },

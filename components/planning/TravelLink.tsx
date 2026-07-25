@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, Palette, PressScale } from '@/theme';
+import { actionShadow, createThemedStyles, Palette, PressScale } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
@@ -14,9 +14,10 @@ type Props = {
   onNavigate?: () => void;
 };
 
-// A travel leg is a *connector*, not a card: slim capsule, no shadow. The tiny
-// coloured dot is the live-traffic hook; the round button will open GPS
-// navigation.
+// A travel leg is a *connector*, not a card: slim capsule, unchanged size —
+// but it now carries the same whisper-tier shadow as the intervention cards
+// so the two read as the same family. The tiny coloured dot is the
+// live-traffic hook; the round button will open GPS navigation.
 function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
   const { progress: enter } = useEntrance({ index });
@@ -75,6 +76,7 @@ const styles = createThemedStyles(() => StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 6,
     gap: 9,
+    ...actionShadow,
   },
   trafficDot: {
     width: 6,
