@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ControlColor, Palette } from '@/constants/design';
+import { ControlColor, Palette, Radius } from '@/constants/design';
+import { PressScale } from '@/constants/motion';
 import { actionShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -20,11 +21,7 @@ const ACTIONS: Action[] = [
 ];
 
 function ActionCard({ label, icon, color, background }: Action) {
-  const { scale, onPressIn, onPressOut } = usePressScale({
-    to: 0.95,
-    springIn: { friction: 5, tension: 300 },
-    springOut: { friction: 4, tension: 100 },
-  });
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: PressScale.control });
 
   return (
     <Pressable style={styles.wrapper} onPressIn={onPressIn} onPressOut={onPressOut}>
@@ -51,7 +48,6 @@ export function QuickActions() {
 }
 
 const TILE = 36;
-const TILE_RADIUS = 12;
 const ICON_SIZE = 17;
 
 const styles = StyleSheet.create({
@@ -64,7 +60,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Palette.cardMuted,
-    borderRadius: 18,
+    borderRadius: Radius.tile,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: ControlColor.tileBorder,
     paddingVertical: 12,
@@ -76,7 +72,7 @@ const styles = StyleSheet.create({
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: TILE_RADIUS,
+    borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },

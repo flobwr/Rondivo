@@ -45,23 +45,46 @@ export const Palette = {
   pillBlueBg: '#EAF1FE',
 } as const;
 
+/**
+ * The spacing grid. Every padding, margin and gap in the app comes from here —
+ * a value that is not a multiple of 4 is a bug, not a design decision.
+ *
+ * `xs…xxxl` is the raw grid. The named entries (`screen`, `section`,
+ * `cardPadding`…) are semantic aliases *onto* that same grid, so a layout can
+ * say what it means instead of repeating a number.
+ */
 export const Spacing = {
-  screen: 24, // general horizontal margin
-  section: 24, // vertical gap between sections
-  sectionGap: 11, // compact vertical gap between large sections
-  cardGap: 14, // gap between the 4 quick-action cards
-  cardPadding: 20, // internal padding of cards
   xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
   xl: 20,
+  xxl: 24,
+  xxxl: 32,
+
+  // Semantic aliases (always equal to a grid step above)
+  screen: 24, // general horizontal margin
+  section: 24, // vertical gap between sections
+  sectionGap: 11, // compact vertical gap between large sections
+  cardGap: 14, // gap between the 4 quick-action cards
+  cardPadding: 20, // internal padding of cards
 } as const;
 
+/**
+ * The radius scale. Five steps, no sixth: every rounded corner in the app is
+ * one of these. A 14 or an 18 that "looked better here" is what makes an
+ * interface feel hand-assembled instead of designed.
+ */
 export const Radius = {
-  hero: 28,
-  card: 24,
+  /** Small — icon tiles inside a card. */
+  sm: 12,
+  /** Medium — tiles, square controls, calendar bubbles. */
   tile: 16,
+  /** Large — cards. */
+  card: 24,
+  /** XL — the hero card and bottom sheets. */
+  hero: 28,
+  /** Fully rounded — pills, badges, avatars. */
   pill: 999,
 } as const;
 
@@ -139,6 +162,8 @@ export const Overlay = {
   whitePill: 'rgba(255,255,255,0.20)',
   /** Fully transparent brand blue — start of the calendar bubble crossfade. */
   blueTransparent: 'rgba(37, 99, 235, 0)',
+  /** Fully transparent card white — start of the bottom-navigation fade. */
+  cardTransparent: 'rgba(255, 255, 255, 0)',
   /** Neutral-black shadow colour for the floating hero GPS button. */
   gpsShadow: '#000',
 } as const;
@@ -168,6 +193,12 @@ export const BrandColor = {
  */
 export const Gradient = {
   heroEmpty: ['#C2CBD8', '#B8C4D2'],
+  /**
+   * The short fade sitting on top of the bottom navigation. Content scrolling
+   * underneath dissolves into the bar instead of being cut by a hard line —
+   * this is what makes the navigation read as floating above the page.
+   */
+  navFade: [Overlay.cardTransparent, Palette.card],
 } as const;
 
 /** Border widths. `hairline` is resolved by primitives via StyleSheet.hairlineWidth. */
@@ -205,6 +236,22 @@ export const ControlSize = {
   md: 38,
   lg: 44,
 } as const;
+
+/**
+ * Badge geometry. Every status pill in the app — "Confirmé" on Home, "EN COURS"
+ * on Planning, whatever Clients and Documents add later — is one of these two
+ * sizes. Height, horizontal padding, text size and icon size are decided here
+ * and nowhere else, which is what makes two badges on two screens look like the
+ * same object rather than two lookalikes.
+ */
+export const BadgeSize = {
+  /** Micro-label inside a dense card (uppercase status). */
+  sm: { height: 20, paddingHorizontal: Spacing.sm, fontSize: 10, iconSize: IconSize.xs },
+  /** Default status pill. */
+  md: { height: 24, paddingHorizontal: Spacing.md, fontSize: 12, iconSize: IconSize.sm },
+} as const;
+
+export type BadgeSizeName = keyof typeof BadgeSize;
 
 /**
  * Accent families. Each accent pairs a `solid` colour (icon / text / fill) with
@@ -261,6 +308,8 @@ export const Typography = {
   subheadStrong: { fontSize: 14, fontWeight: FontWeight.semibold, letterSpacing: LetterSpacing.slight },
   footnote: { fontSize: 13, fontWeight: FontWeight.regular, letterSpacing: LetterSpacing.slight },
   caption: { fontSize: 12, fontWeight: FontWeight.medium, letterSpacing: LetterSpacing.slight },
+  /** Smallest supporting text — addresses under a card title. */
+  micro: { fontSize: 11, fontWeight: FontWeight.regular, letterSpacing: LetterSpacing.none },
   overline: {
     fontSize: 11,
     fontWeight: FontWeight.bold,

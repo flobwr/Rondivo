@@ -1,32 +1,27 @@
 import { memo, useCallback, useMemo } from 'react';
-import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { FlatList, ListRenderItemInfo, StyleSheet, View } from 'react-native';
 
-import { Palette, Spacing } from '@/constants/design';
+import { AppText } from '@/components/ui';
+import { useBottomNavSpace } from '@/components/navigation/bottom-nav';
+import { FontSize, FontWeight, LetterSpacing, Opacity, Palette, Spacing } from '@/constants/design';
 import { PlanningAppointmentCard } from './PlanningAppointmentCard';
+import { STATUS_VISUAL } from './status';
+import {
+  DOT_CENTER,
+  DOT_SIZE,
+  GUTTER_PADDING_TOP,
+  GUTTER_WIDTH,
+  RAIL_LEFT,
+  RAIL_WIDTH,
+  ROW_GAP,
+  TIME_GAP,
+  TIME_LINE_HEIGHT,
+} from './timeline-metrics';
 import { TravelCard } from './TravelCard';
-import { AppointmentStatus, DayItem } from './types';
+import type { DayItem } from './types';
 
 type Props = {
   items: DayItem[];
-};
-
-// Vertical distance from the top of an appointment row to the centre of its dot:
-// paddingTop (14) + time label lineHeight (16) + marginBottom (6) + dot radius (8).
-const DOT_CENTER = 44;
-const ROW_GAP = 14;
-
-const TIME_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.textTertiary,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textSecondary,
-};
-
-const DOT_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.green,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textTertiary,
 };
 
 type LineMode = 'none' | 'full' | 'capTop' | 'capBottom';
@@ -60,11 +55,12 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
   }
 
   const rowStyle = [styles.row, !isLastRow ? { paddingBottom: ROW_GAP } : null];
+  const rail = lineStyle ? <View style={[styles.line, lineStyle]} /> : null;
 
   if (item.kind === 'travel') {
     return (
       <View style={rowStyle}>
-        <View style={styles.gutter}>{lineStyle ? <View style={[styles.line, lineStyle]} /> : null}</View>
+        <View style={styles.gutter}>{rail}</View>
         <View style={styles.content}>
           <TravelCard travel={item.data} index={index} />
         </View>
@@ -72,16 +68,22 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
     );
   }
 
-  const apt = item.data;
+  const appointment = item.data;
+  const status = STATUS_VISUAL[appointment.status];
+
   return (
     <View style={rowStyle}>
       <View style={styles.gutter}>
-        {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
-        <Text style={[styles.timeLabel, { color: TIME_COLOR[apt.status] }]}>{apt.time}</Text>
-        <View style={[styles.dot, { backgroundColor: DOT_COLOR[apt.status] }]} />
+        {rail}
+        {/* The rail stays at full strength; only the marker steps back, so a
+            finished appointment recedes without breaking the day's line. */}
+        <View style={status.muted ? styles.markerMuted : null}>
+          <AppText style={[styles.timeLabel, { color: status.color }]}>{appointment.time}</AppText>
+          <View style={[styles.dot, { backgroundColor: status.color }]} />
+        </View>
       </View>
       <View style={styles.content}>
-        <PlanningAppointmentCard appointment={apt} index={index} />
+        <PlanningAppointmentCard appointment={appointment} index={index} />
       </View>
     </View>
   );
@@ -90,6 +92,8 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
 const MemoRow = memo(TimelineRow);
 
 export function Timeline({ items }: Props) {
+  const bottomNavSpace = useBottomNavSpace();
+
   const rows = useMemo<Row[]>(() => {
     const firstApptIdx = items.findIndex((i) => i.kind === 'appointment');
     let lastApptIdx = -1;
@@ -118,7 +122,7 @@ export function Timeline({ items }: Props) {
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[styles.listContent, { paddingBottom: bottomNavSpace + Spacing.lg }]}
       removeClippedSubviews
       initialNumToRender={8}
       maxToRenderPerBatch={8}
@@ -130,37 +134,42 @@ export function Timeline({ items }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
-    paddingBottom: 28,
+    paddingTop: Spacing.lg,
   },
   row: {
     flexDirection: 'row',
   },
   gutter: {
-    width: 50,
+    width: GUTTER_WIDTH,
     alignItems: 'center',
-    paddingTop: 14,
+    paddingTop: GUTTER_PADDING_TOP,
   },
   line: {
     position: 'absolute',
-    left: 24, // (gutter 50 / 2) - (line 2 / 2)
-    width: 2,
-    borderRadius: 1,
+    left: RAIL_LEFT,
+    width: RAIL_WIDTH,
+    borderRadius: RAIL_WIDTH / 2,
     backgroundColor: Palette.border,
   },
+  markerMuted: {
+    opacity: Opacity.soft,
+    alignItems: 'center',
+  },
   timeLabel: {
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-    marginBottom: 6,
+    fontSize: FontSize.small,
+    lineHeight: TIME_LINE_HEIGHT,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: LetterSpacing.cozy,
+    marginBottom: TIME_GAP,
+    textAlign: 'center',
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
     borderWidth: 3,
     borderColor: Palette.screen, // halo so the rail breaks cleanly around the dot
+    alignSelf: 'center',
   },
   content: {
     flex: 1,

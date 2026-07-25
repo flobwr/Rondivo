@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomNav } from '@/components/home/bottom-nav';
-import { EmptyState } from '@/components/planning/EmptyState';
-import { ErrorState } from '@/components/planning/ErrorState';
+import { BottomNav } from '@/components/navigation/bottom-nav';
 import { HorizontalCalendar } from '@/components/planning/HorizontalCalendar';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { CalendarDay, DayItem } from '@/components/planning/types';
+import { AppEmptyState } from '@/components/ui';
 import { Palette } from '@/constants/design';
+import { useFade } from '@/hooks/use-fade';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -110,13 +110,12 @@ type Status = 'loading' | 'error' | 'loaded';
 export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState(SELECTED_DAY_INDEX);
   const [status, setStatus] = useState<Status>('loading');
-  const fadeIn = useRef(new Animated.Value(0)).current;
+  const { style: fadeStyle } = useFade(true);
 
   useEffect(() => {
     const t = setTimeout(() => setStatus('loaded'), 850);
-    Animated.timing(fadeIn, { toValue: 1, duration: 280, useNativeDriver: true }).start();
     return () => clearTimeout(t);
-  }, [fadeIn]);
+  }, []);
 
   const handleSelectDay = useCallback((index: number) => {
     setSelectedDay(index);
@@ -124,8 +123,7 @@ export default function PlanningScreen() {
 
   const handleRetry = useCallback(() => {
     setStatus('loading');
-    const t = setTimeout(() => setStatus('loaded'), 700);
-    return () => clearTimeout(t);
+    setTimeout(() => setStatus('loaded'), 700);
   }, []);
 
   const currentItems = DAY_DATA[selectedDay] ?? [];
@@ -133,7 +131,7 @@ export default function PlanningScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
+        <Animated.View style={[styles.flex, fadeStyle]}>
           {/* Fixed header — title, month, add button, calendar all stay put */}
           <PlanningHeader monthLabel="JUIN 2025" />
           <HorizontalCalendar
@@ -147,11 +145,23 @@ export default function PlanningScreen() {
             {status === 'loading' ? (
               <LoadingState />
             ) : status === 'error' ? (
-              <ErrorState onRetry={handleRetry} />
+              <AppEmptyState
+                icon="wifi-off"
+                tone="neutral"
+                title="Connexion perdue"
+                message="Impossible de charger le planning pour le moment."
+                action={{ label: 'Réessayer', icon: 'refresh-cw', onPress: handleRetry }}
+              />
             ) : currentItems.length > 0 ? (
               <Timeline key={selectedDay} items={currentItems} />
             ) : (
-              <EmptyState key={`empty-${selectedDay}`} />
+              <AppEmptyState
+                key={`empty-${selectedDay}`}
+                icon="calendar"
+                title="Journée libre"
+                message="Aucune intervention planifiée ce jour."
+                action={{ label: 'Planifier une intervention', icon: 'plus' }}
+              />
             )}
           </View>
         </Animated.View>

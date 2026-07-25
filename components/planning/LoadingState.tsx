@@ -1,27 +1,37 @@
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Palette, Radius, Spacing } from '@/constants/design';
-import { useShimmer } from '@/hooks/use-shimmer';
+import { AppSkeleton } from '@/components/ui';
+import { Palette, Spacing } from '@/constants/design';
+import {
+  CARD_HEIGHT,
+  DOT_SIZE,
+  GUTTER_PADDING_TOP,
+  GUTTER_WIDTH,
+  ROW_GAP,
+  TIME_GAP,
+} from './timeline-metrics';
 
-function Shimmer({ style }: { style?: object }) {
-  // Exact legacy shimmer preserved (900ms, ShimmerColors from → to); only the
-  // duplicated loop boilerplate is now shared via useShimmer.
-  const { backgroundColor } = useShimmer({ duration: 900 });
+const ROWS = [0, 1, 2, 3];
+const TIME_PILL_WIDTH = 30;
+const TIME_PILL_HEIGHT = 11;
 
-  return <Animated.View style={[{ backgroundColor }, style]} />;
-}
-
-// Skeleton that mirrors the timeline layout so the load feels seamless.
+/**
+ * Skeleton mirroring the timeline layout — same gutter, same dot, same card
+ * height — so the real content lands exactly where the placeholder was and the
+ * screen never jumps at the end of a load.
+ */
 export function LoadingState() {
   return (
     <View style={styles.container}>
-      {[0, 1, 2, 3].map((i) => (
+      {ROWS.map((i) => (
         <View key={i} style={styles.row}>
           <View style={styles.gutter}>
-            <Shimmer style={styles.timePill} />
+            <AppSkeleton width={TIME_PILL_WIDTH} height={TIME_PILL_HEIGHT} radius="tile" />
             <View style={styles.dot} />
           </View>
-          <Shimmer style={styles.card} />
+          <View style={styles.card}>
+            <AppSkeleton height={CARD_HEIGHT} radius="card" />
+          </View>
         </View>
       ))}
     </View>
@@ -31,32 +41,25 @@ export function LoadingState() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
+    paddingTop: Spacing.lg,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 14,
+    marginBottom: ROW_GAP,
   },
   gutter: {
-    width: 50,
+    width: GUTTER_WIDTH,
     alignItems: 'center',
-    paddingTop: 14,
-  },
-  timePill: {
-    width: 30,
-    height: 11,
-    borderRadius: 6,
-    marginBottom: 8,
+    paddingTop: GUTTER_PADDING_TOP,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
     backgroundColor: Palette.border,
+    marginTop: TIME_GAP,
   },
   card: {
     flex: 1,
-    height: 76,
-    borderRadius: Radius.card,
   },
 });

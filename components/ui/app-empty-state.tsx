@@ -62,6 +62,8 @@ export function AppEmptyState({
             onPress={action.onPress}
             icon={action.icon}
             variant={action.variant ?? 'primary'}
+            // An empty state's CTA is the primary action of the whole screen.
+            size="lg"
           />
         </View>
       ) : null}

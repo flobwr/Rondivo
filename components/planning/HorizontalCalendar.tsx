@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { FontSize, Overlay, Palette, Spacing } from '@/constants/design';
+import { FontSize, FontWeight, LetterSpacing, Overlay, Palette, Radius, Spacing } from '@/constants/design';
+import { PressScale, Spring } from '@/constants/motion';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
 const CELL_WIDTH = 50;
 const SCROLL_PAD = Spacing.screen - 5;
+/** Selected-day bubble. */
+const BUBBLE = 40;
+/** "This day has work" marker. */
+const DOT = 5;
+const DOT_ROW_HEIGHT = 10;
 
 type Props = {
   days: CalendarDay[];
@@ -24,18 +30,19 @@ function DayCell({
   onPress: () => void;
 }) {
   const { scale: pressScale, onPressIn: handlePressIn, onPressOut: handlePressOut } = usePressScale({
-    to: 0.92,
+    to: PressScale.icon,
   });
   // Single animated value drives the whole selected/unselected crossfade so the
-  // blue bubble appears to glide from one day to the next.
+  // blue bubble appears to glide from one day to the next. A spring, not a
+  // curve: the selection follows the finger, so it belongs to the touch side of
+  // the motion system.
   const sel = useRef(new Animated.Value(selected ? 1 : 0)).current;
 
   useEffect(() => {
     Animated.spring(sel, {
       toValue: selected ? 1 : 0,
       useNativeDriver: false, // animating colours
-      friction: 8,
-      tension: 140,
+      ...Spring.selection,
     }).start();
   }, [selected, sel]);
 
@@ -50,17 +57,17 @@ function DayCell({
     inputRange: [0, 0.5, 1],
     outputRange: [1, 1.07, 1],
   });
+  // Only the number sits *inside* the blue bubble, so only the number turns
+  // white. The label and the dot stay on the page background: the selected day
+  // is emphasised with the brand blue, never with white-on-white.
   const numberColor = sel.interpolate({
     inputRange: [0, 1],
     outputRange: [Palette.textPrimary, Palette.white],
   });
   const labelColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textTertiary, Palette.white],
+    outputRange: [Palette.textTertiary, Palette.blue],
   });
-  const dotColor = baseDot
-    ? sel.interpolate({ inputRange: [0, 1], outputRange: [baseDot, Palette.white] })
-    : undefined;
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
@@ -79,8 +86,8 @@ function DayCell({
         </Animated.View>
 
         <View style={styles.dotRow}>
-          {dotColor ? (
-            <Animated.View style={[styles.dot, { backgroundColor: dotColor }]} />
+          {baseDot ? (
+            <View style={[styles.dot, { backgroundColor: baseDot }]} />
           ) : (
             <View style={styles.dotPlaceholder} />
           )}
@@ -128,12 +135,12 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
 const styles = StyleSheet.create({
   wrapper: {
     paddingTop: 14,
-    paddingBottom: 12,
+    paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Palette.border,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screen - 5,
+    paddingHorizontal: SCROLL_PAD,
   },
   cell: {
     width: CELL_WIDTH,
@@ -142,36 +149,36 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.4,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   dateBubble: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: BUBBLE,
+    height: BUBBLE,
+    borderRadius: Radius.tile,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dateNumber: {
     fontSize: FontSize.body,
-    fontWeight: '700',
-    letterSpacing: -0.3,
+    fontWeight: FontWeight.bold,
+    letterSpacing: LetterSpacing.snug,
   },
   dotRow: {
-    height: 10,
+    height: DOT_ROW_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
+    marginTop: Spacing.xs,
   },
   dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: DOT,
+    height: DOT,
+    borderRadius: DOT / 2,
   },
   dotPlaceholder: {
-    width: 5,
-    height: 5,
+    width: DOT,
+    height: DOT,
   },
 });

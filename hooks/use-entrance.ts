@@ -1,44 +1,56 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated } from 'react-native';
 
-import { Spring, StaggerDelay } from '@/constants/motion';
-
-type SpringConfig = { friction: number; tension: number };
+import {
+  EntranceScale,
+  EntranceTravel,
+  StaggerDelay,
+  Timing,
+  type TimingToken,
+} from '@/constants/motion';
 
 type Options = {
   /** List position — drives a light staggered entrance (index * StaggerDelay). */
   index?: number;
-  /** Vertical travel distance in px. Defaults to 10. */
+  /** Vertical travel distance in px. Defaults to the shared token. */
   translateY?: number;
-  /** Scale to animate up from. Defaults to 0.98 (set to 1 to disable scale). */
+  /** Scale to animate up from. Defaults to the shared token (1 disables scale). */
   fromScale?: number;
-  /** Override the entrance spring. Defaults to the shared token. */
-  spring?: SpringConfig;
+  /** Override the motion token. Defaults to the card transition. */
+  timing?: TimingToken;
 };
 
 /**
- * Gentle "fade + rise + settle" entrance used by planning cards, empty states
- * and travel legs. Consolidates the duplicated `enter` Animated.Value +
- * spring-with-delay pattern.
+ * The "a card appeared" entrance: fade + a hint of rise + a hint of scale.
  *
- * Returns a ready-to-spread `style` object (opacity + transform) plus the raw
- * `progress` value for callers that need to compose additional interpolations
- * (e.g. muted cards multiplying opacity).
+ * Curve-based, not spring-based, and on purpose: an entrance is something the
+ * app decides, not something the finger drives, so it belongs to the timing
+ * side of the motion system (see constants/motion.ts). Every card in the app
+ * therefore arrives in exactly 220 ms on exactly the same curve.
+ *
+ * Returns a ready-to-spread `style` (opacity + transform) plus the raw
+ * `progress` value for callers composing extra interpolations — e.g. a
+ * completed card multiplying opacity to step back visually.
  */
 export function useEntrance(options: Options = {}) {
-  const { index = 0, translateY = 10, fromScale = 0.98, spring = Spring.entrance } = options;
+  const {
+    index = 0,
+    translateY = EntranceTravel,
+    fromScale = EntranceScale,
+    timing = Timing.card,
+  } = options;
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const animation = Animated.spring(progress, {
+    const animation = Animated.timing(progress, {
       toValue: 1,
       useNativeDriver: true,
       delay: index * StaggerDelay,
-      ...spring,
+      ...timing,
     });
     animation.start();
     return () => animation.stop();
-  }, [index, progress, spring]);
+  }, [index, progress, timing]);
 
   const style = useMemo(
     () => ({

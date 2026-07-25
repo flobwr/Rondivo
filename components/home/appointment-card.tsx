@@ -1,7 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { AppBadge } from '@/components/ui';
+import { FontSize, IconSize, Palette, Radius, Spacing } from '@/constants/design';
+import { PressScale } from '@/constants/motion';
 import { cardShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -19,7 +21,7 @@ type AppointmentCardProps = {
 };
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
-  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.98 });
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
 
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut}>
@@ -37,7 +39,12 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
             {appointment.type}
           </Text>
           <View style={styles.addressRow}>
-            <Feather name="map" size={12} color={Palette.textTertiary} style={styles.mapIcon} />
+            <Feather
+              name="map-pin"
+              size={IconSize.xs}
+              color={Palette.textTertiary}
+              style={styles.mapIcon}
+            />
             <Text style={styles.address} numberOfLines={2} ellipsizeMode="tail">
               {appointment.address}
             </Text>
@@ -45,10 +52,8 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
         </View>
 
         {appointment.status ? (
-          <View style={styles.statusPill}>
-            <Text style={styles.statusText} numberOfLines={1}>
-              {appointment.status}
-            </Text>
+          <View style={styles.status}>
+            <AppBadge label={appointment.status} accent="blue" />
           </View>
         ) : null}
       </Animated.View>
@@ -118,19 +123,8 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: 0,
   },
-  statusPill: {
-    backgroundColor: Palette.blueSoft,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+  status: {
     marginLeft: Spacing.sm,
     alignSelf: 'flex-start',
-    marginTop: 2,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Palette.blue,
-    letterSpacing: 0,
   },
 });

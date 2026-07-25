@@ -36,11 +36,18 @@ structurelle progressive) :
    `constants/shadow.ts`.
 6. ✅ **Dead code Expo template** (ThemedText/View, HapticTab, IconSymbol,
    use-theme-color, use-color-scheme, theme.ts) → **supprimé** (0 référence).
-7. ◻︎ **Conteneurs « card » / rows / sections / états vides** recopiés →
-   primitives prêtes (`AppCard`, `AppListItem`, `AppSection`, `AppEmptyState`,
-   `AppScreen`). Migration **structurelle** volontairement différée là où elle
-   introduirait un écart sub-pixel non vérifiable sans QA visuel (voir le
-   rapport de session et COMPONENT_GUIDELINES §9).
+7. ✅ **États vides / erreur dupliqués** (planning `EmptyState` + `ErrorState`,
+   ~190 lignes quasi identiques) → **supprimés**, remplacés par `AppEmptyState`
+   (`tone="neutral"` pour l'erreur).
+8. ✅ **Deux pills de statut divergentes** (« Confirmé » sur Home, « EN COURS » /
+   « URGENT » sur Planning) → **une seule** `AppBadge`, géométrie figée par
+   `BadgeSize` (hauteur, padding, taille de texte, taille d'icône).
+9. ✅ **Statut décidé dans 3 fichiers du planning** (`STATUS_STYLE`, `TIME_COLOR`,
+   `DOT_COLOR`) → `components/planning/status.ts`, dérivé de `StatusAccent`.
+10. ◻︎ **Conteneurs « card » / rows / sections** recopiés → primitives prêtes
+    (`AppCard`, `AppListItem`, `AppSection`, `AppScreen`). Migration
+    **structurelle** progressive : le code nouveau les utilise, l'ancien migre
+    quand on le touche (COMPONENT_GUIDELINES §9).
 
 Les migrations « invisibles » (animations, couleurs, dead code) ont été faites
 sans **aucun** changement de rendu. Les migrations structurelles restantes
@@ -79,7 +86,8 @@ migre quand on le touche, avec QA visuel.
 ### Content
 
 - **`AppIconTile`** — tuile icône douce (accent = fond + tint).
-- **`AppBadge`** — étiquette de statut figée.
+- **`AppBadge`** — **la** pill de statut de l'app. Géométrie figée par
+  `BadgeSize` : deux tailles, hauteur fixe, jamais de padding ad hoc.
 - **`AppStatus`** — statut sémantique (dot + label via `StatusAccent`).
 - **`AppAvatar`** — avatar image (expo-image) ou initiales.
 - **`AppMetric`** — figure labellisée (label + valeur + hint), `onColor` pour le hero.
@@ -107,12 +115,9 @@ migre quand on le touche, avec QA visuel.
 
 | Fichier               | Contenu |
 | --------------------- | ------- |
-| `constants/design.ts` | `Palette`, `Spacing`, `Radius`, `FontSize` **+** `FontWeight`, `LetterSpacing`, `Opacity`, `BorderWidth`, `HitSlop`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography`, `ControlColor`, `BrandColor`, `Gradient`, `Overlay` |
-| `constants/shadow.ts` | `heroShadow`, `cardShadow`, `actionShadow`, `badgeShadow`, `iconButtonShadow`, `focalShadow` |
-| `constants/motion.ts` | `Spring`, `PressScale`, `Duration`, `StaggerDelay`, `ShimmerColors` |
-
-Tous les tokens étendus sont **additifs** : aucune valeur existante n'a été
-modifiée, donc aucun écran ne peut bouger visuellement.
+| `constants/design.ts` | `Palette`, `Spacing`, `Radius`, `FontSize` **+** `FontWeight`, `LetterSpacing`, `Opacity`, `BorderWidth`, `HitSlop`, `IconSize`, `ControlSize`, `BadgeSize`, `Accent`, `StatusAccent`, `Typography`, `ControlColor`, `BrandColor`, `Gradient`, `Overlay` |
+| `constants/shadow.ts` | `heroShadow`, `cardShadow`, `actionShadow`, `badgeShadow`, `iconButtonShadow`, `navShadow`, `focalShadow` |
+| `constants/motion.ts` | `Curve`, `Duration`, `Timing`, `Spring`, `PressScale`, `StaggerDelay`, `EntranceTravel`, `EntranceScale`, `ShimmerColors` |
 
 ---
 

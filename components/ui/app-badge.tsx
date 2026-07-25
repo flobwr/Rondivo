@@ -1,60 +1,85 @@
-import { StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { StyleSheet, View } from 'react-native';
 
-import { Accent, AccentName, FontWeight, LetterSpacing, Radius, Spacing } from '@/constants/design';
+import {
+  Accent,
+  AccentName,
+  BadgeSize,
+  BadgeSizeName,
+  FontWeight,
+  LetterSpacing,
+  Radius,
+  Spacing,
+} from '@/constants/design';
 import { AppText } from './app-text';
 
-type Size = 'sm' | 'md';
+type FeatherName = React.ComponentProps<typeof Feather>['name'];
 
 export type AppBadgeProps = {
   label: string;
-  /** Accent family — sets the soft background + solid text colour. */
+  /** Accent family — sets the soft background + solid text/icon colour. */
   accent?: AccentName;
-  size?: Size;
+  size?: BadgeSizeName;
   /** Uppercase micro-label (e.g. "EN COURS", "URGENT"). */
   uppercase?: boolean;
+  /** Optional leading icon, sized by the badge size token. */
+  icon?: FeatherName;
 };
 
 /**
- * A small status pill (soft background, accent text). Replaces the ad-hoc
- * status pills in appointment cards, the header "5 interventions" badge and the
- * planning EN COURS / URGENT badges. For interactive filter pills use AppChip.
+ * The one status pill of the app.
+ *
+ * Geometry (height, padding, radius, text size, icon size) comes entirely from
+ * `BadgeSize`, so "Confirmé" on Home and "EN COURS" on Planning are the same
+ * object in two colours — never two pills that merely resemble each other.
+ * A fixed height, rather than vertical padding, is what guarantees badges line
+ * up across screens whatever their label.
+ *
+ * For interactive filter pills use AppChip.
  */
-export function AppBadge({ label, accent = 'blue', size = 'md', uppercase = false }: AppBadgeProps) {
+export function AppBadge({
+  label,
+  accent = 'blue',
+  size = 'md',
+  uppercase = false,
+  icon,
+}: AppBadgeProps) {
   const a = Accent[accent];
-  const s = size === 'sm' ? styles.sm : styles.md;
+  const s = BadgeSize[size];
 
   return (
-    <AppText
+    <View
       style={[
         styles.base,
-        s,
-        {
-          backgroundColor: a.soft,
-          color: a.solid,
-          letterSpacing: uppercase ? LetterSpacing.wide : LetterSpacing.slight,
-        },
-      ]}
-      numberOfLines={1}>
-      {uppercase ? label.toUpperCase() : label}
-    </AppText>
+        { height: s.height, paddingHorizontal: s.paddingHorizontal, backgroundColor: a.soft },
+      ]}>
+      {icon ? <Feather name={icon} size={s.iconSize} color={a.solid} /> : null}
+      <AppText
+        style={[
+          styles.label,
+          {
+            fontSize: s.fontSize,
+            color: a.solid,
+            letterSpacing: uppercase ? LetterSpacing.wide : LetterSpacing.slight,
+          },
+        ]}
+        numberOfLines={1}>
+        {uppercase ? label.toUpperCase() : label}
+      </AppText>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
     borderRadius: Radius.pill,
-    overflow: 'hidden',
-    fontWeight: FontWeight.semibold,
     alignSelf: 'flex-start',
   },
-  sm: {
-    fontSize: 10,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-  },
-  md: {
-    fontSize: 12,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+  label: {
+    fontWeight: FontWeight.semibold,
   },
 });

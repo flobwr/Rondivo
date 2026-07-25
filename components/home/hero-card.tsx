@@ -1,10 +1,10 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Gradient, Overlay, Palette, Radius, Spacing } from '@/constants/design';
+import { FontSize, Gradient, HitSlop, Overlay, Palette, Radius, Spacing } from '@/constants/design';
+import { PressScale } from '@/constants/motion';
 import { heroShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -15,26 +15,13 @@ type HeroCardProps = {
 const GPS = 48;
 
 export function HeroCard({ isEmpty = false }: HeroCardProps) {
-  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.978 });
-  const gpsScale = useRef(new Animated.Value(1)).current;
-
-  const onGpsPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Animated.sequence([
-      Animated.spring(gpsScale, {
-        toValue: 0.86,
-        useNativeDriver: true,
-        friction: 5,
-        tension: 400,
-      }),
-      Animated.spring(gpsScale, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 4,
-        tension: 150,
-      }),
-    ]).start();
-  };
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
+  // The GPS button is a small control: same press feel as every other icon
+  // button in the app, instead of its own bespoke bounce.
+  const gps = usePressScale({
+    to: PressScale.icon,
+    haptic: Haptics.ImpactFeedbackStyle.Medium,
+  });
 
   if (isEmpty) {
     return (
@@ -48,7 +35,7 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
         <Text style={[styles.metaText, { marginTop: 8, opacity: 0.6 }]}>
           Aucune intervention prévue aujourd&apos;hui
         </Text>
-        <Pressable style={styles.emptyAction} hitSlop={8}>
+        <Pressable style={styles.emptyAction} hitSlop={HitSlop.md}>
           <Text style={styles.emptyActionText}>Créer une intervention</Text>
           <Feather name="plus" size={14} color={Palette.white} />
         </Pressable>
@@ -106,8 +93,13 @@ export function HeroCard({ isEmpty = false }: HeroCardProps) {
               </View>
             </View>
 
-            <Pressable onPress={onGpsPress} hitSlop={8}>
-              <Animated.View style={[styles.gpsButton, { transform: [{ scale: gpsScale }] }]}>
+            <Pressable
+              hitSlop={HitSlop.md}
+              accessibilityRole="button"
+              accessibilityLabel="Lancer la navigation"
+              onPressIn={gps.onPressIn}
+              onPressOut={gps.onPressOut}>
+              <Animated.View style={[styles.gpsButton, { transform: [{ scale: gps.scale }] }]}>
                 <Feather name="navigation" size={22} color={Palette.blue} />
               </Animated.View>
             </Pressable>

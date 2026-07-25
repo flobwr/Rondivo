@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   iconTile: {
     width: TILE,
     height: TILE,
-    borderRadius: 12,
+    borderRadius: Radius.sm,
     backgroundColor: Palette.purpleSoft,
     alignItems: 'center',
     justifyContent: 'center',

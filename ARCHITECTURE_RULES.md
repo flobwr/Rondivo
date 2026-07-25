@@ -37,6 +37,7 @@ Compiler activé) · TypeScript strict · Reanimated · Expo Image · Supabase.
 app/                      # routes Expo Router (index, planning, rappels, _layout)
 components/
   ui/                     # ★ DESIGN SYSTEM — primitives (App*, Card*)
+  navigation/             # chrome de navigation partagé (BottomNav)
   home/                   # composants de l'écran d'accueil
   planning/               # composants de l'écran planning
 constants/
@@ -98,11 +99,16 @@ app  →  features  →  components/ui  →  constants
 5. Les états `loading / error / empty` utilisent **`AppSkeleton`** et
    **`AppEmptyState`** — pas de nouveau composant d'état par écran.
 
+La **BottomNav flotte au-dessus du contenu** : le scroll passe derrière elle.
+Tout conteneur scrollable doit donc réserver sa place via `useBottomNavSpace()`
+(`components/navigation/bottom-nav`) — jamais une valeur devinée.
+
 ```tsx
 export default function ClientsScreen() {
   const { data, status, retry } = useClients();
+  const bottomNavSpace = useBottomNavSpace();
   return (
-    <AppScreen footer={<BottomNav activeIndex={2} />}>
+    <AppScreen footer={<BottomNav activeIndex={2} />} contentBottomInset={bottomNavSpace}>
       <AppHeader title="Clients" subtitle="Tous vos clients" />
       {status === 'loading' && <ClientsSkeleton />}
       {status === 'error' && (
@@ -187,10 +193,19 @@ supprime avec `StatusAccent`).
 
 **Où sont les tokens :** `constants/design.ts`
 (`Palette`, `Spacing`, `Radius`, `FontSize`, `FontWeight`, `LetterSpacing`,
-`Opacity`, `IconSize`, `ControlSize`, `Accent`, `StatusAccent`, `Typography`,
-`ControlColor`, `BrandColor`, `Gradient`, `Overlay`), `constants/shadow.ts`
-(`…Shadow`, `focalShadow`), `constants/motion.ts` (`Spring`, `PressScale`,
-`Duration`, `StaggerDelay`, `ShimmerColors`).
+`Opacity`, `IconSize`, `ControlSize`, `BadgeSize`, `Accent`, `StatusAccent`,
+`Typography`, `ControlColor`, `BrandColor`, `Gradient`, `Overlay`),
+`constants/shadow.ts` (`…Shadow`, `navShadow`, `focalShadow`),
+`constants/motion.ts` (voir § 9).
+
+**Grille d'espacement.** `Spacing.xs…xxxl` (4 · 8 · 12 · 16 · 20 · 24 · 32) est
+la seule source. Une valeur hors grille est un bug, pas un choix de design.
+
+**Échelle de rayons.** `Radius.sm / tile / card / hero / pill` (12 · 16 · 24 ·
+28 · ∞). Pas de 14 ni de 18 « qui rendait mieux ici ».
+
+**Badges.** Toute pill de statut passe par `AppBadge` : la géométrie vient de
+`BadgeSize`, donc deux badges sur deux écrans ont forcément la même hauteur.
 
 **Couleurs — tolérance zéro (ESLint `error`).** Il n'y a plus **aucune** couleur
 codée en dur dans `app/`, `components/`, `hooks/`. Toute nouvelle valeur
@@ -208,15 +223,38 @@ par les tokens.
 
 ## 9. Motion
 
-- Une seule personnalité d'animation : ressort rapide au press, entrées douces
-  décalées, shimmer calme.
-- Utilise **`usePressScale`**, **`useEntrance`**, **`useShimmer`** (ou
-  `PressableScale`) au lieu de recopier `Animated.Value(1)` + `onPressIn/out`.
-- Les constantes vivent dans `constants/motion.ts` (`Spring`, `PressScale`,
-  `Duration`, `StaggerDelay`, `ShimmerColors`).
-- Les trois hooks acceptent des overrides optionnels (`springIn`/`springOut`,
-  `spring`, `from`/`to`/`duration`) : on peut donc reproduire un feel legacy au
-  paramètre près tout en supprimant le boilerplate dupliqué.
+Rondivo a **une seule identité de mouvement**. Deux mécanismes, deux rôles :
+
+| Mécanisme  | Sert à                                   | Exemples                             |
+| ---------- | ---------------------------------------- | ------------------------------------ |
+| **Spring** | ce que **le doigt** pilote               | press feedback, bulle du calendrier  |
+| **Courbe** | ce que **l'app** décide                  | entrée de card, fade d'écran, sheet  |
+
+Un ressort n'a pas de durée, il a un toucher. Une transition a une durée fixe,
+identique partout pour un même **type** d'interaction :
+
+| Type                          | Durée  | Courbe            | Token              |
+| ----------------------------- | ------ | ----------------- | ------------------ |
+| Micro-interaction             | 180 ms | `Curve.standard`  | `Timing.micro`     |
+| Card (entrée, stagger)        | 220 ms | `Curve.enter`     | `Timing.card`      |
+| Navigation / contenu d'écran  | 280 ms | `Curve.enter`     | `Timing.navigation`|
+| Modal / bottom sheet          | 300 ms | `Curve.enter`     | `Timing.overlay`   |
+
+**Règles :**
+
+- On ne tape jamais une durée ni une courbe à la main :
+  `Animated.timing(v, { toValue: 1, useNativeDriver: true, ...Timing.card })`.
+- On n'invente pas une 4ᵉ échelle de press : `PressScale.surface / control / icon`.
+- On utilise **`usePressScale`**, **`useEntrance`**, **`useFade`**, **`useShimmer`**
+  (ou `PressableScale`) au lieu de recopier `Animated.Value` + `onPressIn/out`.
+- Pas de rebond appuyé, pas de pulsation, pas d'animation propre à un écran.
+  L'utilisateur ne doit pas remarquer l'animation, seulement la fluidité.
+- Les constantes vivent dans `constants/motion.ts` (`Curve`, `Duration`,
+  `Timing`, `Spring`, `PressScale`, `StaggerDelay`, `EntranceTravel`,
+  `EntranceScale`, `ShimmerColors`).
+
+`useShimmer` ne prend **aucune option** : il n'y a qu'une pulsation de
+chargement dans l'app.
 
 ---
 

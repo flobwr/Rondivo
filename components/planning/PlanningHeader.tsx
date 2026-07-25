@@ -1,7 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
+import { AppText } from '@/components/ui';
+import { ControlSize, HitSlop, IconSize, Palette, Radius, Spacing } from '@/constants/design';
+import { PressScale } from '@/constants/motion';
 import { iconButtonShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
@@ -11,23 +13,30 @@ type Props = {
 };
 
 export function PlanningHeader({ monthLabel, onAdd }: Props) {
-  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.92 });
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: PressScale.icon });
 
   return (
     <View style={styles.row}>
       <View>
-        <Text style={styles.month}>{monthLabel}</Text>
-        <Text style={styles.title}>Planning</Text>
+        {/* Same eyebrow treatment as the Home hero card. */}
+        <AppText variant="overline" color="secondary">
+          {monthLabel}
+        </AppText>
+        <AppText variant="title1" style={styles.title}>
+          Planning
+        </AppText>
       </View>
 
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
           style={styles.addButton}
-          hitSlop={6}
+          hitSlop={HitSlop.sm}
+          accessibilityRole="button"
+          accessibilityLabel="Ajouter une intervention"
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <Feather name="plus" size={22} color={Palette.blue} />
+          <Feather name="plus" size={IconSize.xl} color={Palette.blue} />
         </Pressable>
       </Animated.View>
     </View>
@@ -41,26 +50,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
     paddingTop: 14,
-    paddingBottom: 4,
-  },
-  month: {
-    fontSize: FontSize.tiny,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 2,
+    paddingBottom: Spacing.xs,
   },
   title: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.8,
+    marginTop: 2,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: ControlSize.lg,
+    height: ControlSize.lg,
+    borderRadius: Radius.tile, // same squircle as the calendar bubble
     backgroundColor: Palette.card,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,

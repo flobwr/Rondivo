@@ -10,8 +10,14 @@ export type AppScreenProps = ViewProps & {
   padded?: boolean;
   /** Safe-area edges to inset. Defaults to just the top. */
   edges?: readonly Edge[];
-  /** Fixed footer that sits below the scroll area (e.g. a BottomNav). */
+  /** Overlaying footer (e.g. a BottomNav). It floats above the scroll area. */
   footer?: React.ReactNode;
+  /**
+   * Extra bottom padding for the scroll content, so the last item is not
+   * trapped under an overlaying footer. Pass `useBottomNavSpace()` when the
+   * footer is the app's BottomNav — the design system stays unaware of it.
+   */
+  contentBottomInset?: number;
   /** Background colour token. Defaults to the app screen colour. */
   background?: keyof typeof Palette;
 };
@@ -27,6 +33,7 @@ export function AppScreen({
   padded = true,
   edges = ['top'],
   footer,
+  contentBottomInset = 0,
   background = 'screen',
   style,
   children,
@@ -35,7 +42,10 @@ export function AppScreen({
   const content = scroll ? (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[padded ? styles.paddedContent : styles.content]}>
+      contentContainerStyle={[
+        padded ? styles.paddedContent : styles.content,
+        contentBottomInset ? { paddingBottom: contentBottomInset + Spacing.section } : null,
+      ]}>
       {children}
     </ScrollView>
   ) : (

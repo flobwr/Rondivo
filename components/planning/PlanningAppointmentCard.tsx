@@ -1,148 +1,73 @@
 import { Feather } from '@expo/vector-icons';
 import { memo } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
-import { Palette, Radius } from '@/constants/design';
-import { actionShadow, focalShadow } from '@/constants/shadow';
+import { IconSize, Opacity, Palette, Radius, Spacing } from '@/constants/design';
+import { EntranceScale, EntranceTravel, PressScale } from '@/constants/motion';
+import { cardShadow, focalShadow } from '@/constants/shadow';
+import { AppBadge, AppText } from '@/components/ui';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
-import { AppointmentStatus, PlanningAppointment } from './types';
-
-// ── Per-status visual config ──────────────────────────────────────────────────
-// One source of truth so the hierarchy stays regular across every card.
-
-type StatusStyle = {
-  borderColor: string;
-  borderWidth: number;
-  dotBg: string;
-  dotBorder: string;
-  dotColor: string;
-  dotIcon?: 'check' | 'alert-circle';
-  badgeLabel?: string;
-  badgeBg?: string;
-  badgeColor?: string;
-  timeColor: string;
-  muted: boolean;
-  focal: boolean;
-};
-
-const STATUS_STYLE: Record<AppointmentStatus, StatusStyle> = {
-  done: {
-    borderColor: Palette.green,
-    borderWidth: 1,
-    dotBg: Palette.greenSoft,
-    dotBorder: Palette.green,
-    dotColor: Palette.green,
-    dotIcon: 'check',
-    timeColor: Palette.textTertiary,
-    muted: true,
-    focal: false,
-  },
-  inProgress: {
-    borderColor: Palette.blue,
-    borderWidth: 1.5,
-    dotBg: Palette.blueSoft,
-    dotBorder: Palette.blue,
-    dotColor: Palette.blue,
-    badgeLabel: 'EN COURS',
-    badgeBg: Palette.blueSoft,
-    badgeColor: Palette.blue,
-    timeColor: Palette.blue,
-    muted: false,
-    focal: true,
-  },
-  urgent: {
-    borderColor: Palette.orange,
-    borderWidth: 1.25,
-    dotBg: Palette.orangeSoft,
-    dotBorder: Palette.orange,
-    dotColor: Palette.orange,
-    dotIcon: 'alert-circle',
-    badgeLabel: 'URGENT',
-    badgeBg: Palette.orangeSoft,
-    badgeColor: Palette.orange,
-    timeColor: Palette.orange,
-    muted: false,
-    focal: false,
-  },
-  normal: {
-    borderColor: Palette.border,
-    borderWidth: 1,
-    dotBg: Palette.screen,
-    dotBorder: Palette.border,
-    dotColor: Palette.textTertiary,
-    timeColor: Palette.textSecondary,
-    muted: false,
-    focal: false,
-  },
-};
+import { STATUS_VISUAL } from './status';
+import type { PlanningAppointment } from './types';
 
 type Props = {
   appointment: PlanningAppointment;
-  /** position in the list — drives a light staggered entrance */
+  /** Position in the list — drives the staggered entrance. */
   index?: number;
   onPress?: () => void;
 };
 
+/**
+ * An intervention in the planning timeline.
+ *
+ * Same object as the Home appointment card: white surface, card radius, card
+ * shadow, client → type → address. No coloured outline per status — the timeline
+ * already carries the status in its dot and its time label, and a card ringed in
+ * orange shouts at the user for information they have already read.
+ *
+ * The time is *not* repeated here: it belongs to the timeline gutter, which is
+ * the day's axis. One piece of information, one place.
+ */
 function PlanningAppointmentCardBase({ appointment, index = 0, onPress }: Props) {
+  const status = STATUS_VISUAL[appointment.status];
   const { progress: enter } = useEntrance({ index });
-  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({
-    to: 0.985,
-    springIn: { friction: 7, tension: 300 },
-  });
-  const s = STATUS_STYLE[appointment.status];
+  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
 
-  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
-  const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] });
+  const translateY = enter.interpolate({
+    inputRange: [0, 1],
+    outputRange: [EntranceTravel, 0],
+  });
+  const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [EntranceScale, 1] });
   const scale = Animated.multiply(pressScale, enterScale);
+  const opacity = status.muted ? Animated.multiply(enter, Opacity.soft) : enter;
 
   return (
     <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
       <Animated.View
         style={[
           styles.card,
-          { borderColor: s.borderColor, borderWidth: s.borderWidth },
-          s.focal ? styles.cardFocal : null,
-          s.muted ? styles.cardMuted : null,
-          { opacity: s.muted ? Animated.multiply(enter, 0.66) : enter, transform: [{ translateY }, { scale }] },
+          status.focal ? styles.cardFocal : null,
+          { opacity, transform: [{ translateY }, { scale }] },
         ]}>
-        {/* Status indicator */}
-        <View style={styles.dotWrapper}>
-          <View style={[styles.dotCircle, { backgroundColor: s.dotBg, borderColor: s.dotBorder }]}>
-            {s.dotIcon ? (
-              <Feather name={s.dotIcon} size={11} color={s.dotColor} />
-            ) : (
-              <View style={[styles.dotInner, { backgroundColor: s.dotColor }]} />
-            )}
-          </View>
-        </View>
-
-        {/* Primary info */}
-        <View style={styles.info}>
-          <Text style={[styles.client, s.muted ? styles.clientMuted : null]} numberOfLines={1}>
+        <View style={styles.header}>
+          <AppText variant="headline" numberOfLines={1} style={styles.client}>
             {appointment.client}
-          </Text>
-          <Text style={styles.type} numberOfLines={1}>
-            {appointment.type}
-          </Text>
-          <View style={styles.addressRow}>
-            <Feather name="map-pin" size={11} color={Palette.textTertiary} />
-            <Text style={styles.address} numberOfLines={1}>
-              {appointment.address}
-            </Text>
-          </View>
+          </AppText>
+          {status.badge ? (
+            <AppBadge label={status.badge} accent={status.accent} size="sm" uppercase />
+          ) : null}
         </View>
 
-        {/* Time + status */}
-        <View style={styles.rightCol}>
-          <Text style={[styles.time, { color: s.timeColor }]}>{appointment.time}</Text>
-          <Text style={styles.duration}>{appointment.duration}</Text>
+        <AppText variant="footnote" color="secondary" numberOfLines={1}>
+          {appointment.type} • {appointment.duration}
+        </AppText>
 
-          {s.badgeLabel ? (
-            <View style={[styles.badge, { backgroundColor: s.badgeBg }]}>
-              <Text style={[styles.badgeText, { color: s.badgeColor }]}>{s.badgeLabel}</Text>
-            </View>
-          ) : null}
+        <View style={styles.addressRow}>
+          <Feather name="map-pin" size={IconSize.xs} color={Palette.textTertiary} />
+          <AppText variant="micro" color="tertiary" numberOfLines={1} style={styles.address}>
+            {appointment.address}
+          </AppText>
         </View>
       </Animated.View>
     </Pressable>
@@ -153,98 +78,31 @@ export const PlanningAppointmentCard = memo(PlanningAppointmentCardBase);
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     backgroundColor: Palette.card,
     borderRadius: Radius.card, // identical corners to the Home cards
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    ...actionShadow,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xs,
+    ...cardShadow,
   },
   cardFocal: {
+    // The only lift that differs, and only for the intervention in progress.
     ...focalShadow,
   },
-  cardMuted: {
-    // opacity is driven by the entrance animation (see component)
-  },
-  dotWrapper: {
-    width: 26,
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 1,
-  },
-  dotCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotInner: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-  },
-  info: {
-    flex: 1,
-    marginLeft: 10,
-    gap: 2,
+    gap: Spacing.sm,
   },
   client: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.3,
-  },
-  clientMuted: {
-    color: Palette.textSecondary,
-  },
-  type: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: Palette.textSecondary,
-    letterSpacing: -0.1,
+    flex: 1,
   },
   addressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 1,
+    gap: Spacing.xs,
   },
   address: {
     flex: 1,
-    fontSize: 11,
-    color: Palette.textTertiary,
-    letterSpacing: 0,
-  },
-  rightCol: {
-    alignItems: 'flex-end',
-    gap: 1,
-    marginLeft: 8,
-    minWidth: 54,
-  },
-  time: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  duration: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-  },
-  badge: {
-    borderRadius: Radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginTop: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
 });

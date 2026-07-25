@@ -3,7 +3,7 @@ import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { Overlay, Palette, Radius, Spacing } from '@/constants/design';
 import { cardShadow } from '@/constants/shadow';
-import { Duration } from '@/constants/motion';
+import { Timing } from '@/constants/motion';
 import { AppText } from './app-text';
 
 export type AppModalProps = {
@@ -26,8 +26,8 @@ export function AppModal({ visible, onClose, title, dismissOnBackdrop = true, ch
   useEffect(() => {
     Animated.timing(progress, {
       toValue: visible ? 1 : 0,
-      duration: Duration.fast,
       useNativeDriver: true,
+      ...Timing.overlay,
     }).start();
   }, [visible, progress]);
 

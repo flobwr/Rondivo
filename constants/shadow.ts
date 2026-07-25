@@ -67,6 +67,21 @@ export const iconButtonShadow = Platform.select({
   default: { boxShadow: '0px 1px 4px rgba(15, 23, 41, 0.04)' },
 });
 
+// Bottom navigation — the only shadow that points *upwards*, because it is the
+// only surface the content passes underneath. Deliberately weaker than a card
+// shadow: the fade gradient above the bar does most of the depth work, this
+// just stops the bar from sitting flat on the page.
+export const navShadow = Platform.select({
+  ios: {
+    shadowColor: Palette.shadow,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+  },
+  android: { elevation: 8 },
+  default: { boxShadow: '0px -2px 14px rgba(15, 23, 41, 0.05)' },
+});
+
 // Focal (in-progress) planning card — a slightly stronger, brand-tinted lift so
 // the eye lands on the current intervention first. The only shadow that is
 // blue-tinted rather than the neutral app shadow.

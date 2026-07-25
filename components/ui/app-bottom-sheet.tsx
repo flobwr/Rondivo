@@ -3,7 +3,7 @@ import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Overlay, Palette, Radius, Spacing } from '@/constants/design';
-import { Duration } from '@/constants/motion';
+import { Timing } from '@/constants/motion';
 import { AppText } from './app-text';
 
 export type AppBottomSheetProps = {
@@ -35,7 +35,7 @@ export function AppBottomSheet({
 
   const animateTo = useCallback(
     (to: number, cb?: () => void) => {
-      Animated.timing(progress, { toValue: to, duration: Duration.base, useNativeDriver: true }).start(
+      Animated.timing(progress, { toValue: to, useNativeDriver: true, ...Timing.overlay }).start(
         cb ? () => cb() : undefined
       );
     },

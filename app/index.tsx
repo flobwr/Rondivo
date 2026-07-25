@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Appointment, AppointmentCard } from '@/components/home/appointment-card';
-import { BottomNav } from '@/components/home/bottom-nav';
 import { Header } from '@/components/home/header';
 import { HeroCard } from '@/components/home/hero-card';
 import { QuickActions } from '@/components/home/quick-actions';
 import { RemindersCard } from '@/components/home/reminders-card';
-import { FontSize, Palette, Radius, Spacing } from '@/constants/design';
-import { ShimmerColors } from '@/constants/motion';
-import { useShimmer } from '@/hooks/use-shimmer';
+import { BottomNav, useBottomNavSpace } from '@/components/navigation/bottom-nav';
+import { AppSkeleton } from '@/components/ui';
+import { FontSize, LetterSpacing, Palette, Radius, Spacing } from '@/constants/design';
+import { useFade } from '@/hooks/use-fade';
 
 // ── Mock data — replace with real data source ─────────────────────────────────
 
@@ -37,37 +37,27 @@ const REMAINING_APPOINTMENTS: Appointment[] = [
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
-function SkeletonBlock({ height, radius = 12, style }: { height: number; radius?: number; style?: object }) {
-  // Exact legacy shimmer preserved (950ms, home's slightly deeper highlight);
-  // only the duplicated loop boilerplate is now shared via useShimmer.
-  const { backgroundColor } = useShimmer({ duration: 950, to: ShimmerColors.toStrong });
-
-  return <Animated.View style={[{ height, borderRadius: radius, backgroundColor }, style]} />;
-}
-
+// Mirrors the real layout block for block, using the shared AppSkeleton so the
+// whole app shimmers with one pulse.
 function HomeSkeleton() {
   return (
     <>
-      <SkeletonBlock height={168} radius={28} />
+      <AppSkeleton height={168} radius="hero" />
 
       <View style={skStyles.quickRow}>
         {[0, 1, 2, 3].map((i) => (
           <View key={i} style={skStyles.quickItem}>
-            <SkeletonBlock height={32} radius={11} style={{ width: 32 }} />
-            <SkeletonBlock height={13} radius={6} style={{ width: '75%' }} />
-            <SkeletonBlock height={13} radius={6} style={{ width: '50%' }} />
+            <AppSkeleton width={32} height={32} radius="sm" />
+            <AppSkeleton width="75%" height={13} radius="sm" />
+            <AppSkeleton width="50%" height={13} radius="sm" />
           </View>
         ))}
       </View>
 
-      <SkeletonBlock height={64} radius={24} style={{ marginTop: Spacing.section }} />
+      <AppSkeleton height={64} radius="card" style={skStyles.spaced} />
 
-      <SkeletonBlock
-        height={18}
-        radius={8}
-        style={{ marginTop: Spacing.section, marginBottom: 12, width: '42%' }}
-      />
-      <SkeletonBlock height={90} radius={24} />
+      <AppSkeleton width="42%" height={18} radius="sm" style={skStyles.sectionTitle} />
+      <AppSkeleton height={90} radius="card" />
     </>
   );
 }
@@ -75,13 +65,20 @@ function HomeSkeleton() {
 const skStyles = StyleSheet.create({
   quickRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: Spacing.md,
     marginTop: Spacing.section,
   },
   quickItem: {
     flex: 1,
     alignItems: 'center',
-    gap: 7,
+    gap: Spacing.sm,
+  },
+  spaced: {
+    marginTop: Spacing.section,
+  },
+  sectionTitle: {
+    marginTop: Spacing.section,
+    marginBottom: Spacing.md,
   },
 });
 
@@ -89,26 +86,23 @@ const skStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
-  const fadeIn = useRef(new Animated.Value(0)).current;
+  const { style: fadeStyle } = useFade(!isLoading);
+  const bottomNavSpace = useBottomNavSpace();
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setIsLoading(false);
-      Animated.timing(fadeIn, {
-        toValue: 1,
-        duration: 260,
-        useNativeDriver: true,
-      }).start();
-    }, 1200);
+    const t = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(t);
-  }, [fadeIn]);
+  }, []);
 
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}>
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: bottomNavSpace + Spacing.section },
+          ]}>
           <Header />
 
           {isLoading ? (
@@ -116,7 +110,7 @@ export default function HomeScreen() {
               <HomeSkeleton />
             </View>
           ) : (
-            <Animated.View style={{ opacity: fadeIn }}>
+            <Animated.View style={fadeStyle}>
               <View style={styles.section}>
                 <HeroCard isEmpty={!HAS_NEXT_INTERVENTION} />
               </View>
@@ -165,7 +159,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.screen,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.section,
   },
   section: {
     marginTop: Spacing.section,
@@ -174,23 +167,23 @@ const styles = StyleSheet.create({
     fontSize: FontSize.section,
     fontWeight: '700',
     color: Palette.textPrimary,
-    letterSpacing: -0.4,
-    marginBottom: 12,
+    letterSpacing: LetterSpacing.tight,
+    marginBottom: Spacing.md,
   },
   appointmentList: {
-    gap: 10,
+    gap: Spacing.md,
   },
   emptyDay: {
     backgroundColor: Palette.card,
     borderRadius: Radius.card,
-    paddingVertical: 22,
-    paddingHorizontal: 18,
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     alignItems: 'center',
   },
   emptyDayTitle: {
     fontSize: 15,
     fontWeight: '500',
     color: Palette.textSecondary,
-    letterSpacing: -0.2,
+    letterSpacing: LetterSpacing.cozy,
   },
 });
