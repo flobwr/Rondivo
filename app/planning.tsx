@@ -12,7 +12,7 @@ import { ErrorState } from '@/components/planning/ErrorState';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { createThemedStyles, Palette, ScreenFadeInDuration } from '@/theme';
+import { createThemedStyles, Palette, SettleSpring, Timing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -36,7 +36,7 @@ export default function PlanningScreen() {
 
   useEffect(() => {
     if (status === 'success') {
-      Animated.timing(fadeIn, { toValue: 1, duration: ScreenFadeInDuration, useNativeDriver: true }).start();
+      Animated.timing(fadeIn, { toValue: 1, useNativeDriver: true, ...Timing.content }).start();
     }
   }, [status, fadeIn]);
 
@@ -46,7 +46,7 @@ export default function PlanningScreen() {
         if (current === null || index === current) return current;
         directionRef.current = index > current ? 1 : -1;
         transition.setValue(0);
-        Animated.spring(transition, { toValue: 1, useNativeDriver: true, friction: 10, tension: 90 }).start();
+        Animated.spring(transition, { toValue: 1, useNativeDriver: true, ...SettleSpring }).start();
         return index;
       });
     },

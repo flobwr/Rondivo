@@ -17,7 +17,7 @@ import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { DevisCard } from '@/components/documents/devis/DevisCard';
 import { useAsyncList } from '@/hooks/use-async-list';
 import { DEVIS_STATUS_META, DEVIS_STATUS_ORDER, Devis, DevisStatus, listDevis } from '@/services/documents/devis';
-import { createThemedStyles, Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'validity';
 
@@ -41,7 +41,7 @@ export default function DevisListScreen() {
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
-    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(listOpacity, { toValue: 1, useNativeDriver: true, ...Timing.quick }).start();
   };
 
   const counts = useMemo(() => {

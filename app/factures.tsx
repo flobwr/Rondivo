@@ -15,7 +15,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { FactureCard } from '@/components/documents/factures/FactureCard';
 import { FACTURE_STATUS_META, FACTURE_STATUS_ORDER, Facture, FactureStatus, MOCK_FACTURES } from '@/data/documents/factures';
-import { createThemedStyles, Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
 
 type SortKey = 'recent' | 'amount' | 'due';
 
@@ -36,7 +36,7 @@ export default function FacturesScreen() {
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
-    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(listOpacity, { toValue: 1, useNativeDriver: true, ...Timing.quick }).start();
   };
 
   const counts = useMemo(() => {

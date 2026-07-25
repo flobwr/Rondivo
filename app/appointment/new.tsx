@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
-  LayoutAnimation,
   Platform,
   Pressable,
   ScrollView,
@@ -41,6 +40,7 @@ import {
   type Reminder,
 } from '@/components/appointment/appointment-utils';
 import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { easeLayout } from '@/utils/layout-animation';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getClientById } from '@/services/clients';
 import { listInterventionTemplates, type InterventionTemplate } from '@/services/intervention-templates';
@@ -51,15 +51,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const DAYS = buildDays(14);
-// Kept short (180ms) and opacity-only on create/delete so every recalculation
-// (type, date, duration…) feels instant rather than "animated".
-const easeLayout = () =>
-  LayoutAnimation.configureNext({
-    duration: 180,
-    update: { type: LayoutAnimation.Types.easeInEaseOut },
-    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-  });
 
 function formatEuro(value: number): string {
   return `${value.toLocaleString('fr-FR')} €`;

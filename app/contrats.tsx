@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { ContratCard } from '@/components/documents/contrats/ContratCard';
 import { CONTRAT_STATUS_META, CONTRAT_STATUS_ORDER, Contrat, ContratStatus, MOCK_CONTRATS } from '@/data/documents/contrats';
-import { createThemedStyles, Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
 
 export default function ContratsScreen() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function ContratsScreen() {
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
-    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(listOpacity, { toValue: 1, useNativeDriver: true, ...Timing.quick }).start();
   };
 
   const counts = useMemo(() => {

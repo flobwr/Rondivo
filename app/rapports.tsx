@@ -11,7 +11,7 @@ import { FadeInItem } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { RapportCard } from '@/components/documents/rapports/RapportCard';
 import { RAPPORT_STATUS_META, RAPPORT_STATUS_ORDER, Rapport, RapportStatus, MOCK_RAPPORTS } from '@/data/documents/rapports';
-import { createThemedStyles, Palette, Spacing } from '@/theme';
+import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
 
 export default function RapportsScreen() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function RapportsScreen() {
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
-    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(listOpacity, { toValue: 1, useNativeDriver: true, ...Timing.quick }).start();
   };
 
   const counts = useMemo(() => {

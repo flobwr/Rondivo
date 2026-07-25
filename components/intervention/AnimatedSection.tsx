@@ -1,35 +1,20 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
 import { Spacing } from '@/theme';
+import { useEntrance } from '@/hooks/use-entrance';
 
 type Props = {
   index?: number;
   children: ReactNode;
 };
 
-// Same staggered spring entrance used by the Planning timeline cards — gives
-// the detail screen the same fluid, premium feel as the rest of the app.
+// The same entrance as the Planning timeline cards — literally the same hook,
+// so the detail screen cannot drift away from the rest of the app.
 export function AnimatedSection({ index = 0, children }: Props) {
-  const enter = useRef(new Animated.Value(0)).current;
+  const { style } = useEntrance({ index, fromScale: 1 });
 
-  useEffect(() => {
-    Animated.spring(enter, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 9,
-      tension: 80,
-      delay: index * 40,
-    }).start();
-  }, [enter, index]);
-
-  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
-
-  return (
-    <Animated.View style={[styles.section, { opacity: enter, transform: [{ translateY }] }]}>
-      {children}
-    </Animated.View>
-  );
+  return <Animated.View style={[styles.section, style]}>{children}</Animated.View>;
 }
 
 const styles = StyleSheet.create({

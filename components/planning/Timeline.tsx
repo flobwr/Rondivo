@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { memo, useCallback, useMemo } from 'react';
+import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { createThemedStyles, Palette } from '@/theme';
 import { useTheme } from '@/contexts/theme';
@@ -9,6 +9,13 @@ import { useBottomDockClearance } from '@/components/ui/BottomDock';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
 import { getStatusMeta, formatTime } from './status';
+import {
+  DOT_CENTER,
+  GUTTER_WIDTH,
+  LIST_PADDING_H,
+  NOW_ROW_HEIGHT,
+  ROW_GAP,
+} from './timeline-metrics';
 import { TravelLink } from './TravelLink';
 import { BreakSlot, DayItem, Intervention, InterventionStatus, TravelLeg } from './types';
 
@@ -18,50 +25,27 @@ type Props = {
   nowMin?: number;
 };
 
-const GUTTER_WIDTH = 36;
-const ROW_GAP = 20;
-const NOW_ROW_HEIGHT = 30;
-const LIST_PADDING_H = 20;
-
-// Vertical distance from the top of a row to the centre of its rail dot.
-const DOT_CENTER: Record<string, number> = {
-  card: 22,
-  break: 17,
-  now: NOW_ROW_HEIGHT / 2,
-};
-
 const ACTIVE_STATUSES: InterventionStatus[] = ['enRoute', 'arrived', 'inProgress'];
 
 // ── Status dots ───────────────────────────────────────────────────────────────
 // The rail is the day's progress made visible: soft filled circles behind you,
 // a pulsing beacon on the active job, hollow dots ahead.
 
-function PulseDot({ color }: { color: string }) {
-  const pulse = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 1400, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.5] });
-  const ringOpacity = pulse.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.3, 0.1, 0] });
-
+/**
+ * The active job's marker: a solid core inside a soft halo of the same ink.
+ *
+ * It used to pulse on a 1.4 s infinite loop. Nothing else in the app loops,
+ * the motion charter says so in as many words ("nothing loops for show"), and
+ * a heartbeat next to the one card the user is already looking at adds no
+ * information — it only makes the screen restless and keeps a JS-driven
+ * animation running for as long as the Planning is open. The halo alone marks
+ * the beacon; the card's tint and lift do the rest.
+ */
+function BeaconDot({ color }: { color: string }) {
   return (
-    <View style={styles.pulseWrapper}>
-      <Animated.View
-        style={[
-          styles.pulseRing,
-          { backgroundColor: color, opacity: ringOpacity, transform: [{ scale: ringScale }] },
-        ]}
-      />
-      <View style={[styles.pulseCore, { backgroundColor: color }]} />
+    <View style={styles.beaconWrapper}>
+      <View style={[styles.beaconHalo, { backgroundColor: color }]} />
+      <View style={[styles.beaconCore, { backgroundColor: color }]} />
     </View>
   );
 }
@@ -70,7 +54,7 @@ function StatusDot({ status }: { status: InterventionStatus }) {
   const { palette } = useTheme();
   const meta = getStatusMeta(palette)[status];
 
-  if (meta.dot === 'pulse') return <PulseDot color={meta.color} />;
+  if (meta.dot === 'pulse') return <BeaconDot color={meta.color} />;
 
   if (meta.dot === 'hollow') {
     return (
@@ -339,19 +323,22 @@ const styles = createThemedStyles(() => StyleSheet.create({
     borderWidth: 2,
     borderColor: Palette.insetDeep,
   },
-  pulseWrapper: {
+  beaconWrapper: {
     width: 26,
     height: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pulseRing: {
+  beaconHalo: {
     position: 'absolute',
     width: 26,
     height: 26,
     borderRadius: 13,
+    // Held at the low end of what the pulse used to reach, so the beacon reads
+    // as a halo rather than a second, heavier dot.
+    opacity: 0.22,
   },
-  pulseCore: {
+  beaconCore: {
     width: 16,
     height: 16,
     borderRadius: 8,

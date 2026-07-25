@@ -1,10 +1,11 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { memo, useEffect, useRef } from 'react';
+import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, Palette } from '@/theme';
+import { createThemedStyles, Palette, PressScale } from '@/theme';
 import { useTheme } from '@/contexts/theme';
+import { useEntrance } from '@/hooks/use-entrance';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { TravelLeg } from './types';
 
 type Props = {
@@ -18,32 +19,14 @@ type Props = {
 // navigation.
 function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
   const kmLabel = travel.km.toFixed(1).replace('.', ',');
-  const pressScale = useRef(new Animated.Value(1)).current;
-  const enter = useRef(new Animated.Value(0)).current;
+  const { progress: enter } = useEntrance({ index });
+  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({ to: PressScale.icon });
   const { palette } = useTheme();
 
   const trafficColor: Record<TravelLeg['traffic'], string> = {
     fluid: palette.green,
     dense: palette.orange,
     jammed: palette.red,
-  };
-
-  useEffect(() => {
-    Animated.spring(enter, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 9,
-      tension: 80,
-      delay: index * 45,
-    }).start();
-  }, [enter, index]);
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(pressScale, { toValue: 0.88, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
   };
 
   return (

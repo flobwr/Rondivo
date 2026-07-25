@@ -1,10 +1,11 @@
 import { Feather } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, PressScale, Radius, Spacing } from '@/theme';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { SectionCard } from './SectionCard';
 
 type Props = {
@@ -14,22 +15,10 @@ type Props = {
   onNavigate?: () => void;
 };
 
-function useMiniPress() {
-  const scale = useRef(new Animated.Value(1)).current;
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.94, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-  return { scale, onPressIn, onPressOut };
-}
-
 export function AddressCard({ address, travelMinutes, travelKm, onNavigate }: Props) {
   const [copied, setCopied] = useState(false);
-  const copyPress = useMiniPress();
-  const navPress = useMiniPress();
+  const copyPress = usePressScale({ to: PressScale.icon });
+  const navPress = usePressScale({ to: PressScale.icon });
   const kmLabel = travelKm.toFixed(1).replace('.', ',');
 
   const handleCopy = async () => {

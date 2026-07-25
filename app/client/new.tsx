@@ -23,7 +23,7 @@ import { mockCompanyLookupProvider } from '@/components/clients/new/company-look
 import { PhoneField } from '@/components/clients/new/PhoneField';
 import { DEFAULT_PHONE_COUNTRY, formatNational, toE164, type CountryCode } from '@/components/clients/new/phone-utils';
 import { FormInput } from '@/components/ui/FormInput';
-import { createThemedStyles, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, SettleSpring, Spacing } from '@/theme';
 import { computeInitials, createClient, tintForName } from '@/services/clients';
 
 type EquipmentDraft = { id: string; name: string };
@@ -44,7 +44,7 @@ function AvatarPreview({ name }: { name: string }) {
     if (prevKey.current !== key) {
       prevKey.current = key;
       pop.setValue(0.88);
-      Animated.spring(pop, { toValue: 1, useNativeDriver: true, friction: 8, tension: 180 }).start();
+      Animated.spring(pop, { toValue: 1, useNativeDriver: true, ...SettleSpring }).start();
     }
   }, [key, pop]);
 
@@ -112,7 +112,7 @@ export default function NewClientScreen() {
       prevCanSubmit.current = canSubmit;
       if (canSubmit) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       btnPop.setValue(0.93);
-      Animated.spring(btnPop, { toValue: 1, useNativeDriver: true, friction: 8, tension: 200 }).start();
+      Animated.spring(btnPop, { toValue: 1, useNativeDriver: true, ...SettleSpring }).start();
     }
   }, [canSubmit, btnPop]);
 

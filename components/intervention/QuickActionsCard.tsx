@@ -1,11 +1,11 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from '@/components/ui/PressableScale';
-import { createThemedStyles, actionShadow, heroShadow, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, actionShadow, heroShadow, Palette, PressScale, Radius, Spacing } from '@/theme';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { SectionCard } from './SectionCard';
 
 type MiniAction = {
@@ -15,15 +15,7 @@ type MiniAction = {
 };
 
 function MiniActionButton({ label, icon, onPress }: MiniAction) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scale, { toValue: 0.94, useNativeDriver: true, friction: 5, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 100 }).start();
-  };
+  const { scale, onPressIn, onPressOut } = usePressScale({ to: PressScale.icon });
 
   return (
     <Pressable style={styles.miniWrapper} onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
@@ -64,15 +56,11 @@ export function QuickActionsCard({
   started,
   completed,
 }: Props) {
-  const ctaScale = useRef(new Animated.Value(1)).current;
-
-  const onCtaPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Animated.spring(ctaScale, { toValue: 0.97, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const onCtaPressOut = () => {
-    Animated.spring(ctaScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
+  const {
+    scale: ctaScale,
+    onPressIn: onCtaPressIn,
+    onPressOut: onCtaPressOut,
+  } = usePressScale({ to: PressScale.control, haptic: Haptics.ImpactFeedbackStyle.Medium });
 
   // "Modifier" already lives in InterventionFooter — a mini-action here would
   // just duplicate it, so this slot goes to the one closing action that has

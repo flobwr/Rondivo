@@ -1,13 +1,20 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Shimmer } from '@/components/ui/Shimmer';
+import { Radius, Spacing } from '@/theme';
+import { CARD_HEIGHT, DOT_CENTER, DOT_SIZE, GUTTER_WIDTH, LIST_PADDING_H, ROW_GAP } from './timeline-metrics';
 
-// Skeleton that mirrors the loaded layout — rail dots and tall cards — so the
-// load feels seamless.
+const ROWS = [0, 1, 2];
+
+/**
+ * Skeleton mirroring the timeline — same gutter, same dot size anchored at the
+ * same height, same card height — so the real content lands exactly where the
+ * placeholder was and nothing shifts at the end of a load.
+ */
 export function LoadingState() {
   return (
     <View style={styles.container}>
-      {[0, 1, 2].map((i) => (
+      {ROWS.map((i) => (
         <View key={i} style={styles.row}>
           <View style={styles.gutter}>
             <Shimmer style={styles.dot} />
@@ -21,26 +28,27 @@ export function LoadingState() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingHorizontal: LIST_PADDING_H,
+    paddingTop: Spacing.section,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: ROW_GAP,
   },
   gutter: {
-    width: 36,
+    width: GUTTER_WIDTH,
     alignItems: 'center',
-    paddingTop: 17,
+    // Anchors the placeholder dot on the same centre line as the real one.
+    paddingTop: DOT_CENTER.card - DOT_SIZE / 2,
   },
   dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
   },
   card: {
     flex: 1,
-    height: 100,
-    borderRadius: 24,
+    height: CARD_HEIGHT,
+    borderRadius: Radius.card,
   },
 });

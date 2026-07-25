@@ -1,8 +1,8 @@
-import * as Haptics from 'expo-haptics';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { actionShadow, createThemedStyles, Palette, Spacing } from '@/theme';
+import { actionShadow, createThemedStyles, Palette, PressScale, SettleSpring, Spacing } from '@/theme';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
 // Tall pill cards straight from the reference: day name on top, big date
@@ -25,27 +25,23 @@ function DayCell({
   selected: boolean;
   onPress: () => void;
 }) {
-  const pressScale = useRef(new Animated.Value(1)).current;
+  const {
+    scale: pressScale,
+    onPressIn: handlePressIn,
+    onPressOut: handlePressOut,
+  } = usePressScale({ to: PressScale.icon });
   // One animated value drives the whole crossfade so the blue pill appears to
-  // glide from one day to the next.
+  // glide from one day to the next. A spring, not a curve: the selection
+  // follows the finger.
   const sel = useRef(new Animated.Value(selected ? 1 : 0)).current;
 
   useEffect(() => {
     Animated.spring(sel, {
       toValue: selected ? 1 : 0,
       useNativeDriver: false, // animating colours
-      friction: 8,
-      tension: 140,
+      ...SettleSpring,
     }).start();
   }, [selected, sel]);
-
-  const handlePressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(pressScale, { toValue: 0.93, useNativeDriver: true, friction: 6, tension: 300 }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
 
   const pillBg = sel.interpolate({
     inputRange: [0, 1],

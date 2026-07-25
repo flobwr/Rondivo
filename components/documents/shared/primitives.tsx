@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo, useEffect, useRef, type ReactNode } from 'react';
 import { Animated, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
-import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing, StaggerRowCap, StaggerRowDelay } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing, StaggerRowCap, StaggerRowDelay, Timing } from '@/theme';
 import { FeatherIconName } from '../types';
 import { DocumentsTone } from '../palette';
 
@@ -139,9 +139,9 @@ export function FadeInItem({ index = 0, children }: { index?: number; children: 
     enter.setValue(0);
     Animated.timing(enter, {
       toValue: 1,
-      duration: 200,
       delay: Math.min(index, StaggerRowCap) * StaggerRowDelay,
       useNativeDriver: true,
+      ...Timing.quick,
     }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

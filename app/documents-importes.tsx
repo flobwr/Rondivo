@@ -14,7 +14,7 @@ import { ChipDef, FilterChips } from '@/components/documents/shared/FilterChips'
 import { FadeInItem, IconTile, PressableScale } from '@/components/documents/shared/primitives';
 import { SearchBar } from '@/components/documents/shared/SearchBar';
 import { InterventionPickerSheet } from '@/components/documents/imports/InterventionPickerSheet';
-import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing } from '@/theme';
+import { createThemedStyles, cardShadow, FontSize, Palette, Radius, Spacing, Timing } from '@/theme';
 import { formatShortDate } from '@/data/documents/date-utils';
 import { IMPORT_TYPE_META, ImportFileType, ImportedFile, MOCK_IMPORTS, formatFileSize } from '@/data/documents/imports';
 import { PhotoIntervention } from '@/data/documents/photos';
@@ -144,7 +144,7 @@ export default function DocumentsImportesScreen() {
 
   const pulseList = () => {
     listOpacity.setValue(0.4);
-    Animated.timing(listOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(listOpacity, { toValue: 1, useNativeDriver: true, ...Timing.quick }).start();
   };
 
   const filtered = useMemo(() => {

@@ -46,12 +46,17 @@ export {
   iconButtonShadow,
 } from './elevation';
 export {
+  EntranceScale,
+  EntranceTravel,
   ListFadeInDuration,
   Motion,
+  PressScale,
   PressSpring,
   ScreenFadeInDuration,
   SettleSpring,
   ShimmerDuration,
   StaggerRowCap,
   StaggerRowDelay,
+  Timing,
+  type TimingToken,
 } from './motion';

@@ -3,7 +3,7 @@ import { forwardRef, useRef } from 'react';
 import { Animated, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
 import { type FeatherIconName } from '@/components/clients/types';
-import { createThemedStyles, FontSize, Palette, Radius } from '@/theme';
+import { createThemedStyles, FontSize, Palette, Radius, SettleSpring } from '@/theme';
 
 type FormInputProps = Omit<TextInputProps, 'style' | 'placeholderTextColor'> & {
   icon?: FeatherIconName;
@@ -32,11 +32,11 @@ export const FormInput = forwardRef<TextInput, FormInputProps>(function FormInpu
   const focus = useRef(new Animated.Value(0)).current;
 
   const handleFocus: TextInputProps['onFocus'] = (e) => {
-    Animated.spring(focus, { toValue: 1, useNativeDriver: false, friction: 9, tension: 140 }).start();
+    Animated.spring(focus, { toValue: 1, useNativeDriver: false, ...SettleSpring }).start();
     onFocus?.(e);
   };
   const handleBlur: TextInputProps['onBlur'] = (e) => {
-    Animated.spring(focus, { toValue: 0, useNativeDriver: false, friction: 9, tension: 140 }).start();
+    Animated.spring(focus, { toValue: 0, useNativeDriver: false, ...SettleSpring }).start();
     onBlur?.(e);
   };
 

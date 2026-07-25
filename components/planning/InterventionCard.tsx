@@ -1,10 +1,11 @@
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { memo, useEffect, useRef } from 'react';
+import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, actionShadow, Palette } from '@/theme';
+import { createThemedStyles, actionShadow, EntranceScale, EntranceTravel, Palette, PressScale } from '@/theme';
 import { useTheme } from '@/contexts/theme';
+import { useEntrance } from '@/hooks/use-entrance';
+import { usePressScale } from '@/hooks/use-press-scale';
 import { getStatusMeta } from './status';
 import { Intervention } from './types';
 
@@ -20,8 +21,8 @@ type Props = {
 // type, address. Status colours follow the existing Rondivo logic: done is
 // greyed out, in-progress is tinted, upcoming stays white.
 function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
-  const pressScale = useRef(new Animated.Value(1)).current;
-  const enter = useRef(new Animated.Value(0)).current;
+  const { progress: enter } = useEntrance({ index });
+  const { scale: pressScale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
   const { palette } = useTheme();
 
   const meta = getStatusMeta(palette)[intervention.status];
@@ -31,26 +32,8 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
   const isCancelled = intervention.status === 'cancelled';
   const showChip = intervention.status !== 'planned';
 
-  useEffect(() => {
-    Animated.spring(enter, {
-      toValue: 1,
-      useNativeDriver: true,
-      friction: 9,
-      tension: 80,
-      delay: index * 45,
-    }).start();
-  }, [enter, index]);
-
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(pressScale, { toValue: 0.985, useNativeDriver: true, friction: 7, tension: 300 }).start();
-  };
-  const onPressOut = () => {
-    Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 120 }).start();
-  };
-
-  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
-  const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1] });
+  const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [EntranceTravel, 0] });
+  const enterScale = enter.interpolate({ inputRange: [0, 1], outputRange: [EntranceScale, 1] });
   const scale = Animated.multiply(pressScale, enterScale);
   const opacity = isDone
     ? Animated.multiply(enter, 0.66)
