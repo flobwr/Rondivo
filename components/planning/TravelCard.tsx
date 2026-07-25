@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
+import { badgeShadow } from '@/constants/shadow';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { TravelLeg } from './types';
@@ -13,7 +14,9 @@ type Props = {
   onNavigate?: () => void;
 };
 
-// A travel leg is a *connector*, not a card: lighter fill, no shadow, slim.
+// A travel leg is a *connector*, not a card: lighter fill, slim, same size as
+// before. It still shares the intervention cards' depth — the lightest shadow
+// tier only — so the two belong to the same family.
 // It belongs to the timeline and makes the day read as
 // intervention → trajet → intervention.
 function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
@@ -63,6 +66,7 @@ const styles = StyleSheet.create({
     gap: 7,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
+    ...badgeShadow,
   },
   label: {
     fontSize: 12,

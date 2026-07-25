@@ -1,12 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { FontSize, Overlay, Palette, Spacing } from '@/constants/design';
+import { BorderWidth, Overlay, Palette, Radius, Spacing } from '@/constants/design';
+import { actionShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
-const CELL_WIDTH = 50;
-const SCROLL_PAD = Spacing.screen - 5;
+// Cell width and the card's own horizontal padding — the whole strip lives
+// inside one soft-layer card so the calendar reads as a single component,
+// not a row of independent day pills floating on the screen.
+const CELL_WIDTH = 46;
+const CARD_PAD_H = 8;
 
 type Props = {
   days: CalendarDay[];
@@ -27,7 +31,7 @@ function DayCell({
     to: 0.92,
   });
   // Single animated value drives the whole selected/unselected crossfade so the
-  // blue bubble appears to glide from one day to the next.
+  // highlight appears to glide from one day to the next.
   const sel = useRef(new Animated.Value(selected ? 1 : 0)).current;
 
   useEffect(() => {
@@ -41,22 +45,21 @@ function DayCell({
 
   const baseDot = day.hasUrgent ? Palette.orange : day.hasAppointments ? Palette.blue : null;
 
-  const bubbleBg = sel.interpolate({
+  // The whole cell — not just the date number — becomes the selection surface,
+  // so a selected day reads as one integrated shape instead of a bubble
+  // floating inside a separate cell.
+  const cellBg = sel.interpolate({
     inputRange: [0, 1],
     outputRange: [Overlay.blueTransparent, Palette.blue],
   });
-  // subtle spring pop while the selection settles
-  const bubbleScale = sel.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 1.07, 1],
+  const cellScale = sel.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.05, 1] });
+  const labelColor = sel.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Palette.textTertiary, Palette.white],
   });
   const numberColor = sel.interpolate({
     inputRange: [0, 1],
     outputRange: [Palette.textPrimary, Palette.white],
-  });
-  const labelColor = sel.interpolate({
-    inputRange: [0, 1],
-    outputRange: [Palette.textTertiary, Palette.white],
   });
   const dotColor = baseDot
     ? sel.interpolate({ inputRange: [0, 1], outputRange: [baseDot, Palette.white] })
@@ -64,19 +67,13 @@ function DayCell({
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-      {/* outer: native press scale */}
-      <Animated.View style={[styles.cell, { transform: [{ scale: pressScale }] }]}>
-        <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>
-          {day.dayLabel}
-        </Animated.Text>
-
-        {/* inner: JS-driven colour crossfade + spring pop */}
-        <Animated.View
-          style={[styles.dateBubble, { backgroundColor: bubbleBg, transform: [{ scale: bubbleScale }] }]}>
-          <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>
-            {day.date}
-          </Animated.Text>
-        </Animated.View>
+      <Animated.View
+        style={[
+          styles.cell,
+          { backgroundColor: cellBg, transform: [{ scale: Animated.multiply(pressScale, cellScale) }] },
+        ]}>
+        <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>{day.dayLabel}</Animated.Text>
+        <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>{day.date}</Animated.Text>
 
         <View style={styles.dotRow}>
           {dotColor ? (
@@ -96,13 +93,13 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
 
   // Keep the selected day centred horizontally on every change.
   useEffect(() => {
-    const cellCenter = SCROLL_PAD + selectedIndex * CELL_WIDTH + CELL_WIDTH / 2;
+    const cellCenter = CARD_PAD_H + selectedIndex * CELL_WIDTH + CELL_WIDTH / 2;
     const x = Math.max(0, cellCenter - viewportW.current / 2);
     scrollRef.current?.scrollTo({ x, animated: true });
   }, [selectedIndex]);
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.card}>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -126,44 +123,43 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    paddingTop: 14,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.border,
+  card: {
+    marginHorizontal: Spacing.screen,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+    borderRadius: Radius.card,
+    backgroundColor: Palette.card,
+    borderWidth: BorderWidth.thin,
+    borderColor: Palette.border,
+    paddingVertical: 12,
+    ...actionShadow,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screen - 5,
+    paddingHorizontal: CARD_PAD_H,
   },
   cell: {
     width: CELL_WIDTH,
+    borderRadius: Radius.tile,
     alignItems: 'center',
-    paddingVertical: 2,
+    paddingVertical: 8,
   },
   dayLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  dateBubble: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 4,
   },
   dateNumber: {
-    fontSize: FontSize.body,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     letterSpacing: -0.3,
   },
   dotRow: {
-    height: 10,
+    height: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
+    marginTop: 4,
   },
   dot: {
     width: 5,

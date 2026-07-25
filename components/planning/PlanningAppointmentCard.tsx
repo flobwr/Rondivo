@@ -2,8 +2,9 @@ import { Feather } from '@expo/vector-icons';
 import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius } from '@/constants/design';
-import { actionShadow, focalShadow } from '@/constants/shadow';
+import { AccentName, BorderWidth, Palette, Radius, SoftLayer, Spacing } from '@/constants/design';
+import { cardShadow, focalShadow } from '@/constants/shadow';
+import { AppBadge } from '@/components/ui';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { AppointmentStatus, PlanningAppointment } from './types';
@@ -13,14 +14,11 @@ import { AppointmentStatus, PlanningAppointment } from './types';
 
 type StatusStyle = {
   borderColor: string;
-  borderWidth: number;
-  dotBg: string;
-  dotBorder: string;
-  dotColor: string;
-  dotIcon?: 'check' | 'alert-circle';
+  tileBg: string;
+  tileColor: string;
+  tileIcon?: 'check' | 'alert-circle';
   badgeLabel?: string;
-  badgeBg?: string;
-  badgeColor?: string;
+  badgeAccent?: AccentName;
   timeColor: string;
   muted: boolean;
   focal: boolean;
@@ -29,48 +27,38 @@ type StatusStyle = {
 const STATUS_STYLE: Record<AppointmentStatus, StatusStyle> = {
   done: {
     borderColor: Palette.green,
-    borderWidth: 1,
-    dotBg: Palette.greenSoft,
-    dotBorder: Palette.green,
-    dotColor: Palette.green,
-    dotIcon: 'check',
+    tileBg: Palette.greenSoft,
+    tileColor: Palette.green,
+    tileIcon: 'check',
     timeColor: Palette.textTertiary,
     muted: true,
     focal: false,
   },
   inProgress: {
     borderColor: Palette.blue,
-    borderWidth: 1.5,
-    dotBg: Palette.blueSoft,
-    dotBorder: Palette.blue,
-    dotColor: Palette.blue,
+    tileBg: Palette.blueSoft,
+    tileColor: Palette.blue,
     badgeLabel: 'EN COURS',
-    badgeBg: Palette.blueSoft,
-    badgeColor: Palette.blue,
+    badgeAccent: 'blue',
     timeColor: Palette.blue,
     muted: false,
     focal: true,
   },
   urgent: {
     borderColor: Palette.orange,
-    borderWidth: 1.25,
-    dotBg: Palette.orangeSoft,
-    dotBorder: Palette.orange,
-    dotColor: Palette.orange,
-    dotIcon: 'alert-circle',
+    tileBg: Palette.orangeSoft,
+    tileColor: Palette.orange,
+    tileIcon: 'alert-circle',
     badgeLabel: 'URGENT',
-    badgeBg: Palette.orangeSoft,
-    badgeColor: Palette.orange,
+    badgeAccent: 'orange',
     timeColor: Palette.orange,
     muted: false,
     focal: false,
   },
   normal: {
     borderColor: Palette.border,
-    borderWidth: 1,
-    dotBg: Palette.screen,
-    dotBorder: Palette.border,
-    dotColor: Palette.textTertiary,
+    tileBg: Palette.cardMuted,
+    tileColor: Palette.textTertiary,
     timeColor: Palette.textSecondary,
     muted: false,
     focal: false,
@@ -97,97 +85,104 @@ function PlanningAppointmentCardBase({ appointment, index = 0, onPress }: Props)
   const scale = Animated.multiply(pressScale, enterScale);
 
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
-      <Animated.View
-        style={[
-          styles.card,
-          { borderColor: s.borderColor, borderWidth: s.borderWidth },
-          s.focal ? styles.cardFocal : null,
-          s.muted ? styles.cardMuted : null,
-          { opacity: s.muted ? Animated.multiply(enter, 0.66) : enter, transform: [{ translateY }, { scale }] },
-        ]}>
-        {/* Status indicator */}
-        <View style={styles.dotWrapper}>
-          <View style={[styles.dotCircle, { backgroundColor: s.dotBg, borderColor: s.dotBorder }]}>
-            {s.dotIcon ? (
-              <Feather name={s.dotIcon} size={11} color={s.dotColor} />
+    <View style={styles.wrap}>
+      {/* Soft Layer UI: a faint second surface peeking out behind the day's
+          current intervention — the one card that should read as "in front". */}
+      {s.focal ? <View style={styles.focalBackdrop} /> : null}
+
+      <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
+        <Animated.View
+          style={[
+            styles.card,
+            { borderColor: s.borderColor },
+            s.focal ? styles.cardFocal : null,
+            { opacity: s.muted ? Animated.multiply(enter, 0.66) : enter, transform: [{ translateY }, { scale }] },
+          ]}>
+          {/* Status indicator */}
+          <View style={[styles.tile, { backgroundColor: s.tileBg }]}>
+            {s.tileIcon ? (
+              <Feather name={s.tileIcon} size={17} color={s.tileColor} />
             ) : (
-              <View style={[styles.dotInner, { backgroundColor: s.dotColor }]} />
+              <View style={[styles.tileDot, { backgroundColor: s.tileColor }]} />
             )}
           </View>
-        </View>
 
-        {/* Primary info */}
-        <View style={styles.info}>
-          <Text style={[styles.client, s.muted ? styles.clientMuted : null]} numberOfLines={1}>
-            {appointment.client}
-          </Text>
-          <Text style={styles.type} numberOfLines={1}>
-            {appointment.type}
-          </Text>
-          <View style={styles.addressRow}>
-            <Feather name="map-pin" size={11} color={Palette.textTertiary} />
-            <Text style={styles.address} numberOfLines={1}>
-              {appointment.address}
+          {/* Primary info */}
+          <View style={styles.info}>
+            <Text style={[styles.client, s.muted ? styles.clientMuted : null]} numberOfLines={1}>
+              {appointment.client}
             </Text>
-          </View>
-        </View>
-
-        {/* Time + status */}
-        <View style={styles.rightCol}>
-          <Text style={[styles.time, { color: s.timeColor }]}>{appointment.time}</Text>
-          <Text style={styles.duration}>{appointment.duration}</Text>
-
-          {s.badgeLabel ? (
-            <View style={[styles.badge, { backgroundColor: s.badgeBg }]}>
-              <Text style={[styles.badgeText, { color: s.badgeColor }]}>{s.badgeLabel}</Text>
+            <Text style={styles.type} numberOfLines={1}>
+              {appointment.type}
+            </Text>
+            <View style={styles.addressRow}>
+              <Feather name="map-pin" size={11} color={Palette.textTertiary} />
+              <Text style={styles.address} numberOfLines={1}>
+                {appointment.address}
+              </Text>
             </View>
-          ) : null}
-        </View>
-      </Animated.View>
-    </Pressable>
+          </View>
+
+          {/* Time + status */}
+          <View style={styles.rightCol}>
+            <Text style={[styles.time, { color: s.timeColor }]}>{appointment.time}</Text>
+            <Text style={styles.duration}>{appointment.duration}</Text>
+
+            {s.badgeLabel && s.badgeAccent ? (
+              <View style={styles.badgeWrap}>
+                <AppBadge label={s.badgeLabel} accent={s.badgeAccent} size="sm" uppercase />
+              </View>
+            ) : null}
+          </View>
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 }
 
 export const PlanningAppointmentCard = memo(PlanningAppointmentCardBase);
 
 const styles = StyleSheet.create({
+  wrap: {
+    position: 'relative',
+  },
+  focalBackdrop: {
+    position: 'absolute',
+    top: SoftLayer.offset,
+    left: 6,
+    right: 6,
+    bottom: -SoftLayer.offset,
+    borderRadius: Radius.card,
+    backgroundColor: SoftLayer.focalBackdrop,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: Palette.card,
     borderRadius: Radius.card, // identical corners to the Home cards
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    ...actionShadow,
+    borderWidth: BorderWidth.thin,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.lg,
+    ...cardShadow,
   },
   cardFocal: {
     ...focalShadow,
   },
-  cardMuted: {
-    // opacity is driven by the entrance animation (see component)
-  },
-  dotWrapper: {
-    width: 26,
-    alignItems: 'center',
-    paddingTop: 1,
-  },
-  dotCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
+  tile: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.tile,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dotInner: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+  tileDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   info: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: Spacing.md,
     gap: 2,
   },
   client: {
@@ -220,7 +215,7 @@ const styles = StyleSheet.create({
   rightCol: {
     alignItems: 'flex-end',
     gap: 1,
-    marginLeft: 8,
+    marginLeft: Spacing.sm,
     minWidth: 54,
   },
   time: {
@@ -234,17 +229,7 @@ const styles = StyleSheet.create({
     color: Palette.textTertiary,
     letterSpacing: -0.1,
   },
-  badge: {
-    borderRadius: Radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+  badgeWrap: {
     marginTop: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
 });

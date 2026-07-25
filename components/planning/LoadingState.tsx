@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   gutter: {
-    width: 50,
+    width: 46, // matches Timeline's GUTTER / the calendar's cell width
     alignItems: 'center',
     paddingTop: 14,
   },

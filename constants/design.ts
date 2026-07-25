@@ -270,3 +270,15 @@ export const Typography = {
 } as const satisfies Record<string, TextStyle>;
 
 export type TypographyVariant = keyof typeof Typography;
+
+/**
+ * Soft Layer UI — the subtle "second surface" depth used behind the day's
+ * focal (in-progress) card. Never a substitute for `shadow.ts`; a second flat
+ * layer peeking out from behind the card to suggest a light stack of paper.
+ */
+export const SoftLayer = {
+  /** Vertical offset (px) of the second layer behind a focal card. */
+  offset: 6,
+  /** Second-layer tint behind the focal card — a faint blue/screen blend. */
+  focalBackdrop: '#E4ECFB',
+} as const;

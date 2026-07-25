@@ -1,38 +1,52 @@
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { ControlSize, FontWeight, LetterSpacing, Palette, Radius, Spacing, Typography } from '@/constants/design';
+import { cardShadow } from '@/constants/shadow';
+import { PressScale } from '@/constants/motion';
 import { usePressScale } from '@/hooks/use-press-scale';
 
 type Props = {
-  monthLabel: string; // e.g. "JUIN 2025"
+  monthLabel: string; // e.g. "JUILLET 2026"
   onAdd?: () => void;
 };
 
-export function PlanningHeader({ monthLabel, onAdd }: Props) {
-  const { scale, onPressIn, onPressOut } = usePressScale({ to: 0.92 });
+// The add button reads as "create an intervention on the calendar", not a bare
+// "+": a filled calendar glyph with a small plus badge, echoing the
+// notification-badge treatment already used on the Home header.
+function AddButton({ onAdd }: { onAdd?: () => void }) {
+  const { scale, onPressIn, onPressOut } = usePressScale({
+    to: PressScale.icon,
+    haptic: Haptics.ImpactFeedbackStyle.Medium,
+  });
 
+  return (
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onAdd} hitSlop={10}>
+      <Animated.View style={[styles.addButton, { transform: [{ scale }] }]}>
+        <Feather name="calendar" size={20} color={Palette.white} />
+        <View style={styles.addBadge}>
+          <Feather name="plus" size={11} color={Palette.blue} />
+        </View>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+export function PlanningHeader({ monthLabel, onAdd }: Props) {
   return (
     <View style={styles.row}>
       <View>
+        <Text style={styles.eyebrow}>Planning</Text>
         <Text style={styles.month}>{monthLabel}</Text>
-        <Text style={styles.title}>Planning</Text>
       </View>
 
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <Pressable
-          style={styles.addButton}
-          hitSlop={6}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          onPress={onAdd}>
-          <Feather name="plus" size={22} color={Palette.blue} />
-        </Pressable>
-      </Animated.View>
+      <AddButton onAdd={onAdd} />
     </View>
   );
 }
+
+const ADD_BUTTON = ControlSize.lg;
 
 const styles = StyleSheet.create({
   row: {
@@ -43,29 +57,40 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 4,
   },
-  month: {
-    fontSize: FontSize.tiny,
-    fontWeight: '600',
+  eyebrow: {
+    fontSize: Typography.overline.fontSize,
+    fontWeight: FontWeight.bold,
     color: Palette.textSecondary,
-    letterSpacing: 0.8,
+    letterSpacing: LetterSpacing.overline,
     textTransform: 'uppercase',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
+  month: {
+    fontSize: Typography.display.fontSize,
+    fontWeight: FontWeight.heavy,
     color: Palette.textPrimary,
-    letterSpacing: -0.8,
+    letterSpacing: LetterSpacing.tighter,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: Palette.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
+    width: ADD_BUTTON,
+    height: ADD_BUTTON,
+    borderRadius: Radius.tile,
+    backgroundColor: Palette.blue,
     alignItems: 'center',
     justifyContent: 'center',
-    ...iconButtonShadow,
+    ...cardShadow,
+  },
+  addBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Palette.white,
+    borderWidth: 2,
+    borderColor: Palette.screen,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

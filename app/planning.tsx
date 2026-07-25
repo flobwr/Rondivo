@@ -135,7 +135,7 @@ export default function PlanningScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
           {/* Fixed header — title, month, add button, calendar all stay put */}
-          <PlanningHeader monthLabel="JUIN 2025" />
+          <PlanningHeader monthLabel="JUILLET 2026" />
           <HorizontalCalendar
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}
