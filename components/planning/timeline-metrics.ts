@@ -19,8 +19,15 @@ export const BRANCH_LEN = 12;
 /** Horizontal padding of the timeline list. */
 export const LIST_PADDING_H = Spacing.xl;
 
-/** Vertical gap between two timeline rows. */
-export const ROW_GAP = Spacing.xl;
+/**
+ * Vertical gap between two timeline rows — the single unit the whole screen's
+ * vertical rhythm is built on. `Timeline`'s top padding and `DayStrip`'s
+ * bottom margin both resolve to this same token, so the air above the first
+ * row equals the air between every row after it, and the "segment" tick
+ * derives its own centring from it too. One number, reused everywhere a gap
+ * is needed, instead of each spot inventing its own.
+ */
+export const ROW_GAP = Spacing.section;
 
 /** Diameter of a status marker (the largest dot form — the active beacon). */
 export const DOT_SIZE = 26;

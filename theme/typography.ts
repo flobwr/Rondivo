@@ -22,6 +22,18 @@ export const FontSize = {
 
 /** Complete text presets — size + line-height + weight + tracking together. */
 export const Type = {
+  /**
+   * The one outsized display title in the app — reserved for a screen's
+   * single graphic anchor (Planning's month). Not a bigger `largeTitle`:
+   * heavier weight and much tighter tracking, the way a display face reads
+   * as designed rather than just enlarged body type.
+   */
+  heroTitle: {
+    fontSize: 44,
+    lineHeight: 46,
+    fontWeight: '800',
+    letterSpacing: -1.4,
+  },
   largeTitle: {
     fontSize: 30,
     lineHeight: 36,

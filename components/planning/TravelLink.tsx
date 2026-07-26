@@ -59,9 +59,12 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
 export const TravelLink = memo(TravelLinkBase);
 
 const styles = createThemedStyles(() => StyleSheet.create({
+  // No padding of its own: the gap above and below a travel leg comes
+  // entirely from the timeline's shared ROW_GAP, same as every other row —
+  // an extra wrapper inset here would make travel legs sit closer to their
+  // neighbours than a card does.
   wrapper: {
     justifyContent: 'center',
-    paddingVertical: 2,
   },
   capsule: {
     flexDirection: 'row',
@@ -72,7 +75,7 @@ const styles = createThemedStyles(() => StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingLeft: 15,
     paddingRight: 6,
     gap: 9,

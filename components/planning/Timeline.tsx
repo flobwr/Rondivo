@@ -257,7 +257,10 @@ export function Timeline({ items, nowMin }: Props) {
 const styles = createThemedStyles(() => StyleSheet.create({
   listContent: {
     paddingHorizontal: LIST_PADDING_H,
-    paddingTop: 32,
+    // Same unit as the gap between rows: the air above the first card equals
+    // the air between every card after it — one grid, no exception for the
+    // top of the list.
+    paddingTop: ROW_GAP,
   },
   row: {
     flexDirection: 'row',
@@ -270,9 +273,9 @@ const styles = createThemedStyles(() => StyleSheet.create({
   segment: {
     position: 'absolute',
     left: GUTTER_WIDTH / 2 - 1,
-    bottom: (ROW_GAP - 10) / 2,
+    bottom: (ROW_GAP - 8) / 2,
     width: 2,
-    height: 10,
+    height: 8,
     borderRadius: 1,
     backgroundColor: Palette.insetDeep,
   },

@@ -20,6 +20,7 @@ export function LargeTitleBar({
   action,
   trailing,
   padded = true,
+  size = 'default',
   style,
 }: {
   title: string;
@@ -30,19 +31,34 @@ export function LargeTitleBar({
   trailing?: ReactNode;
   /** The bar pads its own gutters unless the parent already does. */
   padded?: boolean;
+  /**
+   * `hero` swaps in `Type.heroTitle` and more generous vertical air, for the
+   * one screen whose title IS the graphic anchor rather than a label over
+   * content (Planning's month). Every other root screen stays `default`.
+   */
+  size?: 'default' | 'hero';
   style?: StyleProp<ViewStyle>;
 }) {
   const { palette } = useTheme();
+  const isHero = size === 'hero';
 
   return (
-    <View style={[styles.row, padded && { paddingHorizontal: Spacing.screen }, style]}>
+    <View
+      style={[
+        styles.row,
+        isHero && styles.rowHero,
+        padded && { paddingHorizontal: Spacing.screen },
+        style,
+      ]}>
       <View style={styles.texts}>
         {eyebrow ? (
           <Text style={[styles.eyebrow, { color: palette.textSecondary }]} numberOfLines={1}>
             {eyebrow}
           </Text>
         ) : null}
-        <Text style={[Type.largeTitle, { color: palette.textPrimary }]} numberOfLines={1}>
+        <Text
+          style={[isHero ? Type.heroTitle : Type.largeTitle, { color: palette.textPrimary }]}
+          numberOfLines={1}>
           {title}
         </Text>
         {subtitle ? (
@@ -76,6 +92,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
+  },
+  rowHero: {
+    alignItems: 'flex-end',
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   texts: {
     flex: 1,
