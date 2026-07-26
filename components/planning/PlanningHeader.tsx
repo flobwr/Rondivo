@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { LargeTitleBar } from '@/components/ui/LargeTitleBar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
-import { getElevation, PressScale, Radius, Spacing } from '@/theme';
+import { glowShadow, PressScale, Radius, Spacing } from '@/theme';
 
 type Props = {
   monthLabel: string; // e.g. "JUILLET 2026"
@@ -17,13 +17,13 @@ const WELL = 52;
  * The add action reads as "create an intervention on the calendar", not a
  * bare "+": a filled calendar glyph with a small plus badge, in the same
  * badge-ring vocabulary (a screen-coloured ring cut into the well) already
- * used by Home's notification well. Perfectly round and lifted with the
- * `float` tier — the app's FAB/dock-weight shadow — so it reads as a real
- * primary action, not another icon well.
+ * used by Home's notification well. Perfectly round, and lifted with the
+ * brand-inked `glowShadow` — the same halo the active intervention card and
+ * the selected calendar day carry — so the blue surfaces on this screen all
+ * cast the same light.
  */
 function AddInterventionWell({ onPress }: { onPress?: () => void }) {
-  const { palette, resolvedTheme } = useTheme();
-  const elevation = getElevation(resolvedTheme);
+  const { palette } = useTheme();
 
   return (
     <PressableScale
@@ -31,7 +31,7 @@ function AddInterventionWell({ onPress }: { onPress?: () => void }) {
       to={PressScale.control}
       accessibilityLabel="Ajouter une intervention"
       style={styles.wellSlot}>
-      <View style={[styles.well, { backgroundColor: palette.blue }, elevation.float]}>
+      <View style={[styles.well, { backgroundColor: palette.blue }, glowShadow]}>
         <Feather name="calendar" size={20} color={palette.onAccent} />
         <View style={[styles.badge, { backgroundColor: palette.float, borderColor: palette.screen }]}>
           <Feather name="plus" size={10} color={palette.blue} />

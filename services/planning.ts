@@ -9,9 +9,21 @@ export type WeekPlanning = {
 };
 
 export async function getWeekPlanning(): Promise<WeekPlanning> {
+  const scenariosByDayIndex = PlanningData.DAY_SCENARIOS_BY_INDEX;
+
+  // The strip's activity dot is a *view* of the day's scenario, so it is
+  // derived here rather than authored alongside the dates — a day can never
+  // claim to hold work it doesn't have.
+  const days: CalendarDay[] = PlanningData.CALENDAR_DAYS.map((day, index) => ({
+    ...day,
+    hasInterventions: (scenariosByDayIndex[index]?.items ?? []).some(
+      (item) => item.kind === 'intervention'
+    ),
+  }));
+
   return {
-    days: [...PlanningData.CALENDAR_DAYS],
-    scenariosByDayIndex: PlanningData.DAY_SCENARIOS_BY_INDEX,
+    days,
+    scenariosByDayIndex,
     selectedDayIndex: PlanningData.SELECTED_DAY_INDEX,
     monthLabel: PlanningData.PLANNING_MONTH_LABEL,
   };

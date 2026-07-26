@@ -93,10 +93,13 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
   },
+  // The hero bar stops just under its own title: whatever follows (Planning's
+  // day strip) sits directly on the paper and owns the air below, rather than
+  // the header reserving it.
   rowHero: {
     alignItems: 'flex-end',
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.sm,
   },
   texts: {
     flex: 1,

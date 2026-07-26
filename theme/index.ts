@@ -42,6 +42,7 @@ export {
   cardShadow,
   floatingButtonShadow,
   getElevation,
+  glowShadow,
   heroShadow,
   iconButtonShadow,
 } from './elevation';

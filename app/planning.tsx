@@ -12,7 +12,7 @@ import { ErrorState } from '@/components/planning/ErrorState';
 import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
-import { createThemedStyles, Palette, SettleSpring, Timing } from '@/theme';
+import { createThemedStyles, Palette, SettleSpring, Spacing, Timing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -89,13 +89,18 @@ export default function PlanningScreen() {
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* Fixed header — title, month, add button and day strip stay put */}
+          {/* Fixed composition — the month title, the add action and the week
+              all stay put. The day strip is laid straight onto the paper: it
+              has no card, capsule or background of its own, and the air around
+              it is owned here rather than baked into either component. */}
           <PlanningHeader monthLabel={planning?.monthLabel ?? ''} onAdd={() => router.push('/appointment/new')} />
-          <DayStrip
-            days={planning?.days ?? []}
-            selectedIndex={selectedDay ?? 0}
-            onSelectDay={handleSelectDay}
-          />
+          <View style={styles.calendar}>
+            <DayStrip
+              days={planning?.days ?? []}
+              selectedIndex={selectedDay ?? 0}
+              onSelectDay={handleSelectDay}
+            />
+          </View>
 
           {/* Scrollable content, always below the fixed header. Swipeable
               left/right to flip between days. */}
@@ -131,6 +136,9 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  calendar: {
+    paddingBottom: Spacing.sm,
   },
   content: {
     flex: 1,

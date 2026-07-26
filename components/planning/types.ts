@@ -51,6 +51,12 @@ export type DayItem =
 export type CalendarDay = {
   date: number;
   dayLabel: string; // 'Lun', 'Mar', …
+  /**
+   * Whether the day holds at least one intervention — drives the small
+   * activity dot under the date in the strip. Derived from the day's
+   * scenario by the planning service, never authored by hand.
+   */
+  hasInterventions: boolean;
 };
 
 /**

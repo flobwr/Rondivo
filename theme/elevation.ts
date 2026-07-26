@@ -72,6 +72,18 @@ export function getElevation(theme: ThemeName): ElevationSet {
   return SETS[theme];
 }
 
+/**
+ * The one shadow that is blue-tinted rather than the neutral paper ink —
+ * reserved for the handful of surfaces that ARE Bleu Rondivo (the active
+ * intervention card, the add-intervention FAB, the selected calendar day):
+ * the glow reads as the ink casting its own light, not paper lifting off
+ * paper. Not part of the theme-aware `ElevationSet` on purpose — it is the
+ * same brand ink regardless of paper.
+ */
+export const glowShadow: ViewStyle = {
+  boxShadow: '0 4px 12px rgba(36, 71, 207, 0.20), 0 16px 36px rgba(36, 71, 207, 0.26)',
+};
+
 /** Default export — Atelier's tiers, for the handful of call sites that
  *  haven't opted into `getElevation(theme)` yet. */
 export const Elevation = SETS.atelier;

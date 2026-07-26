@@ -3,7 +3,12 @@ import { parseTime } from '@/components/planning/status';
 
 export const SELECTED_DAY_INDEX = 2; // Wednesday the 1st
 
-export const CALENDAR_DAYS: CalendarDay[] = [
+/**
+ * The week's dates only. Whether a day *holds* interventions is derived from
+ * its scenario by the planning service — authoring it here as well would be
+ * two sources of truth for the same fact, free to drift apart.
+ */
+export const CALENDAR_DAYS: Omit<CalendarDay, 'hasInterventions'>[] = [
   { date: 29, dayLabel: 'Lun' },
   { date: 30, dayLabel: 'Mar' },
   { date: 1, dayLabel: 'Mer' },

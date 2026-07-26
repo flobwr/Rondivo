@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, actionShadow, EntranceScale, EntranceTravel, Palette, PressScale } from '@/theme';
+import { createThemedStyles, actionShadow, EntranceScale, EntranceTravel, glowShadow, Palette, PressScale } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
@@ -113,14 +113,6 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
 
 export const InterventionCard = memo(InterventionCardBase);
 
-// The in-progress card carries a slightly stronger, brand-tinted lift; every
-// other card keeps the barely-there shadow so the eye lands on the active job.
-// Two-layer boxShadow like every DS elevation, but inked in Bleu Rondivo
-// (rgb of Palette.blue) instead of the warm shadow ink.
-const activeShadow = {
-  boxShadow: '0 3px 7px rgba(36, 71, 207, 0.12), 0 14px 32px rgba(36, 71, 207, 0.16)',
-};
-
 const styles = createThemedStyles(() => StyleSheet.create({
   card: {
     flexDirection: 'row',
@@ -135,7 +127,7 @@ const styles = createThemedStyles(() => StyleSheet.create({
   cardActive: {
     backgroundColor: Palette.blueTint,
     borderColor: Palette.blueBorder,
-    ...activeShadow,
+    ...glowShadow,
   },
   cardPostponed: {
     borderStyle: 'dashed',
