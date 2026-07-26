@@ -1,16 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { Card } from '@/components/ui/Card';
 import { createThemedStyles, Palette, PressScale, SettleSpring, Spacing } from '@/theme';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
 // Tall pill cells straight from the reference: day name on top, big date
-// number below, selected day filled with the brand blue. The strip is ONE
-// soft-layer card (the DS `Card`) — cells carry no border or shadow of their
-// own, so the week reads as a single component, not a row of independent
-// pills.
+// number below, selected day filled with the brand blue. No enclosing card —
+// the strip floats directly on the header's paper, straight under the large
+// title, with only the selected pill breaking the surface.
 const CELL_WIDTH = 66;
 const CELL_GAP = 10;
 
@@ -94,42 +92,37 @@ export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
   }, [selectedIndex]);
 
   return (
-    <Card padded={false} style={styles.stripCard}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        style={styles.strip}
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        onLayout={(e: LayoutChangeEvent) => {
-          viewportW.current = e.nativeEvent.layout.width;
-        }}
-        contentContainerStyle={styles.scrollContent}>
-        {days.map((day, index) => (
-          <DayCell
-            key={`${day.dayLabel}-${day.date}`}
-            day={day}
-            selected={index === selectedIndex}
-            onPress={() => onSelectDay(index)}
-          />
-        ))}
-      </ScrollView>
-    </Card>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      style={styles.strip}
+      showsHorizontalScrollIndicator={false}
+      decelerationRate="fast"
+      onLayout={(e: LayoutChangeEvent) => {
+        viewportW.current = e.nativeEvent.layout.width;
+      }}
+      contentContainerStyle={styles.scrollContent}>
+      {days.map((day, index) => (
+        <DayCell
+          key={`${day.dayLabel}-${day.date}`}
+          day={day}
+          selected={index === selectedIndex}
+          onPress={() => onSelectDay(index)}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = createThemedStyles(() => StyleSheet.create({
-  stripCard: {
-    marginHorizontal: Spacing.screen,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
   strip: {
     flexGrow: 0,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
   scrollContent: {
-    paddingHorizontal: 10,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.screen,
+    paddingVertical: 4,
     gap: CELL_GAP,
   },
   cell: {
