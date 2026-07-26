@@ -1,8 +1,20 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
-import { createThemedStyles, glowShadow, Palette, PressScale, SettleSpring, Spacing } from '@/theme';
+import { Shimmer } from '@/components/ui/Shimmer';
+import { useTheme } from '@/contexts/theme';
 import { usePressScale } from '@/hooks/use-press-scale';
+import {
+  getElevation,
+  Numeric,
+  PressScale,
+  Radius,
+  SettleSpring,
+  Size,
+  Spacing,
+  Type,
+  type PaletteShape,
+} from '@/theme';
 import { CalendarDay } from './types';
 
 /**
@@ -11,13 +23,19 @@ import { CalendarDay } from './types';
  * There is deliberately NO container here — no card, no capsule, no track,
  * no rectangle of any kind. The day name, the date and the activity dot sit
  * directly on the app's paper, and the only thing that ever breaks that
- * surface is the round pill under the selected date. Adding a background
+ * surface is the round disc under the selected date. Adding a background
  * behind this strip would undo the whole composition.
+ *
+ * It does not scroll either. A week is seven columns and the screen is wide
+ * enough for seven columns, so they divide the gutter-to-gutter width evenly:
+ * the strip ends exactly where the masthead's title starts and ends, which is
+ * what makes the calendar read as part of the page rather than a widget
+ * parked on it. A horizontally scrolling strip could only ever show five of
+ * the seven days, which reads as a cropped week.
  */
-const CELL_WIDTH = 62;
-const CELL_GAP = 14;
-/** Diameter of the selected day's disc — a true circle, not a rounded box. */
-const DISC = 48;
+
+/** How many day columns the strip lays out while its week is still loading. */
+const WEEK = 7;
 
 type Props = {
   days: CalendarDay[];
@@ -34,6 +52,9 @@ function DayCell({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { palette, resolvedTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const elevation = getElevation(resolvedTheme);
   const {
     scale: pressScale,
     onPressIn: handlePressIn,
@@ -57,7 +78,7 @@ function DayCell({
   // (e.g. card → blue) would flash a visible disc on the very first frame.
   const discBg = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [`${Palette.blue}00`, Palette.blue],
+    outputRange: [`${palette.blue}00`, palette.blue],
   });
   const discScale = sel.interpolate({
     inputRange: [0, 0.5, 1],
@@ -67,28 +88,29 @@ function DayCell({
   // the disc — exactly the two-tone treatment in the reference.
   const labelColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textSecondary, Palette.blue],
+    outputRange: [palette.textSecondary, palette.blue],
   });
   // `onAccent`, not white: on the dark papers Bleu Rondivo lightens to a
   // tint where white would fail contrast — onAccent flips dark to stay legible.
   const numberColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.textPrimary, Palette.onAccent],
+    outputRange: [palette.textPrimary, palette.onAccent],
   });
   const dotColor = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.insetDeep, Palette.blue],
+    outputRange: [palette.insetDeep, palette.blue],
   });
 
   return (
     <Pressable
+      style={styles.cell}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={`${day.dayLabel} ${day.date}`}>
-      <Animated.View style={[styles.cell, { transform: [{ scale: pressScale }] }]}>
+      <Animated.View style={[styles.cellInner, { transform: [{ scale: pressScale }] }]}>
         <Animated.Text style={[styles.dayLabel, { color: labelColor }]}>
           {day.dayLabel}
         </Animated.Text>
@@ -96,7 +118,11 @@ function DayCell({
         <Animated.View
           style={[
             styles.disc,
-            selected ? glowShadow : null,
+            // The selected disc carries the same whisper of lift as every
+            // other round control in the app — Home's wells, Home's itinerary
+            // button. No brand-coloured halo: a blue surface casts the same
+            // light as a white one.
+            selected ? elevation.whisper : null,
             { backgroundColor: discBg, transform: [{ scale: discScale }] },
           ]}>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>
@@ -117,82 +143,89 @@ function DayCell({
   );
 }
 
-export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
-  const scrollRef = useRef<ScrollView>(null);
-  const viewportW = useRef(Dimensions.get('window').width);
-
-  // Keep the selected day centred horizontally on every change.
-  useEffect(() => {
-    const cellCenter = Spacing.screen + selectedIndex * (CELL_WIDTH + CELL_GAP) + CELL_WIDTH / 2;
-    const x = Math.max(0, cellCenter - viewportW.current / 2);
-    scrollRef.current?.scrollTo({ x, animated: true });
-  }, [selectedIndex]);
+/** The strip's own silhouette while the week loads — same grid, no content. */
+function DayCellSkeleton() {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      style={styles.strip}
-      showsHorizontalScrollIndicator={false}
-      decelerationRate="fast"
-      onLayout={(e: LayoutChangeEvent) => {
-        viewportW.current = e.nativeEvent.layout.width;
-      }}
-      contentContainerStyle={styles.scrollContent}>
-      {days.map((day, index) => (
-        <DayCell
-          key={`${day.dayLabel}-${day.date}`}
-          day={day}
-          selected={index === selectedIndex}
-          onPress={() => onSelectDay(index)}
-        />
-      ))}
-    </ScrollView>
+    <View style={styles.cell}>
+      <View style={styles.cellInner}>
+        <Shimmer style={styles.labelSkeleton} />
+        <Shimmer style={styles.disc} />
+        <View style={styles.dotSlot} />
+      </View>
+    </View>
   );
 }
 
-const styles = createThemedStyles(() => StyleSheet.create({
-  strip: {
-    flexGrow: 0,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.screen,
-    // Vertical room for the selected disc's glow to fall without being
-    // clipped by the ScrollView.
-    paddingVertical: Spacing.sm,
-    gap: CELL_GAP,
-  },
-  cell: {
-    width: CELL_WIDTH,
-    alignItems: 'center',
-  },
-  dayLabel: {
-    fontSize: 13.5,
-    fontWeight: '500',
-    letterSpacing: -0.1,
-    marginBottom: 10,
-  },
-  disc: {
-    width: DISC,
-    height: DISC,
-    borderRadius: DISC / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dateNumber: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-    fontVariant: ['tabular-nums'],
-  },
-  dotSlot: {
-    height: 6,
-    marginTop: 10,
-    justifyContent: 'center',
-  },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-  },
-}));
+export function DayStrip({ days, selectedIndex, onSelectDay }: Props) {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
+  return (
+    <View style={styles.strip}>
+      {days.length === 0
+        ? Array.from({ length: WEEK }, (_, i) => <DayCellSkeleton key={i} />)
+        : days.map((day, index) => (
+            <DayCell
+              key={`${day.dayLabel}-${day.date}`}
+              day={day}
+              selected={index === selectedIndex}
+              onPress={() => onSelectDay(index)}
+            />
+          ))}
+    </View>
+  );
+}
+
+function createStyles(palette: PaletteShape) {
+  return StyleSheet.create({
+    strip: {
+      flexDirection: 'row',
+      // The same gutter as the masthead and the timeline: one vertical axis
+      // runs down the whole screen.
+      paddingHorizontal: Spacing.screen,
+    },
+    cell: {
+      flex: 1,
+    },
+    cellInner: {
+      alignItems: 'center',
+    },
+    dayLabel: {
+      ...Type.footnote,
+      fontWeight: '500',
+      marginBottom: Spacing.sm,
+    },
+    labelSkeleton: {
+      width: 26,
+      height: 10,
+      borderRadius: 5,
+      marginTop: 4,
+      marginBottom: Spacing.md,
+    },
+    disc: {
+      width: Size.well,
+      height: Size.well,
+      borderRadius: Radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    dateNumber: {
+      ...Type.heading,
+      fontWeight: '700',
+      ...Numeric,
+    },
+    dotSlot: {
+      height: 5,
+      marginTop: Spacing.sm,
+      justifyContent: 'center',
+    },
+    dot: {
+      width: 5,
+      height: 5,
+      borderRadius: Radius.pill,
+    },
+  });
+}

@@ -22,6 +22,15 @@ export const LightPalette = {
   // ——— Surfaces ———
   screen: '#F4F3F0', // the paper — calm, faintly warm, never white
   card: '#FDFCFA', // off-white sheet resting on the paper
+  /**
+   * The same sheet, let down onto the paper rather than laid on top of it —
+   * a sliver of the page tints it through. NOT glassmorphism: no blur, no
+   * heavy transparency, just enough alpha that the surface belongs to the
+   * paper it rests on. Used by list cards that sit directly on the page
+   * (Planning's interventions); the opaque `card` stays for anything that
+   * must be fully self-contained.
+   */
+  cardTranslucent: 'rgba(253, 252, 250, 0.86)',
   cardMuted: '#F7F6F3', // recessed tile inside a card
   float: '#FFFFFF', // reserved: floating chrome (dock, sheets, FAB)
   inset: '#ECEAE4', // pressed-into-the-paper fills: wells, tracks, skeletons
@@ -54,6 +63,7 @@ export const LightPalette = {
   orange: '#E8930C',
   orangeSoft: '#F6EBD9',
   orangeInk: '#8A5A18',
+  orangeBorder: '#E4C68F', // edge on an orange-washed surface — the `blueBorder` of the warn family
 
   red: '#DE3730',
   redSoft: '#F7E9E6',
@@ -110,6 +120,7 @@ export const ArcticPalette: PaletteShape = {
   ...LightPalette,
   screen: '#F1F6FA',
   card: '#FFFFFF',
+  cardTranslucent: 'rgba(255, 255, 255, 0.86)',
   cardMuted: '#E9F1F7',
   float: '#FFFFFF',
   inset: '#E1EBF2',
@@ -131,6 +142,7 @@ export const SlatePalette: PaletteShape = {
   ...LightPalette,
   screen: '#E7E8EC',
   card: '#F7F7F9',
+  cardTranslucent: 'rgba(247, 247, 249, 0.86)',
   cardMuted: '#EFEFF2',
   float: '#FFFFFF',
   inset: '#DEE0E5',
@@ -155,6 +167,7 @@ export const SlatePalette: PaletteShape = {
 export const MidnightPalette: PaletteShape = {
   screen: '#0A0D16',
   card: '#141A29',
+  cardTranslucent: 'rgba(20, 26, 41, 0.86)',
   cardMuted: '#1A2135',
   float: '#1D2438',
   inset: '#212A44',
@@ -180,6 +193,7 @@ export const MidnightPalette: PaletteShape = {
   orange: '#F2A33C',
   orangeSoft: '#332912',
   orangeInk: '#F5BC66',
+  orangeBorder: '#5C4820',
 
   red: '#F27970',
   redSoft: '#33201D',
@@ -213,6 +227,7 @@ export const MidnightPalette: PaletteShape = {
 export const AmoledPalette: PaletteShape = {
   screen: '#000000',
   card: '#0D0D0D',
+  cardTranslucent: 'rgba(13, 13, 13, 0.86)',
   cardMuted: '#151515',
   float: '#121212',
   inset: '#1B1B1B',
@@ -238,6 +253,7 @@ export const AmoledPalette: PaletteShape = {
   orange: '#FFAE4A',
   orangeSoft: '#2B2110',
   orangeInk: '#FFC876',
+  orangeBorder: '#4E3B1C',
 
   red: '#FF8478',
   redSoft: '#2B1714',
@@ -322,6 +338,20 @@ export function setActivePalette(next: PaletteShape) {
   Object.assign(Palette, next);
   Object.assign(StatusInk, getStatusInk(next));
   bumpThemeGeneration();
+}
+
+/**
+ * The two stops of a "content dissolves into the page" scrim — the active
+ * paper, then the same paper at zero alpha.
+ *
+ * Not a surface and not a background: nothing is drawn *behind* anything, the
+ * page's own colour simply fades out over the top of whatever is scrolling
+ * under a fixed composition, so a row is never guillotined mid-card. The
+ * transparent stop is the same ink with an alpha suffix rather than
+ * `transparent`, which on iOS fades through black.
+ */
+export function paperFade(palette: PaletteShape): [string, string] {
+  return [palette.screen, `${palette.screen}00`];
 }
 
 /**

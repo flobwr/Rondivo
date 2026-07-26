@@ -21,6 +21,7 @@ export {
   THEMES,
   getPalette,
   getStatusInk,
+  paperFade,
   setActivePalette,
   type PaletteShape,
   type ThemeName,
@@ -42,7 +43,6 @@ export {
   cardShadow,
   floatingButtonShadow,
   getElevation,
-  glowShadow,
   heroShadow,
   iconButtonShadow,
 } from './elevation';

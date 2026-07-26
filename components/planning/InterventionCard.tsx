@@ -1,11 +1,21 @@
 import { Feather } from '@expo/vector-icons';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, actionShadow, EntranceScale, EntranceTravel, glowShadow, Palette, PressScale } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
+import {
+  EntranceScale,
+  EntranceTravel,
+  getElevation,
+  Numeric,
+  PressScale,
+  Radius,
+  Spacing,
+  Type,
+  type PaletteShape,
+} from '@/theme';
 import { getStatusMeta } from './status';
 import { Intervention } from './types';
 
@@ -16,14 +26,26 @@ type Props = {
   onPress?: () => void;
 };
 
-// Card anatomy from the reference: a small clock, the time range stacked with
-// a dotted connector (no side hour column anywhere), then the job — client,
-// type, address. Status colours follow the existing Rondivo logic: done is
-// greyed out, in-progress is tinted, upcoming stays white.
+/**
+ * One job on the day — the Planning's counterpart of Home's `ScheduleCard`,
+ * and deliberately the SAME object: same radius, same padding, same 12 pt
+ * gap, same pressed time chip on the left, same client / type / address
+ * stack, same elevation tier. Open the Home and the Planning back to back
+ * and the two lists are the same list.
+ *
+ * The one thing this card adds is the end time, sitting quietly under the
+ * chip. It used to carry a small clock glyph and a three-dot connector as
+ * well — decoration standing in for the hierarchy the chip now provides.
+ *
+ * Status colours follow the existing Rondivo logic: done is greyed back,
+ * in-progress is tinted, upcoming stays on the paper's own sheet.
+ */
 function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
   const { progress: enter } = useEntrance({ index });
   const { scale: pressScale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
-  const { palette } = useTheme();
+  const { palette, resolvedTheme } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const elevation = getElevation(resolvedTheme);
 
   const meta = getStatusMeta(palette)[intervention.status];
   const isActive = intervention.status === 'inProgress';
@@ -48,22 +70,23 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
       <Animated.View
         style={[
           styles.card,
-          isActive ? styles.cardActive : null,
+          // `card`, the same tier Home's schedule rows rest on — a wide, soft
+          // ambient shadow rather than the tighter one this list used to have.
+          elevation.card,
+          isActive ? [styles.cardActive, elevation.raised] : null,
           isPostponed ? styles.cardPostponed : null,
           { opacity, transform: [{ translateY }, { scale }] },
         ]}>
-        {/* Time range — part of the card, stacked like the reference */}
+        {/* Time — the pressed chip from Home's schedule row, with the end
+            time hung underneath it. */}
         <View style={styles.timeCol}>
-          <Feather name="clock" size={13} color={Palette.textTertiary} style={styles.clockIcon} />
-          <Text style={[styles.startTime, isDone || isCancelled ? styles.timeMuted : null]}>
-            {intervention.start}
-          </Text>
-          <View style={styles.timeConnector}>
-            {[0, 1, 2].map((i) => (
-              <View key={i} style={styles.connectorDot} />
-            ))}
+          <View style={styles.timeChip}>
+            <Text
+              style={[styles.time, Numeric, isDone || isCancelled ? styles.timeMuted : null]}>
+              {intervention.start}
+            </Text>
           </View>
-          <Text style={styles.endTime}>{intervention.end}</Text>
+          <Text style={[styles.endTime, Numeric]}>{intervention.end}</Text>
         </View>
 
         {/* Job */}
@@ -84,11 +107,7 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
                   styles.chip,
                   { backgroundColor: meta.dot === 'pulse' && isActive ? meta.color : meta.soft },
                 ]}>
-                <Text
-                  style={[
-                    styles.chipLabel,
-                    { color: isActive ? palette.onAccent : meta.color },
-                  ]}>
+                <Text style={[styles.chipLabel, { color: isActive ? palette.onAccent : meta.color }]}>
                   {meta.label}
                 </Text>
               </View>
@@ -100,7 +119,7 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
           </Text>
 
           <View style={styles.addressRow}>
-            <Feather name="map-pin" size={11} color={Palette.textTertiary} />
+            <Feather name="map-pin" size={11} color={palette.textTertiary} />
             <Text style={styles.address} numberOfLines={1}>
               {intervention.address}
             </Text>
@@ -113,112 +132,104 @@ function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
 
 export const InterventionCard = memo(InterventionCardBase);
 
-const styles = createThemedStyles(() => StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    backgroundColor: Palette.card,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    ...actionShadow,
-  },
-  cardActive: {
-    backgroundColor: Palette.blueTint,
-    borderColor: Palette.blueBorder,
-    ...glowShadow,
-  },
-  cardPostponed: {
-    borderStyle: 'dashed',
-    borderColor: Palette.orange + '55',
-  },
-  timeCol: {
-    width: 48,
-    alignItems: 'flex-start',
-  },
-  clockIcon: {
-    marginBottom: 5,
-  },
-  startTime: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-    lineHeight: 20,
-    fontVariant: ['tabular-nums'],
-  },
-  timeMuted: {
-    color: Palette.textSecondary,
-  },
-  timeConnector: {
-    gap: 3,
-    marginVertical: 4,
-    marginLeft: 2,
-  },
-  connectorDot: {
-    width: 2.5,
-    height: 2.5,
-    borderRadius: 1.25,
-    backgroundColor: Palette.insetDeep,
-  },
-  endTime: {
-    fontSize: 12.5,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    letterSpacing: -0.2,
-    fontVariant: ['tabular-nums'],
-  },
-  main: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  client: {
-    flex: 1,
-    fontSize: 16.5,
-    fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -0.4,
-  },
-  clientMuted: {
-    color: Palette.textSecondary,
-  },
-  clientCancelled: {
-    color: Palette.textTertiary,
-    textDecorationLine: 'line-through',
-  },
-  chip: {
-    borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-  },
-  chipLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: -0.1,
-  },
-  type: {
-    fontSize: 13.5,
-    fontWeight: '500',
-    color: Palette.textSecondary,
-    letterSpacing: -0.2,
-    marginTop: 4,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 6,
-  },
-  address: {
-    flex: 1,
-    fontSize: 12.5,
-    color: Palette.textTertiary,
-    letterSpacing: -0.1,
-  },
-}));
+function createStyles(palette: PaletteShape) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: Spacing.md,
+      // A sheet let down onto the paper rather than laid on top of it: a
+      // sliver of the page tints it through, and a hairline edge gives it a
+      // definition the softened shadow no longer has to carry alone. Both
+      // are deliberately at the threshold of visible — this is surface life,
+      // not glass.
+      backgroundColor: palette.cardTranslucent,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
+      borderRadius: Radius.card,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+    },
+    cardActive: {
+      backgroundColor: palette.blueTint,
+      borderColor: palette.blueBorder,
+    },
+    cardPostponed: {
+      borderStyle: 'dashed',
+      borderWidth: 1, // a hairline dash renders as a solid line — this one needs body
+      borderColor: palette.orangeBorder,
+    },
+    timeCol: {
+      alignItems: 'center',
+    },
+    timeChip: {
+      backgroundColor: palette.inset,
+      borderRadius: Radius.control,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 5,
+    },
+    time: {
+      fontSize: 14,
+      fontWeight: '700',
+      letterSpacing: -0.2,
+      color: palette.textPrimary,
+    },
+    timeMuted: {
+      color: palette.textSecondary,
+    },
+    endTime: {
+      ...Type.caption,
+      color: palette.textTertiary,
+      marginTop: 5,
+    },
+    main: {
+      flex: 1,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+    },
+    client: {
+      ...Type.bodyStrong,
+      flex: 1,
+      fontWeight: '700',
+      color: palette.textPrimary,
+    },
+    clientMuted: {
+      color: palette.textSecondary,
+    },
+    clientCancelled: {
+      color: palette.textTertiary,
+      textDecorationLine: 'line-through',
+    },
+    chip: {
+      borderRadius: Radius.pill,
+      paddingHorizontal: 9,
+      paddingVertical: 3,
+    },
+    chipLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: -0.1,
+    },
+    type: {
+      ...Type.footnote,
+      fontWeight: '500',
+      color: palette.textSecondary,
+      marginTop: 2,
+    },
+    addressRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      marginTop: 5,
+    },
+    address: {
+      flex: 1,
+      fontSize: 12.5,
+      lineHeight: 16,
+      color: palette.textTertiary,
+    },
+  });
+}

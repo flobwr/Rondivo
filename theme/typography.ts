@@ -23,16 +23,18 @@ export const FontSize = {
 /** Complete text presets — size + line-height + weight + tracking together. */
 export const Type = {
   /**
-   * The one outsized display title in the app — reserved for a screen's
-   * single graphic anchor (Planning's month). Not a bigger `largeTitle`:
-   * heavier weight and much tighter tracking, the way a display face reads
-   * as designed rather than just enlarged body type.
+   * The masthead of a root screen — the single largest piece of type on it,
+   * always sitting on bare paper with one action beside it and one grounding
+   * line under it. Home's greeting and Planning's month are the SAME object
+   * at the same size, weight and tracking: that shared ramp is what makes the
+   * two screens read as one app. Never used twice on a screen, and never for
+   * a label over content (that is `largeTitle`).
    */
-  heroTitle: {
-    fontSize: 44,
-    lineHeight: 46,
+  masthead: {
+    fontSize: 34,
+    lineHeight: 40,
     fontWeight: '800',
-    letterSpacing: -1.4,
+    letterSpacing: -0.9,
   },
   largeTitle: {
     fontSize: 30,

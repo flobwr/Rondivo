@@ -16,10 +16,8 @@ import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { getElevation, Motion, Numeric, Radius, Type, type PaletteShape } from '@/theme';
+import { getElevation, Motion, Numeric, Radius, Size, Type, type PaletteShape } from '@/theme';
 import { openMapsTo } from '@/utils/openMaps';
-
-const NAV_BUTTON = 50;
 
 /**
  * The screen's one dominant card — "where am I due next".
@@ -232,9 +230,9 @@ function createStyles(palette: PaletteShape, scheme: 'light' | 'dark') {
       marginTop: 2,
     },
     navButton: {
-      width: NAV_BUTTON,
-      height: NAV_BUTTON,
-      borderRadius: NAV_BUTTON / 2,
+      width: Size.roundAction,
+      height: Size.roundAction,
+      borderRadius: Radius.pill,
       backgroundColor: palette.blue,
       alignItems: 'center',
       justifyContent: 'center',

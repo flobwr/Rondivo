@@ -36,6 +36,14 @@ export const Size = {
   touchTarget: 48, // minimum interactive height/width
   buttonHeight: 52, // primary CTA
   buttonHeightCompact: 40,
+  iconWellCompact: 30, // circular icon button nested INSIDE a card (travel leg's GPS)
   iconWell: 38, // circular icon button (headers)
+  well: 42, // round chrome disc: masthead wells, calendar day disc
+  /**
+   * The one large round action of a screen — Home's itinerary button and
+   * Planning's add-intervention button are the same object at the same size,
+   * so the two mastheads read as the same hand.
+   */
+  roundAction: 50,
   dockHeight: 64, // floating bottom dock (content, excl. safe area)
 } as const;

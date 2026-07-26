@@ -279,4 +279,9 @@ export const DAY_SCENARIOS_BY_INDEX: Record<number, DayScenario> = {
   6: { items: [] },
 };
 
-export const PLANNING_MONTH_LABEL = 'JUILLET 2026';
+/**
+ * Sentence case, not caps: the month is the Planning's masthead, and it is
+ * set in the very same ramp as Home's "Bonjour Florian". All-caps at that
+ * size reads as a banner rather than as the screen speaking.
+ */
+export const PLANNING_MONTH_LABEL = 'Juillet 2026';

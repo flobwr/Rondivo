@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { createThemedStyles, Palette } from '@/theme';
+import { Numeric, Radius, Spacing, Type, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useBottomDockClearance } from '@/components/ui/BottomDock';
 import { openMapsTo } from '@/utils/openMaps';
@@ -12,10 +12,13 @@ import { getStatusMeta, formatTime } from './status';
 import {
   BRANCH_LEN,
   DOT_CENTER,
+  DOT_SIZE,
   GUTTER_WIDTH,
   LIST_PADDING_H,
   NOW_ROW_HEIGHT,
+  RAIL_WEIGHT,
   ROW_GAP,
+  SEGMENT_LEN,
 } from './timeline-metrics';
 import { TravelLink } from './TravelLink';
 import { BreakSlot, DayItem, Intervention, InterventionStatus, TravelLeg } from './types';
@@ -42,7 +45,7 @@ const ACTIVE_STATUSES: InterventionStatus[] = ['enRoute', 'arrived', 'inProgress
  * animation running for as long as the Planning is open. The halo alone marks
  * the beacon; the card's tint and lift do the rest.
  */
-function BeaconDot({ color }: { color: string }) {
+function BeaconDot({ color, styles }: { color: string; styles: TimelineStyles }) {
   return (
     <View style={styles.beaconWrapper}>
       <View style={[styles.beaconHalo, { backgroundColor: color }]} />
@@ -51,11 +54,11 @@ function BeaconDot({ color }: { color: string }) {
   );
 }
 
-function StatusDot({ status }: { status: InterventionStatus }) {
+function StatusDot({ status, styles }: { status: InterventionStatus; styles: TimelineStyles }) {
   const { palette } = useTheme();
   const meta = getStatusMeta(palette)[status];
 
-  if (meta.dot === 'pulse') return <BeaconDot color={meta.color} />;
+  if (meta.dot === 'pulse') return <BeaconDot color={meta.color} styles={styles} />;
 
   if (meta.dot === 'hollow') {
     return (
@@ -126,17 +129,20 @@ function buildRows(items: DayItem[], nowMin?: number): Row[] {
 // ── Rows rendering ────────────────────────────────────────────────────────────
 
 function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPressIntervention: (id: string) => void }) {
-  const dotCenter = DOT_CENTER[row.kind] ?? 28;
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
+  const dotCenter = DOT_CENTER[row.kind] ?? DOT_CENTER.card;
   const rowStyle = [styles.row, !row.isLastRow ? { paddingBottom: ROW_GAP } : null];
   const segment = row.showSegment ? <View style={styles.segment} /> : null;
 
   const dotAnchor = (child: React.ReactNode) => (
-    <View style={[styles.dotAnchor, { top: dotCenter - 13 }]}>{child}</View>
+    <View style={[styles.dotAnchor, { top: dotCenter - DOT_SIZE / 2 }]}>{child}</View>
   );
   // The short horizontal hand-off from a dot to its row's content — every
   // dotted row (card / break / now) gets one; travel rows stay dot-less and
   // branch-less, the capsule alone carrying the sequence.
-  const branch = <View style={[styles.branch, { top: dotCenter - 1 }]} />;
+  const branch = <View style={[styles.branch, { top: dotCenter - RAIL_WEIGHT / 2 }]} />;
 
   switch (row.kind) {
     case 'now':
@@ -153,7 +159,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
             {branch}
             <Text style={styles.nowLabel}>Maintenant</Text>
             <View style={styles.nowLine} />
-            <Text style={styles.nowTime}>{row.timeLabel}</Text>
+            <Text style={[styles.nowTime, Numeric]}>{row.timeLabel}</Text>
           </View>
           {segment}
         </View>
@@ -162,7 +168,9 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
     case 'card':
       return (
         <View style={rowStyle}>
-          <View style={styles.gutter}>{dotAnchor(<StatusDot status={row.intervention.status} />)}</View>
+          <View style={styles.gutter}>
+            {dotAnchor(<StatusDot status={row.intervention.status} styles={styles} />)}
+          </View>
           <View style={styles.content}>
             {branch}
             <InterventionCard
@@ -181,14 +189,14 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
           <View style={styles.gutter}>
             {dotAnchor(
               <View style={styles.breakDot}>
-                <Feather name="coffee" size={9} color={Palette.textSecondary} />
+                <Feather name="coffee" size={9} color={palette.textSecondary} />
               </View>
             )}
           </View>
           <View style={styles.breakContent}>
             {branch}
             <Text style={styles.breakLabel}>{row.brk.label}</Text>
-            <Text style={styles.breakTime}>
+            <Text style={[styles.breakTime, Numeric]}>
               {row.brk.start} – {row.brk.end}
             </Text>
           </View>
@@ -216,6 +224,8 @@ const MemoRow = memo(TimelineRow);
 
 export function Timeline({ items, nowMin }: Props) {
   const router = useRouter();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const dockClearance = useBottomDockClearance(0);
 
   const rows = useMemo<PositionedRow[]>(() => {
@@ -254,179 +264,181 @@ export function Timeline({ items, nowMin }: Props) {
   );
 }
 
-const styles = createThemedStyles(() => StyleSheet.create({
-  listContent: {
-    paddingHorizontal: LIST_PADDING_H,
-    // Same unit as the gap between rows: the air above the first card equals
-    // the air between every card after it — one grid, no exception for the
-    // top of the list.
-    paddingTop: ROW_GAP,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  gutter: {
-    width: GUTTER_WIDTH,
-  },
-  // A small discrete tick — never a rail — bridging two back-to-back dotted
-  // rows. Centred in the row's own bottom gap, well clear of both dots.
-  segment: {
-    position: 'absolute',
-    left: GUTTER_WIDTH / 2 - 1,
-    bottom: (ROW_GAP - 8) / 2,
-    width: 2,
-    height: 8,
-    borderRadius: 1,
-    backgroundColor: Palette.insetDeep,
-  },
-  content: {
-    flex: 1,
-    position: 'relative',
-    paddingLeft: BRANCH_LEN,
-  },
-  branch: {
-    position: 'absolute',
-    left: 0,
-    width: BRANCH_LEN,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Palette.insetDeep,
-  },
-  dotAnchor: {
-    position: 'absolute',
-    left: GUTTER_WIDTH / 2 - 13,
-    width: 26,
-    height: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+type TimelineStyles = ReturnType<typeof createStyles>;
 
-  // dots
-  iconDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 3,
-    borderColor: Palette.screen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hollowHalo: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Palette.screen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hollowDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Palette.card,
-    borderWidth: 2,
-    borderColor: Palette.insetDeep,
-  },
-  beaconWrapper: {
-    width: 26,
-    height: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  beaconHalo: {
-    position: 'absolute',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    // Held at the low end of what the pulse used to reach, so the beacon reads
-    // as a halo rather than a second, heavier dot.
-    opacity: 0.22,
-  },
-  beaconCore: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 3,
-    borderColor: Palette.screen,
-  },
-  breakDot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Palette.screen,
-    backgroundColor: Palette.inset,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+function createStyles(palette: PaletteShape) {
+  return StyleSheet.create({
+    listContent: {
+      paddingHorizontal: LIST_PADDING_H,
+      // Same unit as the gap between rows: the air above the first card equals
+      // the air between every card after it — one grid, no exception for the
+      // top of the list.
+      paddingTop: ROW_GAP,
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    gutter: {
+      width: GUTTER_WIDTH,
+    },
+    // A small discrete tick — never a rail — bridging two back-to-back dotted
+    // rows. Centred in the row's own bottom gap, well clear of both dots, and
+    // drawn at the same hairline weight as the branches so every mark the rail
+    // makes has one thickness.
+    segment: {
+      position: 'absolute',
+      left: (GUTTER_WIDTH - RAIL_WEIGHT) / 2,
+      bottom: (ROW_GAP - SEGMENT_LEN) / 2,
+      width: RAIL_WEIGHT,
+      height: SEGMENT_LEN,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.insetDeep,
+    },
+    content: {
+      flex: 1,
+      position: 'relative',
+      paddingLeft: BRANCH_LEN,
+    },
+    branch: {
+      position: 'absolute',
+      left: 0,
+      width: BRANCH_LEN,
+      height: RAIL_WEIGHT,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.insetDeep,
+    },
+    dotAnchor: {
+      position: 'absolute',
+      left: (GUTTER_WIDTH - DOT_SIZE) / 2,
+      width: DOT_SIZE,
+      height: DOT_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  // "Maintenant" marker
-  nowDotHalo: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Palette.screen,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nowDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Palette.blue,
-  },
-  nowContent: {
-    flex: 1,
-    height: NOW_ROW_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    position: 'relative',
-    paddingLeft: BRANCH_LEN,
-  },
-  nowLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Palette.blue,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  nowLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Palette.blue,
-    opacity: 0.35,
-  },
-  nowTime: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: Palette.blue,
-    letterSpacing: -0.1,
-    fontVariant: ['tabular-nums'],
-  },
+    // dots
+    iconDot: {
+      width: DOT_SIZE,
+      height: DOT_SIZE,
+      borderRadius: Radius.pill,
+      borderWidth: 3,
+      borderColor: palette.screen,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hollowHalo: {
+      width: 16,
+      height: 16,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.screen,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hollowDot: {
+      width: 11,
+      height: 11,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.card,
+      borderWidth: 2,
+      borderColor: palette.insetDeep,
+    },
+    beaconWrapper: {
+      width: DOT_SIZE,
+      height: DOT_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    beaconHalo: {
+      position: 'absolute',
+      width: DOT_SIZE,
+      height: DOT_SIZE,
+      borderRadius: Radius.pill,
+      // Held at the low end of what the pulse used to reach, so the beacon reads
+      // as a halo rather than a second, heavier dot.
+      opacity: 0.22,
+    },
+    beaconCore: {
+      width: 15,
+      height: 15,
+      borderRadius: Radius.pill,
+      borderWidth: 3,
+      borderColor: palette.screen,
+    },
+    breakDot: {
+      width: 20,
+      height: 20,
+      borderRadius: Radius.pill,
+      borderWidth: 2,
+      borderColor: palette.screen,
+      backgroundColor: palette.inset,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  // break row
-  breakContent: {
-    flex: 1,
-    minHeight: 34,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    position: 'relative',
-    paddingLeft: BRANCH_LEN,
-  },
-  breakLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-    letterSpacing: -0.2,
-  },
-  breakTime: {
-    fontSize: 12.5,
-    fontWeight: '500',
-    color: Palette.textTertiary,
-    letterSpacing: -0.2,
-    fontVariant: ['tabular-nums'],
-  },
-}));
+    // "Maintenant" marker
+    nowDotHalo: {
+      width: 13,
+      height: 13,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.screen,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    nowDot: {
+      width: 7,
+      height: 7,
+      borderRadius: Radius.pill,
+      backgroundColor: palette.blue,
+    },
+    nowContent: {
+      flex: 1,
+      height: NOW_ROW_HEIGHT,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      position: 'relative',
+      paddingLeft: BRANCH_LEN,
+    },
+    nowLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: palette.blue,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+    },
+    nowLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: palette.blue,
+      opacity: 0.35,
+    },
+    nowTime: {
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: palette.blue,
+      letterSpacing: -0.1,
+    },
+
+    // break row
+    breakContent: {
+      flex: 1,
+      minHeight: 34,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      position: 'relative',
+      paddingLeft: BRANCH_LEN,
+    },
+    breakLabel: {
+      ...Type.footnote,
+      flex: 1,
+      fontWeight: '600',
+      color: palette.textSecondary,
+    },
+    breakTime: {
+      ...Type.caption,
+      color: palette.textTertiary,
+      letterSpacing: -0.2,
+    },
+  });
+}

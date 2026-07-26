@@ -17,6 +17,10 @@ import type { ThemeName } from './palette';
  *
  *   whisper → card → raised → float
  *
+ * There is no fifth, coloured tier. A blue surface casts the SAME light as
+ * a white one; a brand-tinted halo made Bleu Rondivo surfaces read as a
+ * different species of object from the rest of the app.
+ *
  * Each PAPER tunes its own shadow ink and, where a shadow can't do the job
  * (AMOLED's true black has nothing darker to cast onto), leans on a
  * matching hairline border instead — wired in `Card`, `BottomDock` and
@@ -71,18 +75,6 @@ const SETS: Record<ThemeName, ElevationSet> = {
 export function getElevation(theme: ThemeName): ElevationSet {
   return SETS[theme];
 }
-
-/**
- * The one shadow that is blue-tinted rather than the neutral paper ink —
- * reserved for the handful of surfaces that ARE Bleu Rondivo (the active
- * intervention card, the add-intervention FAB, the selected calendar day):
- * the glow reads as the ink casting its own light, not paper lifting off
- * paper. Not part of the theme-aware `ElevationSet` on purpose — it is the
- * same brand ink regardless of paper.
- */
-export const glowShadow: ViewStyle = {
-  boxShadow: '0 4px 12px rgba(36, 71, 207, 0.20), 0 16px 36px rgba(36, 71, 207, 0.26)',
-};
 
 /** Default export — Atelier's tiers, for the handful of call sites that
  *  haven't opted into `getElevation(theme)` yet. */

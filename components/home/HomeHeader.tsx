@@ -9,9 +9,7 @@ import type { HomeStatus, StatusTone } from '@/components/home/status';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { getElevation, Motion, Numeric, Radius, Type, type PaletteShape } from '@/theme';
-
-const WELL = 42;
+import { getElevation, Motion, Numeric, Radius, Size, Type, type PaletteShape } from '@/theme';
 
 /** Colour + weight per tone — urgency earns ink, everything else stays quiet. */
 function toneStyle(tone: StatusTone, palette: PaletteShape, statusInk: Record<'red' | 'orange' | 'blue', string>) {
@@ -142,8 +140,8 @@ function createStyles(palette: PaletteShape) {
       gap: 10,
     },
     well: {
-      width: WELL,
-      height: WELL,
+      width: Size.well,
+      height: Size.well,
       borderRadius: Radius.pill,
       backgroundColor: palette.card,
       alignItems: 'center',
@@ -177,11 +175,9 @@ function createStyles(palette: PaletteShape) {
       fontWeight: '700',
       color: palette.white,
     },
+    // The masthead ramp is shared with Planning's month — see `Type.masthead`.
     title: {
-      fontSize: 34,
-      lineHeight: 40,
-      fontWeight: '800',
-      letterSpacing: -0.9,
+      ...Type.masthead,
       color: palette.textPrimary,
       marginTop: 18,
     },

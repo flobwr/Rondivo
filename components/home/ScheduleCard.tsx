@@ -7,7 +7,15 @@ import { compactAddress } from '@/components/home/format';
 import { Appointment } from '@/components/home/types';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useTheme } from '@/contexts/theme';
-import { getElevation, getStatusInk, Numeric, Radius, Type, type PaletteShape } from '@/theme';
+import {
+  getElevation,
+  getStatusInk,
+  Numeric,
+  Radius,
+  Spacing,
+  Type,
+  type PaletteShape,
+} from '@/theme';
 
 /** Maps the free-form status label to an ink — green for confirmed/done,
  *  neutral for cancelled/postponed outcomes, blue for everything else. */
@@ -86,10 +94,12 @@ function createStyles(palette: PaletteShape, scheme: 'light' | 'dark') {
         ? { borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border }
         : null),
     },
+    // The same chip Planning's intervention cards carry — one object, one
+    // token, so the two schedules read as the same list.
     timeChip: {
       backgroundColor: palette.inset,
-      borderRadius: 10,
-      paddingHorizontal: 8,
+      borderRadius: Radius.control,
+      paddingHorizontal: Spacing.sm,
       paddingVertical: 5,
     },
     time: {
