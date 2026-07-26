@@ -1,12 +1,12 @@
 import { Feather } from '@expo/vector-icons';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontSize, Palette, Spacing } from '@/constants/design';
-import { iconButtonShadow } from '@/constants/shadow';
+import { FontSize, Palette, Spacing, Typography } from '@/constants/design';
+import { focalShadow, iconButtonShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 
 type Props = {
-  monthLabel: string; // e.g. "JUIN 2025"
+  monthLabel: string; // e.g. "JUILLET 2026"
   onAdd?: () => void;
 };
 
@@ -15,9 +15,11 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
 
   return (
     <View style={styles.row}>
-      <View>
-        <Text style={styles.month}>{monthLabel}</Text>
-        <Text style={styles.title}>Planning</Text>
+      <View style={styles.titleBlock}>
+        <Text style={styles.eyebrow}>Planning</Text>
+        <Text style={styles.month} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+          {monthLabel}
+        </Text>
       </View>
 
       <Animated.View style={{ transform: [{ scale }] }}>
@@ -27,7 +29,10 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onPress={onAdd}>
-          <Feather name="plus" size={22} color={Palette.blue} />
+          <Feather name="calendar" size={22} color={Palette.white} />
+          <View style={styles.addBadge}>
+            <Feather name="plus" size={11} color={Palette.blue} />
+          </View>
         </Pressable>
       </Animated.View>
     </View>
@@ -37,33 +42,47 @@ export function PlanningHeader({ monthLabel, onAdd }: Props) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screen,
-    paddingTop: 14,
-    paddingBottom: 4,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
-  month: {
+  titleBlock: {
+    flex: 1,
+  },
+  eyebrow: {
     fontSize: FontSize.tiny,
     fontWeight: '600',
     color: Palette.textSecondary,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 2,
+    marginBottom: 6,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
+  month: {
+    ...Typography.giant,
     color: Palette.textPrimary,
-    letterSpacing: -0.8,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: Palette.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginTop: 4,
+    backgroundColor: Palette.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...focalShadow,
+  },
+  addBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Palette.white,
+    borderWidth: 2,
+    borderColor: Palette.screen,
     alignItems: 'center',
     justifyContent: 'center',
     ...iconButtonShadow,

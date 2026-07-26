@@ -4,7 +4,8 @@ import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandColor, FontSize, Palette } from '@/constants/design';
+import { BrandColor, FontSize, Palette, Radius, Spacing } from '@/constants/design';
+import { navShadow } from '@/constants/shadow';
 
 type Tab = {
   label: string;
@@ -34,39 +35,61 @@ export function BottomNav({ activeIndex = 0 }: { activeIndex?: number }) {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-      {TABS.map((tab, index) => {
-        const active = index === activeIndex;
-        const color = active ? BrandColor.tabActive : Palette.textTertiary;
-        return (
-          <Pressable
-            key={tab.label}
-            style={styles.tab}
-            onPress={() => handlePress(tab, index)}>
-            <Feather name={tab.icon} size={active ? 24 : 23} color={color} />
-            <Text style={[styles.label, { color, fontWeight: active ? '600' : '400' }]}>
-              {tab.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={[styles.wrapper, { marginBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={styles.container}>
+        {TABS.map((tab, index) => {
+          const active = index === activeIndex;
+          const color = active ? Palette.white : Palette.textTertiary;
+          return (
+            <Pressable
+              key={tab.label}
+              style={styles.tab}
+              onPress={() => handlePress(tab, index)}>
+              <View style={[styles.iconChip, active ? styles.iconChipActive : null]}>
+                <Feather name={tab.icon} size={active ? 21 : 22} color={color} />
+              </View>
+              <Text
+                style={[
+                  styles.label,
+                  { color: active ? BrandColor.tabActive : Palette.textTertiary, fontWeight: active ? '700' : '400' },
+                ]}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    marginHorizontal: Spacing.screen - 4,
+  },
   container: {
     flexDirection: 'row',
     backgroundColor: Palette.card,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.border,
+    borderRadius: Radius.card,
     paddingTop: 10,
+    paddingBottom: 8,
     paddingHorizontal: 6,
+    ...navShadow,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     gap: 4,
+  },
+  iconChip: {
+    width: 40,
+    height: 30,
+    borderRadius: Radius.tile - 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconChipActive: {
+    backgroundColor: BrandColor.tabActive,
   },
   label: {
     fontSize: FontSize.tiny,

@@ -3,6 +3,7 @@ import { memo } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette, Radius } from '@/constants/design';
+import { actionShadow, iconButtonShadow } from '@/constants/shadow';
 import { useEntrance } from '@/hooks/use-entrance';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { TravelLeg } from './types';
@@ -24,6 +25,7 @@ function TravelCardBase({ travel, index = 0, onNavigate }: Props) {
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
       <View style={styles.capsule}>
+        <View style={styles.statusDot} />
         <Feather name="truck" size={12} color={Palette.textTertiary} />
         <Text style={styles.label}>
           {travel.minutes} min • {kmLabel} km
@@ -51,21 +53,27 @@ export const TravelCard = memo(TravelCardBase);
 const styles = StyleSheet.create({
   wrapper: {
     justifyContent: 'center',
+    paddingVertical: 4,
   },
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Palette.cardMuted,
+    backgroundColor: Palette.card,
     borderRadius: Radius.pill,
-    paddingVertical: 6,
-    paddingLeft: 11,
-    paddingRight: 5,
-    gap: 7,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.border,
+    paddingVertical: 9,
+    paddingLeft: 14,
+    paddingRight: 6,
+    gap: 8,
+    ...actionShadow,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.green,
   },
   label: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '500',
     color: Palette.textSecondary,
     letterSpacing: -0.1,
@@ -74,11 +82,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Palette.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    ...iconButtonShadow,
   },
 });

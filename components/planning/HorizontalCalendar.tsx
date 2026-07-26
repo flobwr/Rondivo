@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { FontSize, Overlay, Palette, Spacing } from '@/constants/design';
+import { bubbleShadow } from '@/constants/shadow';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
-const CELL_WIDTH = 50;
-const SCROLL_PAD = Spacing.screen - 5;
+const CELL_WIDTH = 58;
+const SCROLL_PAD = Spacing.screen - 8;
 
 type Props = {
   days: CalendarDay[];
@@ -72,7 +73,11 @@ function DayCell({
 
         {/* inner: JS-driven colour crossfade + spring pop */}
         <Animated.View
-          style={[styles.dateBubble, { backgroundColor: bubbleBg, transform: [{ scale: bubbleScale }] }]}>
+          style={[
+            styles.dateBubble,
+            selected ? bubbleShadow : null,
+            { backgroundColor: bubbleBg, transform: [{ scale: bubbleScale }] },
+          ]}>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>
             {day.date}
           </Animated.Text>
@@ -127,13 +132,11 @@ export function HorizontalCalendar({ days, selectedIndex, onSelectDay }: Props) 
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 14,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.border,
+    paddingTop: 22,
+    paddingBottom: 22,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screen - 5,
+    paddingHorizontal: Spacing.screen - 8,
   },
   cell: {
     width: CELL_WIDTH,
@@ -141,16 +144,15 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   dayLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    marginBottom: 6,
+    letterSpacing: 0.3,
+    marginBottom: 10,
   },
   dateBubble: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     height: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
+    marginTop: 9,
   },
   dot: {
     width: 5,

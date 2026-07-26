@@ -15,13 +15,13 @@ import { Palette } from '@/constants/design';
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const CALENDAR_DAYS: CalendarDay[] = [
-  { date: 29, dayLabel: 'LUN', hasAppointments: true, hasUrgent: false },
-  { date: 30, dayLabel: 'MAR', hasAppointments: true, hasUrgent: false },
-  { date: 1, dayLabel: 'MER', hasAppointments: true, hasUrgent: false },
-  { date: 2, dayLabel: 'JEU', hasAppointments: true, hasUrgent: true },
-  { date: 3, dayLabel: 'VEN', hasAppointments: true, hasUrgent: false },
-  { date: 4, dayLabel: 'SAM', hasAppointments: false, hasUrgent: false },
-  { date: 5, dayLabel: 'DIM', hasAppointments: false, hasUrgent: false },
+  { date: 29, dayLabel: 'Lun', hasAppointments: true, hasUrgent: false },
+  { date: 30, dayLabel: 'Mar', hasAppointments: true, hasUrgent: false },
+  { date: 1, dayLabel: 'Mer', hasAppointments: true, hasUrgent: false },
+  { date: 2, dayLabel: 'Jeu', hasAppointments: true, hasUrgent: true },
+  { date: 3, dayLabel: 'Ven', hasAppointments: true, hasUrgent: false },
+  { date: 4, dayLabel: 'Sam', hasAppointments: false, hasUrgent: false },
+  { date: 5, dayLabel: 'Dim', hasAppointments: false, hasUrgent: false },
 ];
 
 const SELECTED_DAY_INDEX = 2; // Wednesday the 1st
@@ -135,7 +135,7 @@ export default function PlanningScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
           {/* Fixed header — title, month, add button, calendar all stay put */}
-          <PlanningHeader monthLabel="JUIN 2025" />
+          <PlanningHeader monthLabel="JUILLET 2026" />
           <HorizontalCalendar
             days={CALENDAR_DAYS}
             selectedIndex={selectedDay}

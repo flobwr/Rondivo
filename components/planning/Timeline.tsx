@@ -1,5 +1,6 @@
+import { Feather } from '@expo/vector-icons';
 import { memo, useCallback, useMemo } from 'react';
-import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { FlatList, ListRenderItemInfo, StyleSheet, View } from 'react-native';
 
 import { Palette, Spacing } from '@/constants/design';
 import { PlanningAppointmentCard } from './PlanningAppointmentCard';
@@ -10,23 +11,27 @@ type Props = {
   items: DayItem[];
 };
 
-// Vertical distance from the top of an appointment row to the centre of its dot:
-// paddingTop (14) + time label lineHeight (16) + marginBottom (6) + dot radius (8).
-const DOT_CENTER = 44;
-const ROW_GAP = 14;
+const GUTTER_WIDTH = 40;
+const DOT_SIZE = 26;
+const BRANCH_LEN = 14;
+const GUTTER_TOP = 12;
+const ROW_GAP = 20;
 
-const TIME_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.textTertiary,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textSecondary,
+// Vertical distance from the top of a row to the centre of its dot.
+const DOT_CENTER = GUTTER_TOP + DOT_SIZE / 2;
+
+type DotStyle = {
+  icon?: React.ComponentProps<typeof Feather>['name'];
+  bg: string;
+  border: string;
+  color: string;
 };
 
-const DOT_COLOR: Record<AppointmentStatus, string> = {
-  done: Palette.green,
-  inProgress: Palette.blue,
-  urgent: Palette.orange,
-  normal: Palette.textTertiary,
+const DOT_STYLE: Record<AppointmentStatus, DotStyle> = {
+  done: { icon: 'check', bg: Palette.greenSoft, border: Palette.green, color: Palette.green },
+  inProgress: { icon: 'arrow-right', bg: Palette.blueSoft, border: Palette.blue, color: Palette.blue },
+  urgent: { icon: 'alert-circle', bg: Palette.orangeSoft, border: Palette.orange, color: Palette.orange },
+  normal: { bg: Palette.card, border: Palette.border, color: Palette.textTertiary },
 };
 
 type LineMode = 'none' | 'full' | 'capTop' | 'capBottom';
@@ -40,7 +45,8 @@ type Row = {
 
 // One row of the timeline. Each row paints its own rail segment over its full
 // height (gap included), so the segments join into one continuous line. The
-// first and last appointment rows cap the rail exactly at their dot.
+// first and last appointment rows cap the rail exactly at their dot. Every
+// appointment dot sprouts a short horizontal branch that hands off to its card.
 const TimelineRow = function TimelineRow({ row }: { row: Row }) {
   const { item, index, lineMode, isLastRow } = row;
 
@@ -73,14 +79,18 @@ const TimelineRow = function TimelineRow({ row }: { row: Row }) {
   }
 
   const apt = item.data;
+  const dot = DOT_STYLE[apt.status];
+
   return (
     <View style={rowStyle}>
       <View style={styles.gutter}>
         {lineStyle ? <View style={[styles.line, lineStyle]} /> : null}
-        <Text style={[styles.timeLabel, { color: TIME_COLOR[apt.status] }]}>{apt.time}</Text>
-        <View style={[styles.dot, { backgroundColor: DOT_COLOR[apt.status] }]} />
+        <View style={[styles.dot, { backgroundColor: dot.bg, borderColor: dot.border }]}>
+          {dot.icon ? <Feather name={dot.icon} size={12} color={dot.color} /> : null}
+        </View>
       </View>
       <View style={styles.content}>
+        <View style={styles.branch} />
         <PlanningAppointmentCard appointment={apt} index={index} />
       </View>
     </View>
@@ -130,39 +140,44 @@ export function Timeline({ items }: Props) {
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
-    paddingBottom: 28,
+    paddingTop: 20,
+    paddingBottom: 32,
   },
   row: {
     flexDirection: 'row',
   },
   gutter: {
-    width: 50,
+    width: GUTTER_WIDTH,
     alignItems: 'center',
-    paddingTop: 14,
+    paddingTop: GUTTER_TOP,
   },
   line: {
     position: 'absolute',
-    left: 24, // (gutter 50 / 2) - (line 2 / 2)
+    left: GUTTER_WIDTH / 2 - 1,
     width: 2,
     borderRadius: 1,
     backgroundColor: Palette.border,
   },
-  timeLabel: {
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-    marginBottom: 6,
-  },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 3,
-    borderColor: Palette.screen, // halo so the rail breaks cleanly around the dot
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
+    position: 'relative',
+    paddingLeft: BRANCH_LEN,
+  },
+  branch: {
+    position: 'absolute',
+    top: DOT_CENTER - 1,
+    left: 0,
+    width: BRANCH_LEN,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Palette.border,
   },
 });

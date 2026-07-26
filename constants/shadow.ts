@@ -80,3 +80,27 @@ export const focalShadow = Platform.select({
   android: { elevation: 5 },
   default: { boxShadow: '0px 6px 18px rgba(37, 99, 235, 0.16)' },
 });
+
+// Floating bottom navigation bar — lifted well off the screen, very soft.
+export const navShadow = Platform.select({
+  ios: {
+    shadowColor: Palette.shadow,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 28,
+  },
+  android: { elevation: 10 },
+  default: { boxShadow: '0px 12px 28px rgba(20, 20, 15, 0.08)' },
+});
+
+// Selected calendar-day bubble — a tiny brand-tinted lift, barely there.
+export const bubbleShadow = Platform.select({
+  ios: {
+    shadowColor: Palette.blue,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+  },
+  android: { elevation: 3 },
+  default: { boxShadow: '0px 4px 8px rgba(37, 99, 235, 0.22)' },
+});

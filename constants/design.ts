@@ -10,14 +10,14 @@ import type { TextStyle } from 'react-native';
 
 export const Palette = {
   // Surfaces
-  screen: '#F7F8FC', // off-white app background — just warm enough for cards to pop
+  screen: '#F8F7F4', // warm off-white app background — just warm enough for cards to pop
   card: '#FFFFFF', // white cards (reminders, appointment)
-  cardMuted: '#FAFBFC', // very light grey for the 4 quick-action cards
+  cardMuted: '#F8F6F2', // very light warm grey for the 4 quick-action cards
 
   // Text
-  textPrimary: '#0F1729', // near-black headings
-  textSecondary: '#6B7280', // muted grey labels
-  textTertiary: '#9AA3AF', // lightest grey (addresses, sub labels)
+  textPrimary: '#14140F', // near-black headings, warm charcoal
+  textSecondary: '#6E6D68', // muted warm grey labels
+  textTertiary: '#9C9A93', // lightest warm grey (addresses, sub labels)
   white: '#FFFFFF',
 
   // Accents
@@ -39,8 +39,8 @@ export const Palette = {
   gradientEnd: '#3FC9B0',
 
   // Misc
-  border: '#EEF0F3',
-  shadow: '#0F1729',
+  border: '#EDEAE4',
+  shadow: '#14140F',
   notification: '#EF4444',
   pillBlueBg: '#EAF1FE',
 } as const;
@@ -103,6 +103,7 @@ export const FontWeight = {
  * the exact values already in use across the app, just named.
  */
 export const LetterSpacing = {
+  massive: -1.4,
   tighter: -0.8,
   tight: -0.4,
   snug: -0.3,
@@ -248,6 +249,7 @@ export type StatusName = keyof typeof StatusAccent;
  * Planning and Rappels — they are a naming of the status quo, not a redesign.
  */
 export const Typography = {
+  giant: { fontSize: 42, fontWeight: FontWeight.heavy, letterSpacing: LetterSpacing.massive },
   display: { fontSize: 32, fontWeight: FontWeight.heavy, letterSpacing: LetterSpacing.tighter },
   title1: { fontSize: 30, fontWeight: FontWeight.bold, letterSpacing: LetterSpacing.tighter },
   title2: { fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: LetterSpacing.tight },

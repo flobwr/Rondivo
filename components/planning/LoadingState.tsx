@@ -18,7 +18,6 @@ export function LoadingState() {
       {[0, 1, 2, 3].map((i) => (
         <View key={i} style={styles.row}>
           <View style={styles.gutter}>
-            <Shimmer style={styles.timePill} />
             <View style={styles.dot} />
           </View>
           <Shimmer style={styles.card} />
@@ -31,32 +30,27 @@ export function LoadingState() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.screen,
-    paddingTop: 16,
+    paddingTop: 20,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 14,
+    marginBottom: 20,
   },
   gutter: {
-    width: 50,
+    width: 40,
     alignItems: 'center',
-    paddingTop: 14,
-  },
-  timePill: {
-    width: 30,
-    height: 11,
-    borderRadius: 6,
-    marginBottom: 8,
+    paddingTop: 12,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: Palette.border,
   },
   card: {
     flex: 1,
-    height: 76,
+    height: 84,
     borderRadius: Radius.card,
+    marginLeft: 14,
   },
 });
