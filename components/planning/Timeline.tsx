@@ -10,6 +10,7 @@ import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
 import { getStatusMeta, formatTime } from './status';
 import {
+  BRANCH_LEN,
   DOT_CENTER,
   GUTTER_WIDTH,
   LIST_PADDING_H,
@@ -132,6 +133,10 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
   const dotAnchor = (child: React.ReactNode) => (
     <View style={[styles.dotAnchor, { top: dotCenter - 13 }]}>{child}</View>
   );
+  // The short horizontal hand-off from a dot to its row's content — every
+  // dotted row (card / break / now) gets one; travel rows stay dot-less and
+  // branch-less, the capsule alone carrying the sequence.
+  const branch = <View style={[styles.branch, { top: dotCenter - 1 }]} />;
 
   switch (row.kind) {
     case 'now':
@@ -145,6 +150,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
             )}
           </View>
           <View style={styles.nowContent}>
+            {branch}
             <Text style={styles.nowLabel}>Maintenant</Text>
             <View style={styles.nowLine} />
             <Text style={styles.nowTime}>{row.timeLabel}</Text>
@@ -158,6 +164,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
         <View style={rowStyle}>
           <View style={styles.gutter}>{dotAnchor(<StatusDot status={row.intervention.status} />)}</View>
           <View style={styles.content}>
+            {branch}
             <InterventionCard
               intervention={row.intervention}
               index={row.index}
@@ -179,6 +186,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
             )}
           </View>
           <View style={styles.breakContent}>
+            {branch}
             <Text style={styles.breakLabel}>{row.brk.label}</Text>
             <Text style={styles.breakTime}>
               {row.brk.start} – {row.brk.end}
@@ -270,6 +278,16 @@ const styles = createThemedStyles(() => StyleSheet.create({
   },
   content: {
     flex: 1,
+    position: 'relative',
+    paddingLeft: BRANCH_LEN,
+  },
+  branch: {
+    position: 'absolute',
+    left: 0,
+    width: BRANCH_LEN,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Palette.insetDeep,
   },
   dotAnchor: {
     position: 'absolute',
@@ -360,6 +378,8 @@ const styles = createThemedStyles(() => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    position: 'relative',
+    paddingLeft: BRANCH_LEN,
   },
   nowLabel: {
     fontSize: 11,
@@ -389,6 +409,8 @@ const styles = createThemedStyles(() => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    position: 'relative',
+    paddingLeft: BRANCH_LEN,
   },
   breakLabel: {
     flex: 1,

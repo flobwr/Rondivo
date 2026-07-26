@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Shimmer } from '@/components/ui/Shimmer';
 import { Radius, Spacing } from '@/theme';
-import { CARD_HEIGHT, DOT_CENTER, DOT_SIZE, GUTTER_WIDTH, LIST_PADDING_H, ROW_GAP } from './timeline-metrics';
+import { BRANCH_LEN, CARD_HEIGHT, DOT_CENTER, DOT_SIZE, GUTTER_WIDTH, LIST_PADDING_H, ROW_GAP } from './timeline-metrics';
 
 const ROWS = [0, 1, 2];
 
@@ -50,5 +50,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: CARD_HEIGHT,
     borderRadius: Radius.card,
+    marginLeft: BRANCH_LEN,
   },
 });

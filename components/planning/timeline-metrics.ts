@@ -13,6 +13,9 @@ import { Spacing } from '@/theme';
 /** Width of the left gutter holding the dots and the rail. */
 export const GUTTER_WIDTH = 36;
 
+/** Length of the small horizontal branch handing a dotted row off to its card. */
+export const BRANCH_LEN = 12;
+
 /** Horizontal padding of the timeline list. */
 export const LIST_PADDING_H = Spacing.xl;
 

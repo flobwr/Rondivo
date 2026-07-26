@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, LayoutChangeEvent, Pressable, ScrollView, StyleSheet } from 'react-native';
 
-import { createThemedStyles, Palette, PressScale, SettleSpring, Spacing } from '@/theme';
+import { useTheme } from '@/contexts/theme';
+import { createThemedStyles, getElevation, Palette, PressScale, SettleSpring, Spacing } from '@/theme';
 import { usePressScale } from '@/hooks/use-press-scale';
 import { CalendarDay } from './types';
 
 // Tall pill cells straight from the reference: day name on top, big date
-// number below, selected day filled with the brand blue. No enclosing card —
-// the strip floats directly on the header's paper, straight under the large
-// title, with only the selected pill breaking the surface.
+// number below, selected day filled with the brand blue. No enclosing card,
+// no fill on the unselected days either — they're bare floating text on the
+// header's paper. Only the selected pill breaks the surface, with a soft
+// whisper-tier lift of its own.
 const CELL_WIDTH = 66;
 const CELL_GAP = 10;
 
@@ -32,6 +34,8 @@ function DayCell({
     onPressIn: handlePressIn,
     onPressOut: handlePressOut,
   } = usePressScale({ to: PressScale.icon });
+  const { resolvedTheme } = useTheme();
+  const elevation = getElevation(resolvedTheme);
   // One animated value drives the whole crossfade so the blue pill appears to
   // glide from one day to the next. A spring, not a curve: the selection
   // follows the finger.
@@ -45,9 +49,13 @@ function DayCell({
     }).start();
   }, [selected, sel]);
 
+  // Crossfades from a fully transparent version of the same ink to solid
+  // blue — unselected days carry no fill at all (bare floating text), so a
+  // hue-only interpolation (e.g. card → blue) would flash a visible fill on
+  // the very first frame.
   const pillBg = sel.interpolate({
     inputRange: [0, 1],
-    outputRange: [Palette.card, Palette.blue],
+    outputRange: [`${Palette.blue}00`, Palette.blue],
   });
   const pillScale = sel.interpolate({
     inputRange: [0, 0.5, 1],
@@ -71,7 +79,11 @@ function DayCell({
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View style={{ transform: [{ scale: pressScale }] }}>
         <Animated.View
-          style={[styles.cell, { backgroundColor: pillBg, transform: [{ scale: pillScale }] }]}>
+          style={[
+            styles.cell,
+            selected ? elevation.whisper : null,
+            { backgroundColor: pillBg, transform: [{ scale: pillScale }] },
+          ]}>
           <Animated.Text style={[styles.dayLabel, { color: labelColor, opacity: labelOpacity }]}>{day.dayLabel}</Animated.Text>
           <Animated.Text style={[styles.dateNumber, { color: numberColor }]}>{day.date}</Animated.Text>
         </Animated.View>
