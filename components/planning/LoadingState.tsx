@@ -40,9 +40,10 @@ export function LoadingState() {
 }
 
 const styles = StyleSheet.create({
+  // No top padding: the skeleton stands in for the rows inside the list, and
+  // the air under the week is owned by the header block above it.
   container: {
     paddingHorizontal: LIST_PADDING_H,
-    paddingTop: ROW_GAP,
   },
   row: {
     flexDirection: 'row',

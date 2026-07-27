@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -14,8 +13,7 @@ import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { DayScenario } from '@/components/planning/types';
-import { ROW_GAP } from '@/components/planning/timeline-metrics';
-import { createThemedStyles, Palette, paperFade, SettleSpring, Spacing, Timing } from '@/theme';
+import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -51,8 +49,8 @@ export default function PlanningScreen() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const fadeIn = useRef(new Animated.Value(0)).current;
   // Directional day transition: the day's content slides in from the side the
-  // navigation came from, so switching days reads like flipping pages.
-  const transition = useRef(new Animated.Value(1)).current;
+  // navigation came from, so switching days reads like flipping pages. Only
+  // the direction is decided here — `Timeline` runs the animation.
   const directionRef = useRef(0);
 
   const fetchPlanning = useCallback(() => getWeekPlanning(), []);
@@ -74,13 +72,13 @@ export default function PlanningScreen() {
     (index: number) => {
       setSelectedDay((current) => {
         if (current === null || index === current) return current;
+        // The slide itself belongs to `Timeline`, which starts it once the new
+        // day's rows are mounted; here we only record which way we travelled.
         directionRef.current = index > current ? 1 : -1;
-        transition.setValue(0);
-        Animated.spring(transition, { toValue: 1, useNativeDriver: true, ...SettleSpring }).start();
         return index;
       });
     },
-    [transition]
+    []
   );
 
   const dayCount = planning?.days.length ?? 0;
@@ -108,67 +106,59 @@ export default function PlanningScreen() {
     [selectedDay, dayCount, handleSelectDay]
   );
 
-  const slideX = transition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [directionRef.current * 40, 0],
-  });
-
   const scenario =
     planning && selectedDay !== null
       ? (planning.scenariosByDayIndex[selectedDay] ?? { items: [] })
       : { items: [] };
 
+  // The month, its grounding line, the add action and the week — drawn
+  // straight on the paper. No card, no capsule, no background, and no
+  // rectangle of any kind behind them; the air under the week is owned here
+  // rather than baked into either component. This whole block scrolls WITH the
+  // day, exactly as Home's own header does, which is what makes the top of the
+  // screen one continuous sheet instead of a header and a content pane meeting
+  // on a line.
+  const header = (
+    <View>
+      <PlanningHeader
+        monthLabel={planning?.monthLabel ?? ''}
+        summary={summarise(scenario)}
+        loading={isLoading}
+        onAdd={() => router.push('/appointment/new')}
+      />
+      <View style={styles.calendar}>
+        <DayStrip
+          days={planning?.days ?? []}
+          selectedIndex={selectedDay ?? 0}
+          onSelectDay={handleSelectDay}
+        />
+      </View>
+    </View>
+  );
+
+  const placeholder = isLoading ? (
+    <LoadingState />
+  ) : status === 'error' ? (
+    <ErrorState onRetry={refresh} />
+  ) : (
+    <EmptyState key={`empty-${selectedDay}`} onPlan={() => router.push('/appointment/new')} />
+  );
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* Fixed composition — the month, its grounding line, the add action
-              and the week all stay put. Nothing here has a card, a capsule or
-              a background of its own: the masthead and the day strip sit
-              straight on the paper, and the air between them is owned here
-              rather than baked into either component. */}
-          <PlanningHeader
-            monthLabel={planning?.monthLabel ?? ''}
-            summary={summarise(scenario)}
-            loading={isLoading}
-            onAdd={() => router.push('/appointment/new')}
-          />
-          <View style={styles.calendar}>
-            <DayStrip
-              days={planning?.days ?? []}
-              selectedIndex={selectedDay ?? 0}
-              onSelectDay={handleSelectDay}
+          {/* One scroll for the whole page. Swipeable left/right to flip days. */}
+          <GestureDetector gesture={swipeGesture}>
+            <Timeline
+              items={isLoading || status === 'error' ? [] : scenario.items}
+              nowMin={scenario.nowMin}
+              header={header}
+              placeholder={placeholder}
+              dayKey={selectedDay}
+              direction={directionRef.current}
             />
-          </View>
-
-          {/* Scrollable content, always below the fixed composition. Swipeable
-              left/right to flip between days. */}
-          <View style={styles.content}>
-            <GestureDetector gesture={swipeGesture}>
-              <Animated.View
-                style={[styles.flex, { opacity: transition, transform: [{ translateX: slideX }] }]}>
-                {isLoading ? (
-                  <LoadingState />
-                ) : status === 'error' ? (
-                  <ErrorState onRetry={refresh} />
-                ) : scenario.items.length > 0 ? (
-                  <Timeline key={selectedDay} items={scenario.items} nowMin={scenario.nowMin} />
-                ) : (
-                  <EmptyState key={`empty-${selectedDay}`} onPlan={() => router.push('/appointment/new')} />
-                )}
-              </Animated.View>
-            </GestureDetector>
-
-            {/* The day dissolves into the page as it scrolls under the week,
-                the same way it passes under the dock at the other end. Not a
-                surface: it is the paper's own colour fading out, so a card is
-                never sliced in half against the calendar. */}
-            <LinearGradient
-              colors={paperFade(Palette)}
-              style={styles.topFade}
-              pointerEvents="none"
-            />
-          </View>
+          </GestureDetector>
         </Animated.View>
       </SafeAreaView>
 
@@ -188,21 +178,11 @@ const styles = createThemedStyles(() => StyleSheet.create({
   flex: {
     flex: 1,
   },
-  // The one gap between the week and the day below it. `Timeline` already
-  // opens on ROW_GAP, so this holds back only the remainder — the two
-  // together land the strip exactly one `section` above the first card,
-  // which is the same air the Home puts between its own sections.
+  // The one gap between the week and the day below it, owned entirely by the
+  // header block now that it scrolls inside the list: the strip sits exactly
+  // one `section` above the first card, the same air the Home puts between its
+  // own sections. It belongs to the paper, not to a calendar surface.
   calendar: {
-    paddingBottom: Spacing.section - ROW_GAP,
-  },
-  content: {
-    flex: 1,
-  },
-  topFade: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: Spacing.xl,
+    paddingBottom: Spacing.section,
   },
 }));

@@ -1,9 +1,9 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useMemo } from 'react';
-import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { ReactElement, memo, useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import { Animated, FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
-import { Numeric, Radius, Spacing, Type, type PaletteShape } from '@/theme';
+import { Numeric, Radius, SettleSpring, Spacing, Type, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useBottomDockClearance } from '@/components/ui/BottomDock';
 import { openMapsTo } from '@/utils/openMaps';
@@ -27,7 +27,25 @@ type Props = {
   items: DayItem[];
   /** minutes since midnight on a live day — places the "Maintenant" marker */
   nowMin?: number;
+  /**
+   * Everything above the first row — the masthead and the week. It scrolls
+   * WITH the day on purpose: the Planning is one single sheet of paper, so a
+   * card must never slide underneath the day strip.
+   */
+  header?: ReactElement;
+  /** Stands in for the rows when the day has none (loading / error / free day). */
+  placeholder?: ReactElement;
+  /**
+   * Identifies the day on screen. When it changes the list returns to its top
+   * and the new day slides in — a new day always starts at its top.
+   */
+  dayKey?: string | number | null;
+  /** Which way the day came from: 1 forward, -1 back, 0 no travel. */
+  direction?: number;
 };
+
+/** How far a day slides in from, in points. */
+const SLIDE = 40;
 
 const ACTIVE_STATUSES: InterventionStatus[] = ['enRoute', 'arrived', 'inProgress'];
 
@@ -222,11 +240,51 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
 
 const MemoRow = memo(TimelineRow);
 
-export function Timeline({ items, nowMin }: Props) {
+export function Timeline({ items, nowMin, header, placeholder, dayKey, direction = 0 }: Props) {
   const router = useRouter();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const dockClearance = useBottomDockClearance(0);
+  const listRef = useRef<FlatList<PositionedRow>>(null);
+
+  // The day transition lives here, not in the screen, and starts in a LAYOUT
+  // effect — i.e. once the new day's rows are mounted and attached to the
+  // value. Driven from the screen instead, the animation began while React was
+  // still rendering: rows and placeholders that mounted after it had started
+  // attached at the value's initial frame and were never repainted, leaving a
+  // whole day at opacity 0. Starting it after the commit is what makes it
+  // correct for content that mounts in the same breath.
+  const enter = useRef(new Animated.Value(1)).current;
+  const settled = useRef(false);
+
+  useLayoutEffect(() => {
+    // First day on screen fades in with the page; only day CHANGES slide.
+    if (!settled.current) {
+      settled.current = true;
+      return;
+    }
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    enter.setValue(0);
+    // JS-driven on purpose: a virtualized row that mounts later (on scroll,
+    // after the spring has settled) reads the live value this way, where a
+    // native-driven one would attach to a stale frame.
+    Animated.spring(enter, { toValue: 1, useNativeDriver: false, ...SettleSpring }).start();
+  }, [dayKey, enter]);
+
+  const contentStyle = useMemo(
+    () => ({
+      opacity: enter,
+      transform: [
+        {
+          translateX: enter.interpolate({
+            inputRange: [0, 1],
+            outputRange: [direction * SLIDE, 0],
+          }),
+        },
+      ],
+    }),
+    [enter, direction]
+  );
 
   const rows = useMemo<PositionedRow[]>(() => {
     const base = buildRows(items, nowMin);
@@ -245,18 +303,35 @@ export function Timeline({ items, nowMin }: Props) {
   );
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<PositionedRow>) => <MemoRow row={item} onPressIntervention={onPressIntervention} />,
-    [onPressIntervention]
+    ({ item }: ListRenderItemInfo<PositionedRow>) => (
+      <Animated.View style={contentStyle}>
+        <MemoRow row={item} onPressIntervention={onPressIntervention} />
+      </Animated.View>
+    ),
+    [onPressIntervention, contentStyle]
   );
   const keyExtractor = useCallback((row: PositionedRow) => row.key, []);
 
+  const empty = placeholder ? (
+    <Animated.View style={contentStyle}>{placeholder}</Animated.View>
+  ) : null;
+
   return (
     <FlatList
+      ref={listRef}
       data={rows}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      ListHeaderComponent={header ? <View style={styles.header}>{header}</View> : null}
+      ListEmptyComponent={empty}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.listContent, { paddingBottom: dockClearance }]}
+      contentContainerStyle={[
+        styles.listContent,
+        // With a header, the air above the first row belongs to the header
+        // block, which owns the whole gap under the week.
+        header ? styles.listContentWithHeader : null,
+        { paddingBottom: dockClearance },
+      ]}
       initialNumToRender={8}
       maxToRenderPerBatch={8}
       windowSize={7}
@@ -274,6 +349,15 @@ function createStyles(palette: PaletteShape) {
       // the air between every card after it — one grid, no exception for the
       // top of the list.
       paddingTop: ROW_GAP,
+    },
+    listContentWithHeader: {
+      paddingTop: 0,
+    },
+    // The masthead and the week carry their own gutter and must run the full
+    // width of the page, so the header opts out of the list's padding instead
+    // of being indented twice.
+    header: {
+      marginHorizontal: -LIST_PADDING_H,
     },
     row: {
       flexDirection: 'row',
