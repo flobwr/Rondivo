@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -13,7 +14,8 @@ import { LoadingState } from '@/components/planning/LoadingState';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import { Timeline } from '@/components/planning/Timeline';
 import { DayScenario } from '@/components/planning/types';
-import { createThemedStyles, Palette, Spacing, Timing } from '@/theme';
+import { ROW_GAP } from '@/components/planning/timeline-metrics';
+import { createThemedStyles, Palette, paperFade, SettleSpring, Spacing, Timing } from '@/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -42,15 +44,22 @@ function summarise(scenario: DayScenario): string {
   return `${label} · ${kmLabel} km`;
 }
 
+/** Paper held solid over the first quarter of the dissolve, then faded out. */
+const FADE_STOPS: [number, number] = [0.25, 1];
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function PlanningScreen() {
   const router = useRouter();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
   const fadeIn = useRef(new Animated.Value(0)).current;
+  // Strength of the paper dissolve under the week: 0 while the day rests at
+  // its top, 1 as soon as it moves.
+  const dissolve = useRef(new Animated.Value(0)).current;
   // Directional day transition: the day's content slides in from the side the
-  // navigation came from, so switching days reads like flipping pages. Only
-  // the direction is decided here — `Timeline` runs the animation.
+  // navigation came from, so switching days reads like flipping pages.
+  const transition = useRef(new Animated.Value(1)).current;
   const directionRef = useRef(0);
 
   const fetchPlanning = useCallback(() => getWeekPlanning(), []);
@@ -68,17 +77,28 @@ export default function PlanningScreen() {
     Animated.timing(fadeIn, { toValue: 1, useNativeDriver: true, ...Timing.content }).start();
   }, [fadeIn]);
 
+  useEffect(() => {
+    Animated.timing(dissolve, {
+      toValue: scrolled ? 1 : 0,
+      useNativeDriver: true,
+      ...Timing.quick,
+    }).start();
+  }, [scrolled, dissolve]);
+
   const handleSelectDay = useCallback(
     (index: number) => {
+      // A new day opens at its top — `Timeline` is remounted, so its scroll
+      // position and the dissolve above it both start over.
+      setScrolled(false);
       setSelectedDay((current) => {
         if (current === null || index === current) return current;
-        // The slide itself belongs to `Timeline`, which starts it once the new
-        // day's rows are mounted; here we only record which way we travelled.
         directionRef.current = index > current ? 1 : -1;
+        transition.setValue(0);
+        Animated.spring(transition, { toValue: 1, useNativeDriver: true, ...SettleSpring }).start();
         return index;
       });
     },
-    []
+    [transition]
   );
 
   const dayCount = planning?.days.length ?? 0;
@@ -106,59 +126,85 @@ export default function PlanningScreen() {
     [selectedDay, dayCount, handleSelectDay]
   );
 
+  const slideX = transition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [directionRef.current * 40, 0],
+  });
+
   const scenario =
     planning && selectedDay !== null
       ? (planning.scenariosByDayIndex[selectedDay] ?? { items: [] })
       : { items: [] };
 
-  // The month, its grounding line, the add action and the week — drawn
-  // straight on the paper. No card, no capsule, no background, and no
-  // rectangle of any kind behind them; the air under the week is owned here
-  // rather than baked into either component. This whole block scrolls WITH the
-  // day, exactly as Home's own header does, which is what makes the top of the
-  // screen one continuous sheet instead of a header and a content pane meeting
-  // on a line.
-  const header = (
-    <View>
-      <PlanningHeader
-        monthLabel={planning?.monthLabel ?? ''}
-        summary={summarise(scenario)}
-        loading={isLoading}
-        onAdd={() => router.push('/appointment/new')}
-      />
-      <View style={styles.calendar}>
-        <DayStrip
-          days={planning?.days ?? []}
-          selectedIndex={selectedDay ?? 0}
-          onSelectDay={handleSelectDay}
-        />
-      </View>
-    </View>
-  );
-
-  const placeholder = isLoading ? (
-    <LoadingState />
-  ) : status === 'error' ? (
-    <ErrorState onRetry={refresh} />
-  ) : (
-    <EmptyState key={`empty-${selectedDay}`} onPlan={() => router.push('/appointment/new')} />
-  );
-
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <Animated.View style={[styles.flex, { opacity: fadeIn }]}>
-          {/* One scroll for the whole page. Swipeable left/right to flip days. */}
-          <GestureDetector gesture={swipeGesture}>
-            <Timeline
-              items={isLoading || status === 'error' ? [] : scenario.items}
-              nowMin={scenario.nowMin}
-              header={header}
-              placeholder={placeholder}
-              dayKey={selectedDay}
-              direction={directionRef.current}
+          {/* Fixed composition — the month, its grounding line, the add action
+              and the week all stay put. Nothing here has a card, a capsule or
+              a background of its own: the masthead and the day strip sit
+              straight on the paper, and the air between them is owned here
+              rather than baked into either component. */}
+          <PlanningHeader
+            monthLabel={planning?.monthLabel ?? ''}
+            summary={summarise(scenario)}
+            loading={isLoading}
+            onAdd={() => router.push('/appointment/new')}
+          />
+          <View style={styles.calendar}>
+            <DayStrip
+              days={planning?.days ?? []}
+              selectedIndex={selectedDay ?? 0}
+              onSelectDay={handleSelectDay}
             />
-          </GestureDetector>
+          </View>
+
+          {/* Scrollable content, always below the fixed composition. Swipeable
+              left/right to flip between days. */}
+          <View style={styles.content}>
+            <GestureDetector gesture={swipeGesture}>
+              <Animated.View
+                style={[styles.flex, { opacity: transition, transform: [{ translateX: slideX }] }]}>
+                {isLoading ? (
+                  <LoadingState />
+                ) : status === 'error' ? (
+                  <ErrorState onRetry={refresh} />
+                ) : scenario.items.length > 0 ? (
+                  <Timeline
+                    key={selectedDay}
+                    items={scenario.items}
+                    nowMin={scenario.nowMin}
+                    onScrolledChange={setScrolled}
+                  />
+                ) : (
+                  <EmptyState key={`empty-${selectedDay}`} onPlan={() => router.push('/appointment/new')} />
+                )}
+              </Animated.View>
+            </GestureDetector>
+
+            {/* The day dissolves into the page as it scrolls under the week,
+                the same way it passes under the dock at the other end. Not a
+                surface: it is the paper's own colour fading out, so a card is
+                never sliced in half against the calendar.
+
+                It only exists WHILE the day is moving. At rest there is
+                nothing to dissolve, and a permanent band — however close to
+                the paper — is exactly the horizon that made the top of the
+                screen read as a separate block. So the page shows one
+                uninterrupted surface when still, and the dissolve rises only
+                to swallow content on its way under the week. */}
+            <Animated.View
+              style={[styles.topFade, { opacity: dissolve }]}
+              pointerEvents="none">
+              <LinearGradient
+                colors={paperFade(Palette)}
+                // Holds the paper solid over the first quarter, so the cut
+                // edge of a card is fully masked before the dissolve starts.
+                locations={FADE_STOPS}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
+          </View>
         </Animated.View>
       </SafeAreaView>
 
@@ -178,11 +224,24 @@ const styles = createThemedStyles(() => StyleSheet.create({
   flex: {
     flex: 1,
   },
-  // The one gap between the week and the day below it, owned entirely by the
-  // header block now that it scrolls inside the list: the strip sits exactly
-  // one `section` above the first card, the same air the Home puts between its
-  // own sections. It belongs to the paper, not to a calendar surface.
+  // The one gap between the week and the day below it. `Timeline` already
+  // opens on ROW_GAP, so this holds back only the remainder — the two
+  // together land the strip exactly one `section` above the first card,
+  // which is the same air the Home puts between its own sections.
   calendar: {
-    paddingBottom: Spacing.section,
+    paddingBottom: Spacing.section - ROW_GAP,
+  },
+  content: {
+    flex: 1,
+  },
+  // Tall enough that a card crossing it is already gone before its cut edge
+  // could read as a line. At `Spacing.xl` it was too short: the top of a card
+  // stayed visible as a hard horizontal edge under the week.
+  topFade: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: Spacing.section + Spacing.xl,
   },
 }));
