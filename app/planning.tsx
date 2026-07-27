@@ -157,13 +157,16 @@ export default function PlanningScreen() {
             </Animated.View>
           </GestureDetector>
 
-          {/* The month, its grounding line, the add action and the week —
-              floating free above the day, with NO surface of any kind. Not a
-              card, not a capsule, not a scrim, not even a band of paper: the
-              cards travel BETWEEN this composition and the page, and stay
-              fully visible as they pass behind the dates. That is only
-              possible because nothing here is drawn on a background — the
-              glyphs are the only thing that exists.
+          {/* The composition floats above the day, and the page passes through
+              it from one exact line: the bottom of the masthead.
+
+              ABOVE that line — the month, its grounding line, the add action —
+              the paper is solid, so nothing scrolls through the title.
+              BELOW it the week has NO surface whatsoever: not a card, not a
+              capsule, not a scrim, not even a band of paper. Cards travel
+              BETWEEN the week and the page and stay fully visible as they pass
+              behind the dates, which is only possible because the glyphs are
+              the only thing that exists down there.
 
               `box-none` so the day scrolls under the empty space between the
               dates; only the cells and the add action take a touch. */}
@@ -171,12 +174,14 @@ export default function PlanningScreen() {
             style={styles.composition}
             pointerEvents="box-none"
             onLayout={(e) => setCompositionHeight(e.nativeEvent.layout.height)}>
-            <PlanningHeader
-              monthLabel={planning?.monthLabel ?? ''}
-              summary={summarise(scenario)}
-              loading={isLoading}
-              onAdd={() => router.push('/appointment/new')}
-            />
+            <View style={styles.masthead}>
+              <PlanningHeader
+                monthLabel={planning?.monthLabel ?? ''}
+                summary={summarise(scenario)}
+                loading={isLoading}
+                onAdd={() => router.push('/appointment/new')}
+              />
+            </View>
             <View style={styles.calendar}>
               <DayStrip
                 days={planning?.days ?? []}
@@ -212,12 +217,18 @@ const styles = createThemedStyles(() => StyleSheet.create({
   calendar: {
     paddingBottom: Spacing.section - ROW_GAP,
   },
-  // Floating, and deliberately without `backgroundColor`: the page shows
-  // through it everywhere the glyphs are not.
+  // Floating, and deliberately without `backgroundColor`: only the masthead
+  // inside it is opaque, so the page shows through from the week down.
   composition: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
+  },
+  // Solid paper — the exact colour of the page, so the boundary is invisible
+  // while nothing is moving. This is where the transparency starts: the day
+  // passes behind the week below it and is hidden behind the title above it.
+  masthead: {
+    backgroundColor: Palette.screen,
   },
 }));
