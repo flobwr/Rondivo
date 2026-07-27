@@ -24,6 +24,12 @@ type Props = {
   /** position in the list — drives a light staggered entrance */
   index?: number;
   onPress?: () => void;
+  /**
+   * Render at rest, with no entrance. Set by the living transition layer when
+   * it redraws this card as the first frame of an expansion — that copy must
+   * be identical to the one already on screen, not a card arriving.
+   */
+  atRest?: boolean;
 };
 
 /**
@@ -40,8 +46,8 @@ type Props = {
  * Status colours follow the existing Rondivo logic: done is greyed back,
  * in-progress is tinted, upcoming stays on the paper's own sheet.
  */
-function InterventionCardBase({ intervention, index = 0, onPress }: Props) {
-  const { progress: enter } = useEntrance({ index });
+function InterventionCardBase({ intervention, index = 0, onPress, atRest = false }: Props) {
+  const { progress: enter } = useEntrance({ index, skip: atRest });
   const { scale: pressScale, onPressIn, onPressOut } = usePressScale({ to: PressScale.surface });
   const { palette, resolvedTheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);

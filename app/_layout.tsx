@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
+import { LivingLayer } from '@/components/ui/living';
 import { ThemeProvider, useTheme } from '@/contexts/theme';
 
 export const unstable_settings = {
@@ -91,7 +92,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
-        <RootStack />
+        {/* Above the navigator, below nothing: a living card has to be able to
+            cover the dock and every screen it grows out of. */}
+        <LivingLayer>
+          <RootStack />
+        </LivingLayer>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

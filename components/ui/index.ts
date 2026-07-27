@@ -22,3 +22,7 @@ export { SegmentedTabs } from './SegmentedTabs';
 export { SkeletonBlock } from './Shimmer';
 export { LargeTitleBar } from './LargeTitleBar';
 export { ChipRow, type ChipItem } from './ChipRow';
+
+// ——— Living: the app's signature transition (see ui/living/README.md) ———
+export { LivingCard, LivingLayer, useLiving } from './living';
+export type { LivingHandle, LivingRect } from './living';

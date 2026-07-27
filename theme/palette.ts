@@ -89,6 +89,13 @@ export const LightPalette = {
   border: '#E8E5DE', // hairline sheet edge, just darker than the paper
   separator: 'rgba(27, 26, 23, 0.07)', // row dividers — alpha so they sit on any surface
   shadow: '#141210', // warm shadow ink — never a cold blue-grey
+  /**
+   * The page dimmed behind something that has taken it over — a living card
+   * mid-expansion, and later any sheet or overlay. The same warm ink as the
+   * shadow, so a surface rising off the paper darkens the paper with the very
+   * light it casts. Deliberately shallow: this is depth, not a blackout.
+   */
+  scrim: 'rgba(27, 26, 23, 0.28)',
   notification: '#DE3730',
   pillBlueBg: '#E9EDFB',
 } as const;
@@ -214,6 +221,7 @@ export const MidnightPalette: PaletteShape = {
   border: '#2B3554',
   separator: 'rgba(241, 243, 250, 0.09)',
   shadow: '#010208',
+  scrim: 'rgba(0, 0, 0, 0.52)',
   notification: '#F27970',
   pillBlueBg: '#212B4A',
 };
@@ -274,6 +282,7 @@ export const AmoledPalette: PaletteShape = {
   border: 'rgba(255, 255, 255, 0.14)',
   separator: 'rgba(255, 255, 255, 0.10)',
   shadow: '#000000',
+  scrim: 'rgba(0, 0, 0, 0.62)',
   notification: '#FF8478',
   pillBlueBg: '#182036',
 };

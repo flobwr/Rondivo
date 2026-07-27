@@ -20,6 +20,15 @@ type Options = {
   fromScale?: number;
   /** Motion token. Defaults to the content transition. */
   timing?: TimingToken;
+  /**
+   * Render at rest, with no entrance at all.
+   *
+   * For a card that is being REDRAWN rather than introduced — the copy a
+   * living card hands to the transition layer must be identical to the one
+   * already on screen from its very first frame, and a card that faded in
+   * there would break the illusion of a single object.
+   */
+  skip?: boolean;
 };
 
 /**
@@ -41,12 +50,13 @@ export function useEntrance(options: Options = {}) {
     translateY = EntranceTravel,
     fromScale = EntranceScale,
     timing = Timing.content,
+    skip = false,
   } = options;
-  const progress = useRef(new Animated.Value(0)).current;
+  const progress = useRef(new Animated.Value(skip ? 1 : 0)).current;
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reducedMotion) {
+    if (skip || reducedMotion) {
       progress.setValue(1);
       return;
     }
@@ -58,7 +68,7 @@ export function useEntrance(options: Options = {}) {
     });
     animation.start();
     return () => animation.stop();
-  }, [index, progress, reducedMotion, timing]);
+  }, [index, progress, reducedMotion, timing, skip]);
 
   const style = useMemo(
     () => ({

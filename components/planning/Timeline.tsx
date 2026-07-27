@@ -6,8 +6,10 @@ import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-nati
 import { Numeric, Radius, Spacing, Type, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
 import { useBottomDockClearance } from '@/components/ui/BottomDock';
+import { LivingCard } from '@/components/ui/living';
 import { openMapsTo } from '@/utils/openMaps';
 import { InterventionCard } from './InterventionCard';
+import { InterventionDetail } from './InterventionDetail';
 import { getStatusMeta, formatTime } from './status';
 import {
   BRANCH_LEN,
@@ -180,11 +182,30 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
           </View>
           <View style={styles.content}>
             {branch}
-            <InterventionCard
-              intervention={row.intervention}
-              index={row.index}
-              onPress={() => onPressIntervention(row.intervention.id)}
-            />
+            {/* The one living card in the app so far. Tapping it does not
+                navigate: the card itself grows into its detail and comes back
+                to this exact row. The full record is still one tap away from
+                inside it. */}
+            <LivingCard
+              detail={({ close }) => (
+                <InterventionDetail
+                  intervention={row.intervention}
+                  onClose={close}
+                  onOpenRecord={() => {
+                    close();
+                    onPressIntervention(row.intervention.id);
+                  }}
+                />
+              )}>
+              {(open, atRest) => (
+                <InterventionCard
+                  intervention={row.intervention}
+                  index={row.index}
+                  onPress={open}
+                  atRest={atRest}
+                />
+              )}
+            </LivingCard>
           </View>
           {segment}
         </View>

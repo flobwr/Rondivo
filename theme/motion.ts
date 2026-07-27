@@ -83,6 +83,67 @@ export const EntranceTravel = 10;
 /** Scale an entering card grows from. Barely perceptible by design. */
 export const EntranceScale = 0.98;
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LIVING — the app's signature transition.
+//
+// Rondivo does not push screens over each other: a card GROWS into its own
+// detail and shrinks back onto its exact place in the list. The tokens below
+// are that language, and they are the only ones a living surface may use.
+// See components/ui/living/README.md.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * The physics of every living surface — a Reanimated `withSpring` config.
+ *
+ * Slightly under-damped, with an overshoot small enough that you cannot see
+ * it and only feel that the surface has weight. A stiffer spring reads
+ * mechanical; a bouncier one reads like a toy. `mass: 1` with this ratio
+ * settles in ~380 ms without ever crossing its target by more than a hair.
+ *
+ * This is the ONE spring for expansion, collapse and gesture release, so a
+ * card released from a drag finishes exactly like a card that was tapped.
+ */
+export const LivingSpring = {
+  damping: 30,
+  stiffness: 220,
+  mass: 1,
+  overshootClamping: false,
+  restDisplacementThreshold: 0.2,
+  restSpeedThreshold: 2,
+} as const;
+
+/**
+ * Where the two contents cross over, as fractions of the expansion.
+ *
+ * The windows OVERLAP on purpose (0.25 → 0.34): the detail is already
+ * arriving while the summary is still leaving, so no frame of the transition
+ * shows an empty surface and nothing "appears" once the movement has ended.
+ * A gap here is what makes a transition read as two separate events.
+ */
+export const LivingContent = {
+  /** The collapsed summary fades out over the first third. */
+  summaryOut: [0, 0.34] as const,
+  /** The detail fades in from a quarter of the way, done well before the end. */
+  detailIn: [0.25, 0.82] as const,
+  /** The page behind darkens across the whole movement. */
+  scrimIn: [0, 1] as const,
+} as const;
+
+/**
+ * Pull-to-close. The surface follows the finger 1:1 from the first pixel —
+ * these only decide what happens when it is RELEASED.
+ */
+export const LivingDismiss = {
+  /** Past this many points of travel, releasing closes. */
+  distance: 110,
+  /** …or past this velocity, however short the travel (a flick). */
+  velocity: 900,
+  /** How much the surface shrinks at full travel — depth, not a slide. */
+  scaleAtLimit: 0.92,
+  /** Travel over which that shrink is reached. */
+  scaleTravel: 420,
+} as const;
+
 // ——— Screen choreography ———
 
 /** Content fade after a skeleton resolves. */
