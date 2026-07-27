@@ -1,15 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useMemo, useRef } from 'react';
-import {
-  FlatList,
-  ListRenderItemInfo,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { memo, useCallback, useMemo } from 'react';
+import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
 
 import { Numeric, Radius, Spacing, Type, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
@@ -36,15 +28,13 @@ type Props = {
   /** minutes since midnight on a live day — places the "Maintenant" marker */
   nowMin?: number;
   /**
-   * Fires only when the day crosses from "resting at its top" to "scrolling"
-   * and back. The screen uses it to raise the paper dissolve under the week —
-   * a band that must not exist while nothing is moving.
+   * Height of the floating composition the day scrolls behind. The list spans
+   * the whole page — that is what lets a card pass between the week and the
+   * paper, still visible — so the air above the first row has to be reserved
+   * inside the scrolling content rather than by the layout above it.
    */
-  onScrolledChange?: (scrolled: boolean) => void;
+  topInset?: number;
 };
-
-/** Below this offset the day still counts as resting at its top. */
-const SCROLL_EPSILON = 2;
 
 const ACTIVE_STATUSES: InterventionStatus[] = ['enRoute', 'arrived', 'inProgress'];
 
@@ -239,7 +229,7 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
 
 const MemoRow = memo(TimelineRow);
 
-export function Timeline({ items, nowMin, onScrolledChange }: Props) {
+export function Timeline({ items, nowMin, topInset = 0 }: Props) {
   const router = useRouter();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -267,28 +257,16 @@ export function Timeline({ items, nowMin, onScrolledChange }: Props) {
   );
   const keyExtractor = useCallback((row: PositionedRow) => row.key, []);
 
-  // Reported as a threshold crossing, not as an offset: the screen only needs
-  // to know whether the day is moving, so nothing re-renders while scrolling.
-  const scrolledRef = useRef(false);
-  const handleScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const next = e.nativeEvent.contentOffset.y > SCROLL_EPSILON;
-      if (next === scrolledRef.current) return;
-      scrolledRef.current = next;
-      onScrolledChange?.(next);
-    },
-    [onScrolledChange]
-  );
-
   return (
     <FlatList
       data={rows}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.listContent, { paddingBottom: dockClearance }]}
+      contentContainerStyle={[
+        styles.listContent,
+        { paddingTop: ROW_GAP + topInset, paddingBottom: dockClearance },
+      ]}
       initialNumToRender={8}
       maxToRenderPerBatch={8}
       windowSize={7}
@@ -300,12 +278,12 @@ type TimelineStyles = ReturnType<typeof createStyles>;
 
 function createStyles(palette: PaletteShape) {
   return StyleSheet.create({
+    // The top padding is applied inline: `ROW_GAP` — the same unit as the gap
+    // between rows, so the air above the first card equals the air between
+    // every card after it — plus the height of the composition the day scrolls
+    // behind.
     listContent: {
       paddingHorizontal: LIST_PADDING_H,
-      // Same unit as the gap between rows: the air above the first card equals
-      // the air between every card after it — one grid, no exception for the
-      // top of the list.
-      paddingTop: ROW_GAP,
     },
     row: {
       flexDirection: 'row',
