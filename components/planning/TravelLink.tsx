@@ -50,7 +50,7 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
 
   return (
     <Animated.View style={[styles.wrapper, { opacity: enter }]}>
-      <View style={[styles.capsule, elevation.whisper]}>
+      <View style={styles.capsule}>
         <View style={[styles.trafficDot, { backgroundColor: trafficColor[travel.traffic] }]} />
         <Feather name="truck" size={13} color={palette.textTertiary} />
         <Text style={[styles.label, Numeric]}>
@@ -62,7 +62,10 @@ function TravelLinkBase({ travel, index = 0, onNavigate }: Props) {
         <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
             hitSlop={10}
-            style={styles.navButton}
+            // The one thing in the groove that lifts back out of it: the only
+            // action a travel leg offers now reads as raised against a
+            // recessed capsule.
+            style={[styles.navButton, elevation.whisper]}
             accessibilityRole="button"
             accessibilityLabel="Lancer l’itinéraire vers l’intervention suivante"
             onPressIn={onPressIn}
@@ -96,15 +99,20 @@ function createStyles(palette: PaletteShape) {
     wrapper: {
       justifyContent: 'center',
     },
+    // The road is CARVED INTO the paper, where a job is a sheet resting ON it.
+    // One material, opposite depths: `inset` is the palette's own
+    // pressed-into-the-page fill, and the capsule casts no shadow and carries
+    // no sheet edge — a connector has nothing to lift off. That single
+    // inversion is what makes a travel leg unmistakable at a glance, without
+    // touching its shape, its content or its colours. `cardMuted` on a
+    // hairline border was, by construction, a slightly greyer card.
     capsule: {
       flexDirection: 'row',
       alignItems: 'center',
       alignSelf: 'flex-start',
       minWidth: '66%',
-      backgroundColor: palette.cardMuted,
+      backgroundColor: palette.inset,
       borderRadius: Radius.pill,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: palette.border,
       paddingVertical: CAPSULE_PAD_Y,
       paddingLeft: Spacing.lg,
       paddingRight: CAPSULE_PAD_Y,
@@ -127,7 +135,7 @@ function createStyles(palette: PaletteShape) {
       width: Size.iconWellCompact,
       height: Size.iconWellCompact,
       borderRadius: Radius.pill,
-      backgroundColor: palette.blueSoft,
+      backgroundColor: palette.card,
       alignItems: 'center',
       justifyContent: 'center',
     },

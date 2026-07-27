@@ -60,7 +60,7 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
-  const { palette, scheme, resolvedTheme } = useTheme();
+  const { palette, resolvedTheme } = useTheme();
   const reducedMotion = useReducedMotion();
   const elevation = getElevation(resolvedTheme);
 
@@ -86,9 +86,13 @@ export function BottomDock({ activeIndex = 0 }: { activeIndex?: number }) {
           elevation.float,
           {
             backgroundColor: palette.dock,
-            // On night paper shadows vanish — a hairline edge keeps the
-            // capsule legible against the dark screen behind it.
-            borderColor: scheme === 'dark' ? palette.border : 'transparent',
+            // A hairline edge on every paper, not just the dark ones. On
+            // night paper it does the work the shadow cannot; on light paper
+            // it is the top edge catching the light — the detail that makes
+            // floating chrome read as a machined object rather than a shape
+            // sitting on the page. At hairline width against the paper's own
+            // border ink it is felt far more than it is seen.
+            borderColor: palette.border,
           },
         ]}
         accessibilityRole="tablist">

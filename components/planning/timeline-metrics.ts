@@ -33,8 +33,15 @@ export const GUTTER_WIDTH = 24;
 /** Length of the small horizontal branch handing a dotted row off to its card. */
 export const BRANCH_LEN = Spacing.sm;
 
-/** Hairline weight of the rail's marks — branches and segments alike. */
-export const RAIL_WEIGHT = 1.5;
+/**
+ * Weight of the rail's marks — branches and segments alike.
+ *
+ * 2, not a hairline: at 1.5 the marks read as rendering artefacts rather than
+ * as a deliberate line, and the eye lost the thread between a dot and its
+ * card. Two points is still quieter than any text on the screen, so the rail
+ * guides without ever competing with the cards.
+ */
+export const RAIL_WEIGHT = 2;
 
 /**
  * Vertical gap between two timeline rows — the single unit the whole screen's
@@ -50,8 +57,14 @@ export const RAIL_WEIGHT = 1.5;
  */
 export const ROW_GAP = Spacing.lg;
 
-/** Height of the small segment tick bridging two back-to-back dotted rows. */
-export const SEGMENT_LEN = 10;
+/**
+ * Height of the small segment tick bridging two back-to-back dotted rows.
+ *
+ * 12 of the 16-point gap, so the tick clearly SPANS the space between two
+ * rows instead of hovering in the middle of it, while keeping 2 points of air
+ * at each end so it never touches either dot.
+ */
+export const SEGMENT_LEN = 12;
 
 /** Diameter of a status marker (the largest dot form — the active beacon). */
 export const DOT_SIZE = 24;

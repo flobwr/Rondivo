@@ -6,7 +6,6 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useTheme } from '@/contexts/theme';
 import {
-  getElevation,
   Numeric,
   PressScale,
   Radius,
@@ -25,9 +24,15 @@ type Props = {
   onAdd?: () => void;
 };
 
-/** Diameter of the small "+" badge cut into the action disc. */
-const BADGE = 18;
-const BADGE_RING = 2;
+/**
+ * Diameter of the small "+" badge cut into the action disc.
+ *
+ * 16 with a 1.5 ring, down from 18/2: the badge was reading as a second
+ * object beside the title rather than a mark on the disc, and two competing
+ * shapes next to a 34 pt masthead is one too many.
+ */
+const BADGE = 16;
+const BADGE_RING = 1.5;
 
 /**
  * Where the badge sits on the disc — derived, not eyeballed.
@@ -52,19 +57,23 @@ const BADGE_INSET = Math.round(
  * vocabulary as Home's notification count.
  */
 function AddInterventionWell({ onPress }: { onPress?: () => void }) {
-  const { palette, resolvedTheme } = useTheme();
+  const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const elevation = getElevation(resolvedTheme);
 
   return (
     <PressableScale
       onPress={onPress}
       to={PressScale.control}
       accessibilityLabel="Ajouter une intervention"
-      style={[styles.action, elevation.whisper]}>
-      <Feather name="calendar" size={20} color={palette.onAccent} />
+      // No lift. The masthead is the one zone of the screen where nothing
+      // floats — the month sits flat on the paper, and a saturated disc that
+      // ALSO cast a shadow was pulling as hard as the title beside it. The
+      // disc keeps `Size.roundAction` so it stays the same object as Home's
+      // itinerary button; its presence is dialled back with light, not size.
+      style={styles.action}>
+      <Feather name="calendar" size={19} color={palette.onAccent} />
       <View style={styles.badge}>
-        <Feather name="plus" size={11} color={palette.blue} />
+        <Feather name="plus" size={10} color={palette.blue} />
       </View>
     </PressableScale>
   );

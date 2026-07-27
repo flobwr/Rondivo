@@ -35,16 +35,24 @@ type ElevationSet = {
   none: ViewStyle;
 };
 
+/**
+ * The ambient layer of every light tier travels further and blurs wider than
+ * it used to, at a LOWER opacity — the same quantity of ink spread over more
+ * distance. That is the difference between a sheet with a dark edge under it
+ * and a sheet genuinely floating above the paper: softness reads as height,
+ * darkness only reads as weight. The contact layer stays tight and faint; it
+ * is what keeps the card anchored rather than pasted.
+ */
 function lightSet(ink: string): ElevationSet {
   return {
     /** Chips, badges, icon wells, quick-action buttons — a breath of lift. */
-    whisper: { boxShadow: `0 1px 3px rgba(${ink}, 0.07), 0 4px 11px rgba(${ink}, 0.05)` },
+    whisper: { boxShadow: `0 1px 3px rgba(${ink}, 0.06), 0 6px 16px rgba(${ink}, 0.045)` },
     /** Standard sheet/card resting on the paper. */
-    card: { boxShadow: `0 2px 4px rgba(${ink}, 0.05), 0 10px 26px rgba(${ink}, 0.09)` },
+    card: { boxShadow: `0 2px 5px rgba(${ink}, 0.045), 0 14px 34px rgba(${ink}, 0.075)` },
     /** The screen's one dominant card. */
-    raised: { boxShadow: `0 4px 8px rgba(${ink}, 0.06), 0 22px 52px rgba(${ink}, 0.13)` },
+    raised: { boxShadow: `0 4px 10px rgba(${ink}, 0.05), 0 28px 64px rgba(${ink}, 0.11)` },
     /** Floating chrome: dock, FAB, sheets, popovers, modals. */
-    float: { boxShadow: `0 4px 10px rgba(${ink}, 0.10), 0 26px 60px rgba(${ink}, 0.20)` },
+    float: { boxShadow: `0 4px 12px rgba(${ink}, 0.09), 0 30px 70px rgba(${ink}, 0.18)` },
     none: {} as ViewStyle,
   };
 }

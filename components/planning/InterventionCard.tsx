@@ -203,31 +203,44 @@ function createStyles(palette: PaletteShape) {
       color: palette.textTertiary,
       textDecorationLine: 'line-through',
     },
+    // The status badge. Every number here is optical rather than round:
+    // 11 pt type needs a taller than wide bed to sit in a capsule without
+    // looking pinched (3 pt of lead under 11 pt of type read as squeezed), and
+    // small type set tight is what made it read as generic. Positive tracking
+    // is the single biggest difference between a label and a badge at this
+    // size — it is the same move a watch face makes on its smallest legends.
     chip: {
       borderRadius: Radius.pill,
-      paddingHorizontal: 9,
-      paddingVertical: 3,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
     },
     chipLabel: {
       fontSize: 11,
+      lineHeight: 13,
       fontWeight: '600',
-      letterSpacing: -0.1,
+      letterSpacing: 0.2,
     },
+    // Name and job are ONE pair, address is the metadata under it: 3 points
+    // inside the pair, 7 below it. They were 2 and 5 — too close to read as
+    // two levels, so the three lines flattened into one grey block.
     type: {
       ...Type.footnote,
       fontWeight: '500',
       color: palette.textSecondary,
-      marginTop: 2,
+      marginTop: 3,
     },
     addressRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
-      marginTop: 5,
+      marginTop: 7,
     },
+    // 12, not 12.5: at half a point under the job line the two were the same
+    // size wearing different colours. A full point of separation, plus the
+    // tertiary ink, puts the address firmly on the third level.
     address: {
       flex: 1,
-      fontSize: 12.5,
+      fontSize: 12,
       lineHeight: 16,
       color: palette.textTertiary,
     },

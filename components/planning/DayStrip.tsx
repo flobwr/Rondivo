@@ -183,9 +183,20 @@ function createStyles(palette: PaletteShape) {
   return StyleSheet.create({
     strip: {
       flexDirection: 'row',
-      // The same gutter as the masthead and the timeline: one vertical axis
-      // runs down the whole screen.
-      paddingHorizontal: Spacing.screen,
+      /**
+       * `lg`, not `screen` — and that is an ALIGNMENT fix, not a smaller
+       * margin.
+       *
+       * The cells divide the width evenly and each disc is centred in its
+       * cell, so padding the strip by the screen gutter (20) left the first
+       * disc's edge at 20 + (cell − disc) / 2 ≈ 24: the week's ink sat four
+       * points inside the title above it and the cards below it, and nothing
+       * on the screen shared a left edge with it. Padding by 16 lands that
+       * edge at ≈ 20.6 on a 390 pt screen — the gutter itself. The dates now
+       * start exactly where "Juillet" starts and end where a card ends, which
+       * is the one vertical axis the whole composition is built on.
+       */
+      paddingHorizontal: Spacing.lg,
     },
     cell: {
       flex: 1,
@@ -193,10 +204,15 @@ function createStyles(palette: PaletteShape) {
     cellInner: {
       alignItems: 'center',
     },
+    // 6, not 8: measured centre to centre, the name sat 38 points above its
+    // date while the date sat 31 above its activity dot — the column read as
+    // three loose rows rather than one day. Six closes it to 36 and binds the
+    // name to the number it belongs to, without touching the strip's height
+    // enough to move anything below it.
     dayLabel: {
       ...Type.footnote,
       fontWeight: '500',
-      marginBottom: Spacing.sm,
+      marginBottom: 6,
     },
     labelSkeleton: {
       width: 26,
