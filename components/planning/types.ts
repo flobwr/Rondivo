@@ -52,6 +52,11 @@ export type CalendarDay = {
   date: number;
   dayLabel: string; // 'Lun', 'Mar', …
   /**
+   * The day written out — 'Mercredi 1 juillet'. Feeds the masthead's date
+   * eyebrow, the slot Home fills with today's date.
+   */
+  longLabel: string;
+  /**
    * Whether the day holds at least one intervention — drives the small
    * activity dot under the date in the strip. Derived from the day's
    * scenario by the planning service, never authored by hand.

@@ -6,6 +6,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { SkeletonBlock } from '@/components/ui/Shimmer';
 import { useTheme } from '@/contexts/theme';
 import {
+  getElevation,
   Numeric,
   PressScale,
   Radius,
@@ -16,6 +17,8 @@ import {
 } from '@/theme';
 
 type Props = {
+  /** The selected day, written out — "MERCREDI 1 JUILLET". Home's date slot. */
+  eyebrow: string;
   /** The month the week belongs to — e.g. "Juillet 2026". */
   monthLabel: string;
   /** The one grounding fact about the selected day. Never a second title. */
@@ -25,138 +28,149 @@ type Props = {
 };
 
 /**
- * Diameter of the small "+" badge cut into the action disc.
+ * The add action — the same object as Home's itinerary button, at the same
+ * size, on the same paper, casting the same light.
  *
- * 16 with a 1.5 ring, down from 18/2: the badge was reading as a second
- * object beside the title rather than a mark on the disc, and two competing
- * shapes next to a 34 pt masthead is one too many.
- */
-const BADGE = 16;
-const BADGE_RING = 1.5;
-
-/**
- * Where the badge sits on the disc — derived, not eyeballed.
- *
- * Home's notification badge rides its well with its centre at 1.043 × the
- * well's radius, on the 45° diagonal: astride the edge, most of it outside,
- * its paper ring cutting a clean notch. Reproducing that RATIO (rather than
- * copying Home's `-3`) is what makes a badge read as belonging to its disc
- * instead of stuck onto it, at any disc size.
- */
-const BADGE_ORBIT = 1.043;
-const BADGE_INSET = Math.round(
-  ((Size.roundAction / 2) * BADGE_ORBIT) / Math.SQRT2 + BADGE / 2 - Size.roundAction / 2
-);
-
-/**
- * The add action, in the same object family as Home's itinerary button: one
- * perfectly round Bleu Rondivo disc at `Size.roundAction`, lifted on the
- * shared `whisper` tier — the same light every other control on the paper
- * casts. The glyph is a filled calendar rather than a bare "+", and the "+"
- * itself is a badge cut into the disc with a paper-coloured ring, the same
- * vocabulary as Home's notification count.
+ * One glyph, optically centred, and nothing else. It used to be a calendar
+ * with a small "+" badge cut into the edge of the disc: two shapes competing
+ * beside a 34 pt masthead, and the badge read as stuck ONTO the disc rather
+ * than as part of it. A round action in Rondivo carries exactly one mark —
+ * Home's itinerary disc carries an arrow, this one carries a plus.
  */
 function AddInterventionWell({ onPress }: { onPress?: () => void }) {
-  const { palette } = useTheme();
+  const { palette, resolvedTheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const elevation = getElevation(resolvedTheme);
 
   return (
     <PressableScale
       onPress={onPress}
       to={PressScale.control}
       accessibilityLabel="Ajouter une intervention"
-      // No lift. The masthead is the one zone of the screen where nothing
-      // floats — the month sits flat on the paper, and a saturated disc that
-      // ALSO cast a shadow was pulling as hard as the title beside it. The
-      // disc keeps `Size.roundAction` so it stays the same object as Home's
-      // itinerary button; its presence is dialled back with light, not size.
-      style={styles.action}>
-      <Feather name="calendar" size={19} color={palette.onAccent} />
-      <View style={styles.badge}>
-        <Feather name="plus" size={10} color={palette.blue} />
-      </View>
+      // `whisper` — the tier every round control in the app sits on, Home's
+      // itinerary button included. Same depth, same light, same object family.
+      style={[styles.action, elevation.whisper]}>
+      {/* 22, where Home's arrow is 19: Feather's plus fills its whole box
+          while the navigation glyph fills about four fifths of its own, so
+          matching the numbers would leave the two discs looking differently
+          weighted. Matched optically, not numerically. */}
+      <Feather name="plus" size={22} color={palette.onAccent} />
     </PressableScale>
   );
 }
 
 /**
- * Planning's masthead — the same composition as Home's, part for part.
+ * Planning's masthead — Home's composition, part for part.
  *
- * Home is: one title in `Type.masthead`, one grounding line under it, one
- * round action beside it, all on bare paper. Planning is now the same three
- * parts with the same metrics — the month where the greeting is, the day's
+ * Home is: a small-caps date eyebrow with the round controls beside it, then
+ * the day's headline in the largest type on the screen, then ONE grounding
+ * line. Planning is now the same three parts at the same metrics — the
+ * selected day where the date is, the month where the greeting is, the day's
  * one fact where the status line is, the add action where the wells are.
- * That is what makes the two screens read as one app; the month used to be a
- * 44 pt all-caps slab, which is a different typographic species from
- * anything else in Rondivo.
  *
- * There is deliberately no eyebrow: the month IS the title, and a small
- * "PLANNING" above it would only label a screen the dock already names.
+ * That structure is the point. A masthead is not a big word: it is a headline
+ * that has something small above it and something small under it, with air
+ * measured from Home. Set on its own with an action floating beside it, the
+ * month read as one very large piece of text rather than as the top of a page.
+ *
+ * There is deliberately no "PLANNING" eyebrow: the month IS the title, and a
+ * label above it would only name a screen the dock already names.
  */
-export function PlanningHeader({ monthLabel, summary, loading = false, onAdd }: Props) {
+export function PlanningHeader({
+  eyebrow,
+  monthLabel,
+  summary,
+  loading = false,
+  onAdd,
+}: Props) {
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
   return (
-    <View style={styles.row}>
-      <View style={styles.texts}>
+    <View style={styles.container}>
+      <View style={styles.topRow}>
         {loading ? (
-          <>
-            <SkeletonBlock height={30} radius={10} style={styles.titleSkeleton} />
-            <SkeletonBlock height={14} radius={6} style={styles.summarySkeleton} />
-          </>
+          <SkeletonBlock height={12} radius={6} style={styles.eyebrowSkeleton} />
         ) : (
-          <>
-            <Text
-              style={styles.title}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}>
-              {monthLabel}
-            </Text>
-            <Text style={styles.summary} numberOfLines={1}>
-              {summary}
-            </Text>
-          </>
+          <Text style={styles.eyebrow} numberOfLines={1}>
+            {eyebrow}
+          </Text>
         )}
+
+        <AddInterventionWell onPress={onAdd} />
       </View>
 
-      <AddInterventionWell onPress={onAdd} />
+      {loading ? (
+        <>
+          <SkeletonBlock height={30} radius={10} style={styles.titleSkeleton} />
+          <SkeletonBlock height={14} radius={6} style={styles.summarySkeleton} />
+        </>
+      ) : (
+        <>
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}>
+            {monthLabel}
+          </Text>
+          <Text style={styles.summary} numberOfLines={1}>
+            {summary}
+          </Text>
+        </>
+      )}
     </View>
   );
 }
 
 function createStyles(palette: PaletteShape) {
   return StyleSheet.create({
-    row: {
+    container: {
+      paddingHorizontal: Spacing.screen,
+      paddingTop: Spacing.lg,
+      // The same air Home puts between its masthead and the first thing under
+      // it — the week is a section of this page, not a strip bolted to the
+      // title.
+      paddingBottom: Spacing.section,
+    },
+    // Home's eyebrow row, to the token: the date on the left, the round
+    // control(s) on the right, vertically centred on each other.
+    topRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: Spacing.md,
-      paddingHorizontal: Spacing.screen,
-      paddingTop: Spacing.lg,
-      paddingBottom: Spacing.lg,
     },
-    texts: {
-      flex: 1,
+    eyebrow: {
+      ...Type.caption,
+      flexShrink: 1,
+      color: palette.textTertiary,
+      fontWeight: '700',
+      letterSpacing: 1.4,
+      ...Numeric,
     },
+    // The masthead ramp is shared with Home's greeting — see `Type.masthead`.
+    // 18 above it and 6 under it are Home's own numbers, not new ones.
     title: {
       ...Type.masthead,
       color: palette.textPrimary,
+      marginTop: 18,
     },
-    // Same slot, same offset as Home's status line: one fact, never a tally
-    // of everything on the screen.
     summary: {
       ...Type.subhead,
       color: palette.textSecondary,
       marginTop: 6,
       ...Numeric,
     },
-    // Sized to occupy exactly the two text slots above (40 + 26), so nothing
-    // moves when the real month lands.
+    // Each skeleton occupies exactly its real slot, so nothing moves when the
+    // week lands.
+    eyebrowSkeleton: {
+      width: '46%',
+      marginVertical: 4,
+    },
     titleSkeleton: {
       width: '62%',
-      marginTop: 5,
+      marginTop: 23,
       marginBottom: 5,
     },
     summarySkeleton: {
@@ -169,19 +183,6 @@ function createStyles(palette: PaletteShape) {
       height: Size.roundAction,
       borderRadius: Radius.pill,
       backgroundColor: palette.blue,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    badge: {
-      position: 'absolute',
-      bottom: -BADGE_INSET,
-      right: -BADGE_INSET,
-      width: BADGE,
-      height: BADGE,
-      borderRadius: Radius.pill,
-      borderWidth: BADGE_RING,
-      borderColor: palette.screen,
-      backgroundColor: palette.float,
       alignItems: 'center',
       justifyContent: 'center',
     },

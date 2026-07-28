@@ -9,13 +9,13 @@ export const SELECTED_DAY_INDEX = 2; // Wednesday the 1st
  * two sources of truth for the same fact, free to drift apart.
  */
 export const CALENDAR_DAYS: Omit<CalendarDay, 'hasInterventions'>[] = [
-  { date: 29, dayLabel: 'Lun' },
-  { date: 30, dayLabel: 'Mar' },
-  { date: 1, dayLabel: 'Mer' },
-  { date: 2, dayLabel: 'Jeu' },
-  { date: 3, dayLabel: 'Ven' },
-  { date: 4, dayLabel: 'Sam' },
-  { date: 5, dayLabel: 'Dim' },
+  { date: 29, dayLabel: 'Lun', longLabel: 'Lundi 29 juin' },
+  { date: 30, dayLabel: 'Mar', longLabel: 'Mardi 30 juin' },
+  { date: 1, dayLabel: 'Mer', longLabel: 'Mercredi 1 juillet' },
+  { date: 2, dayLabel: 'Jeu', longLabel: 'Jeudi 2 juillet' },
+  { date: 3, dayLabel: 'Ven', longLabel: 'Vendredi 3 juillet' },
+  { date: 4, dayLabel: 'Sam', longLabel: 'Samedi 4 juillet' },
+  { date: 5, dayLabel: 'Dim', longLabel: 'Dimanche 5 juillet' },
 ];
 
 const MONDAY: DayScenario = {

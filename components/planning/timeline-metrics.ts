@@ -58,16 +58,32 @@ export const RAIL_WEIGHT = 2;
 export const ROW_GAP = Spacing.lg;
 
 /**
- * Height of the small segment tick bridging two back-to-back dotted rows.
+ * The rail's rhythm — a dotted line, never a bar.
  *
- * 12 of the 16-point gap, so the tick clearly SPANS the space between two
- * rows instead of hovering in the middle of it, while keeping 2 points of air
- * at each end so it never touches either dot.
+ * The rail used to be a single 12 pt tick that appeared *only* between two
+ * back-to-back dotted rows, which on a normal day (every job separated by a
+ * trajet) meant the day had no spine at all. It now runs the whole day, from
+ * the first marker to the last, as short marks at a fixed pitch: 4 of ink
+ * every 10 points, whatever the row heights in between.
+ *
+ * Short and airy is what makes it read as fine. A longer dash at the same
+ * weight reads as a broken line — the eye tries to join it up; at 4/6 it
+ * reads as a rhythm, which is quieter than any text on the screen.
  */
-export const SEGMENT_LEN = 12;
+export const SEGMENT_LEN = 4;
+export const SEGMENT_GAP = 6;
 
 /** Diameter of a status marker (the largest dot form — the active beacon). */
 export const DOT_SIZE = 24;
+
+/**
+ * Air kept between the rail and a marker, measured from the marker's centre.
+ *
+ * Derived from the largest dot form so the rail clears every marker by the
+ * same amount — the break around a done tick and around the active beacon has
+ * to look identical.
+ */
+export const RAIL_CLEARANCE = DOT_SIZE / 2 + 4;
 
 /** Height of the "Maintenant" row. */
 export const NOW_ROW_HEIGHT = 28;

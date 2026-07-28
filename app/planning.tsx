@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +16,7 @@ import { Timeline } from '@/components/planning/Timeline';
 import { DayScenario } from '@/components/planning/types';
 import { ROW_GAP } from '@/components/planning/timeline-metrics';
 import { createThemedStyles, Palette, SettleSpring, Spacing, Timing } from '@/theme';
+import { useTheme } from '@/contexts/theme';
 import { useAsyncItem } from '@/hooks/use-async-item';
 import { getWeekPlanning } from '@/services/planning';
 
@@ -47,6 +49,7 @@ function summarise(scenario: DayScenario): string {
 
 export default function PlanningScreen() {
   const router = useRouter();
+  const { palette } = useTheme();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   // Height of the floating composition, measured rather than guessed: it is
   // what holds the day's first card clear of the week at rest, and it changes
@@ -121,6 +124,11 @@ export default function PlanningScreen() {
       ? (planning.scenariosByDayIndex[selectedDay] ?? { items: [] })
       : { items: [] };
 
+  // The masthead's date eyebrow — Home shows today, Planning shows the day
+  // the week is pointing at, so the two headers read the same way.
+  const selectedDayLabel =
+    planning && selectedDay !== null ? (planning.days[selectedDay]?.longLabel ?? '') : '';
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -157,25 +165,27 @@ export default function PlanningScreen() {
             </Animated.View>
           </GestureDetector>
 
-          {/* The composition floats above the day, and the page passes through
-              it from one exact line: the bottom of the masthead.
+          {/* The composition floats above the day, which scrolls UNDER it and
+              dissolves into the paper at its edge — exactly the way the page
+              passes under the floating dock at the other end of the screen.
 
-              ABOVE that line — the month, its grounding line, the add action —
-              the paper is solid, so nothing scrolls through the title.
-              BELOW it the week has NO surface whatsoever: not a card, not a
-              capsule, not a scrim, not even a band of paper. Cards travel
-              BETWEEN the week and the page and stay fully visible as they pass
-              behind the dates, which is only possible because the glyphs are
-              the only thing that exists down there.
+              There is still no card, no capsule, no rectangle and no section
+              behind the week: what the dates sit on is the page itself, the
+              same colour as everything around it, so the boundary is invisible
+              while nothing is moving. The week briefly went fully transparent
+              instead, and cards genuinely passed behind the dates — but a
+              travel leg's "14 min · 6,1 km" landing on top of "Lun Mar Mer" is
+              text over text. Legibility is not a style preference.
 
-              `box-none` so the day scrolls under the empty space between the
-              dates; only the cells and the add action take a touch. */}
+              `box-none` so touches on the empty space between the dates still
+              reach the day; only the cells and the add action take one. */}
           <View
             style={styles.composition}
             pointerEvents="box-none"
             onLayout={(e) => setCompositionHeight(e.nativeEvent.layout.height)}>
             <View style={styles.masthead}>
               <PlanningHeader
+                eyebrow={selectedDayLabel.toUpperCase()}
                 monthLabel={planning?.monthLabel ?? ''}
                 summary={summarise(scenario)}
                 loading={isLoading}
@@ -189,6 +199,16 @@ export default function PlanningScreen() {
                 onSelectDay={handleSelectDay}
               />
             </View>
+
+            {/* The one soft edge of the screen. It hangs BELOW the composition
+                (`top: 100%`), so it costs the layout nothing and, at rest,
+                covers exactly the day's own top gap — the first card is never
+                under it until it starts moving. */}
+            <LinearGradient
+              pointerEvents="none"
+              colors={[palette.screen, `${palette.screen}00`]}
+              style={styles.edgeFade}
+            />
           </View>
         </Animated.View>
       </SafeAreaView>
@@ -216,19 +236,27 @@ const styles = createThemedStyles(() => StyleSheet.create({
   // of the measured height, so it holds whether the day is at rest or not.
   calendar: {
     paddingBottom: Spacing.section - ROW_GAP,
+    backgroundColor: Palette.screen,
   },
-  // Floating, and deliberately without `backgroundColor`: only the masthead
-  // inside it is opaque, so the page shows through from the week down.
   composition: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
   },
-  // Solid paper — the exact colour of the page, so the boundary is invisible
-  // while nothing is moving. This is where the transparency starts: the day
-  // passes behind the week below it and is hidden behind the title above it.
+  // Paper, the exact colour of the page — so there is no visible surface here
+  // at all, only the page continuing. Not a card, not a capsule: the dates sit
+  // on the same sheet as everything else.
   masthead: {
     backgroundColor: Palette.screen,
+  },
+  // Hangs below the composition rather than inside it, so it adds nothing to
+  // the measured height and the day keeps its exact resting position.
+  edgeFade: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    height: ROW_GAP,
   },
 }));

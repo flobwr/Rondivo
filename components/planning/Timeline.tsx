@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useMemo } from 'react';
-import { FlatList, ListRenderItemInfo, StyleSheet, Text, View } from 'react-native';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { LayoutChangeEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Numeric, Radius, Spacing, Type, type PaletteShape } from '@/theme';
 import { useTheme } from '@/contexts/theme';
@@ -18,8 +18,10 @@ import {
   GUTTER_WIDTH,
   LIST_PADDING_H,
   NOW_ROW_HEIGHT,
+  RAIL_CLEARANCE,
   RAIL_WEIGHT,
   ROW_GAP,
+  SEGMENT_GAP,
   SEGMENT_LEN,
 } from './timeline-metrics';
 import { TravelLink } from './TravelLink';
@@ -92,15 +94,12 @@ type Row =
   | { key: string; kind: 'break'; brk: BreakSlot }
   | { key: string; kind: 'now'; timeLabel: string };
 
-/**
- * `showSegment` replaces what used to be a continuous vertical rail threading
- * the whole day: a tiny discrete tick now appears only between two
- * back-to-back dotted rows (an intervention, a break, the "now" marker) with
- * no travel leg between them. The common case — every job separated by a
- * trajet — stays completely silent; the travel capsule alone carries the
- * sequence, and the timeline never competes with the cards for attention.
- */
-type PositionedRow = Row & { showSegment: boolean; isLastRow: boolean };
+type PositionedRow = Row & { isLastRow: boolean };
+
+/** Rows that carry a marker on the rail — everything except a travel leg. */
+function hasDot(row: Row): boolean {
+  return row.kind !== 'travel';
+}
 
 /** The intervention "now" points at: the active one, else the next planned. */
 function findNowIndex(items: DayItem[]): number {
@@ -143,7 +142,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
 
   const dotCenter = DOT_CENTER[row.kind] ?? DOT_CENTER.card;
   const rowStyle = [styles.row, !row.isLastRow ? { paddingBottom: ROW_GAP } : null];
-  const segment = row.showSegment ? <View style={styles.segment} /> : null;
 
   const dotAnchor = (child: React.ReactNode) => (
     <View style={[styles.dotAnchor, { top: dotCenter - DOT_SIZE / 2 }]}>{child}</View>
@@ -170,7 +168,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
             <View style={styles.nowLine} />
             <Text style={[styles.nowTime, Numeric]}>{row.timeLabel}</Text>
           </View>
-          {segment}
         </View>
       );
 
@@ -207,7 +204,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
               )}
             </LivingCard>
           </View>
-          {segment}
         </View>
       );
 
@@ -228,7 +224,6 @@ function TimelineRow({ row, onPressIntervention }: { row: PositionedRow; onPress
               {row.brk.start} – {row.brk.end}
             </Text>
           </View>
-          {segment}
         </View>
       );
 
@@ -255,16 +250,14 @@ export function Timeline({ items, nowMin, topInset = 0 }: Props) {
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const dockClearance = useBottomDockClearance(0);
+  // Where each row sits inside the stack — the rail is drawn from measured
+  // positions rather than assumed ones, because a day's rows have four
+  // different heights and any of them can wrap.
+  const [offsets, setOffsets] = useState<Record<string, number>>({});
 
   const rows = useMemo<PositionedRow[]>(() => {
     const base = buildRows(items, nowMin);
-    const hasDot = (r: Row) => r.kind !== 'travel';
-
-    return base.map((row, index) => {
-      const next = base[index + 1];
-      const showSegment = hasDot(row) && !!next && hasDot(next);
-      return { ...row, showSegment, isLastRow: index === base.length - 1 };
-    });
+    return base.map((row, index) => ({ ...row, isLastRow: index === base.length - 1 }));
   }, [items, nowMin]);
 
   const onPressIntervention = useCallback(
@@ -272,26 +265,64 @@ export function Timeline({ items, nowMin, topInset = 0 }: Props) {
     [router]
   );
 
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<PositionedRow>) => <MemoRow row={item} onPressIntervention={onPressIntervention} />,
-    [onPressIntervention]
+  const handleRowLayout = useCallback(
+    (key: string) => (event: LayoutChangeEvent) => {
+      const { y } = event.nativeEvent.layout;
+      setOffsets((previous) => (previous[key] === y ? previous : { ...previous, [key]: y }));
+    },
+    []
   );
-  const keyExtractor = useCallback((row: PositionedRow) => row.key, []);
+
+  /**
+   * The rail, computed once for the whole day.
+   *
+   * Drawing it per row is what made it irregular: every row restarts the
+   * rhythm at its own top edge, so the marks bunch or gap at each boundary and
+   * the eye catches it immediately. Measured end to end, the pitch is constant
+   * from the first marker to the last whatever happens in between.
+   */
+  const rail = useMemo(() => {
+    const dotted = rows.filter(hasDot);
+    if (dotted.length < 2) return null;
+
+    const first = dotted[0];
+    const last = dotted[dotted.length - 1];
+    const firstY = offsets[first.key];
+    const lastY = offsets[last.key];
+    if (firstY === undefined || lastY === undefined) return null;
+
+    const top = firstY + (DOT_CENTER[first.kind] ?? DOT_CENTER.card) + RAIL_CLEARANCE;
+    const bottom = lastY + (DOT_CENTER[last.kind] ?? DOT_CENTER.card) - RAIL_CLEARANCE;
+    const height = bottom - top;
+    const pitch = SEGMENT_LEN + SEGMENT_GAP;
+    if (height < pitch) return null;
+
+    return { top, height, count: Math.floor((height + SEGMENT_GAP) / pitch) };
+  }, [rows, offsets]);
 
   return (
-    <FlatList
-      data={rows}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
+    <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={[
         styles.listContent,
         { paddingTop: ROW_GAP + topInset, paddingBottom: dockClearance },
-      ]}
-      initialNumToRender={8}
-      maxToRenderPerBatch={8}
-      windowSize={7}
-    />
+      ]}>
+      <View style={styles.stack}>
+        {rail ? (
+          <View pointerEvents="none" style={[styles.rail, { top: rail.top, height: rail.height }]}>
+            {Array.from({ length: rail.count }, (_, index) => (
+              <View key={index} style={styles.segment} />
+            ))}
+          </View>
+        ) : null}
+
+        {rows.map((row) => (
+          <View key={row.key} onLayout={handleRowLayout(row.key)}>
+            <MemoRow row={row} onPressIntervention={onPressIntervention} />
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -306,20 +337,31 @@ function createStyles(palette: PaletteShape) {
     listContent: {
       paddingHorizontal: LIST_PADDING_H,
     },
+    // The rows and the rail share one coordinate space; the rail is the first
+    // child so every marker paints over it, and each dot form carries a ring
+    // in the paper's own colour — that is what breaks the rhythm cleanly
+    // around a dot instead of stopping it short of one.
+    stack: {
+      position: 'relative',
+    },
     row: {
       flexDirection: 'row',
     },
     gutter: {
       width: GUTTER_WIDTH,
     },
-    // A small discrete tick — never a rail — bridging two back-to-back dotted
-    // rows. Centred in the row's own bottom gap, well clear of both dots, and
-    // drawn at the same hairline weight as the branches so every mark the rail
-    // makes has one thickness.
-    segment: {
+    // The day's spine: short marks at a fixed pitch, running the whole day
+    // from the first marker to the last. Never a continuous line — a bar down
+    // the side of the screen competes with the cards; a rhythm does not.
+    rail: {
       position: 'absolute',
       left: (GUTTER_WIDTH - RAIL_WEIGHT) / 2,
-      bottom: (ROW_GAP - SEGMENT_LEN) / 2,
+      width: RAIL_WEIGHT,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SEGMENT_GAP,
+    },
+    segment: {
       width: RAIL_WEIGHT,
       height: SEGMENT_LEN,
       borderRadius: Radius.pill,
